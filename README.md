@@ -11,5 +11,3 @@
 ## Building
 
 * `docker build -t lsstsqre/jupyterlabdemo .`
-`
-

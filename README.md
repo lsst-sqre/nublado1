@@ -2,11 +2,11 @@
 
 ## Running
 
-* `docker run -it --rm -p 8888:8888 --name jupyterlabdemo
+* `docker run -it --rm -p 8000:8000 --name jupyterlabdemo
   lsstsqre/jupyterlabdemo`
    
-* Then get the token from the last line of console output, and go to
-  that `localhost:8888` address. 
+* Go to `http://localhost:8000` and log in as `jupyterlab`, any password
+  or none (obviously this is not going to stick around to production).
 
 ## Building
 

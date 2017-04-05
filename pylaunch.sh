@@ -1,6 +1,8 @@
 #!/bin/bash
+set -x
+echo "Args: $1 $2"
 export PATH=/opt/conda/bin:$PATH
-source activate py3
+source activate $1
 source eups-setups.sh
 setup lsst_distrib
-jupyterhub --debug -f /home/jupyterlab/jupyterhub_config.py
+/usr/local/bin klaunch $2

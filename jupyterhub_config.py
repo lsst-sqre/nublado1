@@ -661,7 +661,6 @@ c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT',
                       'SHAPELET_DIR', 'SKYMAP_DIR', 'SKYPIX_DIR',
                       'SQLALCHEMY_DIR', 'STSCI_DISTUTILS_DIR', 'SWIG_DIR',
                       'TMV_DIR', 'UTILS_DIR', 'WCSLIB_DIR', 'XPA_DIR']
-#c.Spawner.cmd = ['/home/jupyterlab/spawnlab.bash']
 c.Spawner.cmd = ['jupyterhub-singleuser']
 c.Spawner.default_url = '/lab'
 c.Spawner.notebook_dir = 'data'

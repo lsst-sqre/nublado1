@@ -2,7 +2,7 @@ FROM       centos:7
 MAINTAINER sqre-admin
 LABEL      description="jupyterlab demo" \
            name="lsstsqre/jupyterlabdemo" \
-           version="0.0.6C"
+           version="0.0.6"
 ENV	   CONDA_VER="https://repo.continuum.io/miniconda/Miniconda3-latest"
 ENV        CONDA_ARCH="Linux-x86_64.sh"
 USER       root

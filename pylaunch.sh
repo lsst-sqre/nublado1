@@ -5,4 +5,4 @@ export PATH=/opt/conda/bin:$PATH
 source activate $1
 source eups-setups.sh
 setup lsst_distrib
-/usr/local/bin klaunch $2
+exec python -m ipykernel -f $2

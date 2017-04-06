@@ -1,10 +1,8 @@
 {
  "language": "python",
     "argv": [
-	"python",
-	"-m",
-	"ipykernel_launcher",
-	"-f",
+	"/usr/local/bin/pylaunch.sh",
+	"py3",
 	"{connection_file}"
     ],
     "display_name": "Python 3"

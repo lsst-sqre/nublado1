@@ -1,9 +1,0 @@
-{
- "language": "python",
-    "argv": [
-	"/usr/local/bin/pylaunch.sh",
-	"py2",
-	"{connection_file}"
-    ],
-    "display_name": "Python 2"
-}

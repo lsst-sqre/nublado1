@@ -1,6 +1,5 @@
 #!/bin/bash
-export PATH=/opt/conda/bin:$PATH
-source activate py3
-source eups-setups.sh
-setup lsst_distrib
-jupyterhub --debug -f /home/jupyterlab/jupyterhub_config.py
+
+. virtualenvwrapper.sh
+workon py3
+exec jupyterhub --debug -f ${HOME}/jupyterhub_config.py

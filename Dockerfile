@@ -21,7 +21,8 @@ COPY ./run-jupyterhub.bash .
 RUN  . virtualenvwrapper.sh && \
      mkvirtualenv -p $(which python3) py3 && \
      pip install jupyterhub jupyterlab ipykernel \
-       jupyterhub-dummyauthenticator
+       jupyterhub-dummyauthenticator && \
+     jupyter serverextension enable --py jupyterlab --sys-prefix       
 RUN /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
        -m ipykernel install --prefix $HOME/.virtualenvs/py3 --name 'LSST_Stack'
 COPY lsst_kernel.json \
@@ -29,4 +30,4 @@ COPY lsst_kernel.json \
 COPY py3_kernel.json \
        .virtualenvs/py3/share/jupyter/kernels/python3/kernel.json
 RUN  mkdir -p data       
-CMD  [ "/bin/bash", "--login" ]
+CMD  [ "./run-jupyterhub.bash" ]

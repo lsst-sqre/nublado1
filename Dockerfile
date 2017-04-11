@@ -1,8 +1,4 @@
 FROM lsstsqre/centos:7-stack-lsst_distrib-v13_0
-MAINTAINER sqre-admin
-LABEL      description="jupyterlab demo" \
-           name="lsstsqre/jupyterlabdemo" \
-           version="0.0.7C"
 USER root
 RUN  yum install -y epel-release
 RUN  yum repolist
@@ -14,12 +10,23 @@ RUN  pip2 install virtualenv virtualenvwrapper
 RUN  npm install -g configurable-http-proxy
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install ipykernel jupyterlab
-USER vagrant
+RUN  useradd -d /home/jupyterlab -m jupyterlab
+#USER vagrant
+USER jupyterlab
+WORKDIR /home/jupyterlab
+ENV  LANG=C.UTF-8
 COPY jupyterhub_config.py .
+COPY lsstlaunch.sh .
+COPY ./run-jupyterhub.bash .
 RUN  . virtualenvwrapper.sh && \
      mkvirtualenv -p $(which python3) py3 && \
-     pip install jupyterhub jupyterlab jupyterhub-dummyauthenticator && \
-     /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
-      -m ipykernel install --prefix $HOME/.virtualenvs/py3 --name 'LSST_Stack'
-RUN  mkdir ./data
+     pip install jupyterhub jupyterlab ipykernel \
+       jupyterhub-dummyauthenticator
+RUN /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
+       -m ipykernel install --prefix $HOME/.virtualenvs/py3 --name 'LSST_Stack'
+COPY lsst_kernel.json \
+       .virtualenvs/py3/share/jupyter/kernels/lsst_stack/kernel.json
+COPY py3_kernel.json \
+       .virtualenvs/py3/share/jupyter/kernels/python3/kernel.json
+RUN  mkdir -p data       
 CMD  [ "/bin/bash", "--login" ]

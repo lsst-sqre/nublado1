@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jld
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: jld
+    spec:
+      containers:
+
+        - name: jld
+          imagePullPolicy: "Always"
+          image: "lsstsqre/jupyterlabdemo"
+          ports:
+            -
+              containerPort: 8000
+              name: jld
+          env:
+            - name: LOGLEVEL
+              value: INFO

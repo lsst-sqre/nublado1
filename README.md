@@ -21,3 +21,11 @@
 ## Building
 
 * `docker build -t lsstsqre/jupyterlabdemo .`
+
+## Kubernetes
+
+* The files in the `kubernetes` directory create a pod and service for
+  jupyterlabdemo.  It's intended to run behind SSL termination at a
+  reverse proxy; we're using
+  https://github.com/lsst-sqre/k8s-jupyterlabdemo-nginx for that
+  purpose.

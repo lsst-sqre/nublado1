@@ -4,10 +4,9 @@
 
 * `docker run -it --rm -p 8000:8000 --name jupyterlabdemo
   lsstsqre/jupyterlabdemo`
-   
-* Go to `http://localhost:8000` and log in as `jupyterlab`, any password
-  or none (obviously this is not going to stick around to production).
-  
+
+* You can log in with local (PAM) authentication.
+
 ### Notebook
 
 * Choose `LSST_Stack` as your Python kernel.  Then you can `import lsst`
@@ -29,3 +28,12 @@
   reverse proxy; we're using
   https://github.com/lsst-sqre/k8s-jupyterlabdemo-nginx for that
   purpose.
+
+* Put it behind an actual URL, and set up a GitHub application and
+  environment variables as described at
+  https://github.com/jupyterhub/oauthenticator 
+  
+* Additionally define the GITHUB_ORGANIZATION_WHITELIST environment
+  variable with a comma-separated list of organizations whose members
+  should be allowed to log in.
+

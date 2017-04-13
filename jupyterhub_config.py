@@ -580,11 +580,12 @@
 # The name of the PAM service to use for authentication
 #c.PAMAuthenticator.service = 'login'
 
-# Don't run this in production
-c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
 # This horror is to preserve the EUPS env vars
 c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT',
                       'CONDA_DEFAULT_ENV', 'VIRTUAL_ENV', 'LANG', 'LC_ALL',
+                      'GITHUB_ORGANIZATION_WHITELIST',
+                      'OAUTH_CALLBACK_URL', 'GITHUB_CLIENT_ID',
+                      'GITHUB_CLIENT_SECRET',
                       'ACTIVEMQCPP_DIR', 'AFW_DIR', 'APR_DIR', 'APR_UTIL_DIR',
                       'ASTROMETRY_NET_DATA_DIR', 'ASTROMETRY_NET_DIR',
                       'ASTROPY_DIR', 'BASE_DIR', 'BOOST_DIR', 'CAT_DIR',
@@ -663,5 +664,16 @@ c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT',
                       'TMV_DIR', 'UTILS_DIR', 'WCSLIB_DIR', 'XPA_DIR']
 c.Spawner.cmd = ['jupyterhub-singleuser']
 c.Spawner.default_url = '/lab'
-c.Spawner.notebook_dir = 'data'
 c.Spawner.args = ['--debug']
+
+# Authentication
+# Don't run this in production
+# c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+c.JupyterHub.authenticator_class = 'ghowlauth.LocalGHOWLAuthenticator'
+#c.JupyterHub.authenticator_class = 'oauthenticator.LocalGitHubOAuthenticator'
+c.LocalAuthenticator.add_user_cmd = ['adduser', '-m']
+c.LocalAuthenticator.create_system_users = True
+import os
+c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+c.GitHubOAuthenticator.client_id = os.environ['GITHUB_CLIENT_ID']
+c.GitHubOAuthenticator.client_secret = os.environ['GITHUB_CLIENT_SECRET']

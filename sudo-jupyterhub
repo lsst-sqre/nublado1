@@ -1,0 +1,2 @@
+Cmnd_Alias JL = /home/jupyterlab/.virtualenvs/py3/bin/jupyterhub -f /home/jupyterlab/jupyterhub_config.py, /home/jupyterlab/.virtualenvs/py3/bin/jupyterhub --debug -f /home/jupyterlab/jupyterhub_config.py
+jupyterlab ALL=(root) NOPASSWD: JL

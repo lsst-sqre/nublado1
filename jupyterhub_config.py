@@ -7,13 +7,13 @@
 # This is an application.
 
 # The date format used by logging formatters for %(asctime)s
-# c.Application.log_datefmt = '%Y-%m-%d %H:%M:%S'
+#c.Application.log_datefmt = '%Y-%m-%d %H:%M:%S'
 
 # The Logging format template
-# c.Application.log_format = '[%(name)s]%(highlevel)s %(message)s'
+#c.Application.log_format = '[%(name)s]%(highlevel)s %(message)s'
 
 # Set the log level by value or name.
-# c.Application.log_level = 30
+#c.Application.log_level = 30
 
 #------------------------------------------------------------------------------
 # JupyterHub(Application) configuration
@@ -24,13 +24,13 @@
 # Grant admin users permission to access single-user servers.
 #
 #  Users should be properly informed if this is enabled.
-# c.JupyterHub.admin_access = False
+#c.JupyterHub.admin_access = False
 
 # DEPRECATED, use Authenticator.admin_users instead.
-# c.JupyterHub.admin_users = set()
+#c.JupyterHub.admin_users = set()
 
 # Answer yes to any questions (e.g. confirm overwrite)
-# c.JupyterHub.answer_yes = False
+#c.JupyterHub.answer_yes = False
 
 # PENDING DEPRECATION: consider using service_tokens
 #
@@ -41,7 +41,7 @@
 #
 #  Consider using service_tokens for general services that talk to the JupyterHub
 #  API.
-# c.JupyterHub.api_tokens = {}
+#c.JupyterHub.api_tokens = {}
 
 # Class for authenticating users.
 #
@@ -54,10 +54,10 @@
 #  - takes two arguments: (handler, data),
 #    where `handler` is the calling web.RequestHandler,
 #    and `data` is the POST form data from the login page.
-# c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
+#c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
 
 # The base URL of the entire application
-# c.JupyterHub.base_url = '/'
+#c.JupyterHub.base_url = '/'
 
 # Whether to shutdown the proxy when the Hub shuts down.
 #
@@ -70,7 +70,7 @@
 #  only shutdown the Hub, leaving everything else running.
 #
 #  The Hub should be able to resume from database state.
-# c.JupyterHub.cleanup_proxy = True
+#c.JupyterHub.cleanup_proxy = True
 
 # Whether to shutdown single-user servers when the Hub shuts down.
 #
@@ -81,68 +81,67 @@
 #  shutdown the Hub, leaving everything else running.
 #
 #  The Hub should be able to resume from database state.
-# c.JupyterHub.cleanup_servers = True
+#c.JupyterHub.cleanup_servers = True
 
 # The config file to load
-# c.JupyterHub.config_file = 'jupyterhub_config.py'
+#c.JupyterHub.config_file = 'jupyterhub_config.py'
 
 # DEPRECATED: does nothing
-# c.JupyterHub.confirm_no_ssl = False
+#c.JupyterHub.confirm_no_ssl = False
 
 # Number of days for a login cookie to be valid. Default is two weeks.
-# c.JupyterHub.cookie_max_age_days = 14
+#c.JupyterHub.cookie_max_age_days = 14
 
 # The cookie secret to use to encrypt cookies.
 #
 #  Loaded from the JPY_COOKIE_SECRET env variable by default.
-# c.JupyterHub.cookie_secret = b''
+#c.JupyterHub.cookie_secret = b''
 
 # File in which to store the cookie secret.
-# c.JupyterHub.cookie_secret_file = 'jupyterhub_cookie_secret'
+#c.JupyterHub.cookie_secret_file = 'jupyterhub_cookie_secret'
 
 # The location of jupyterhub data files (e.g. /usr/local/share/jupyter/hub)
-# c.JupyterHub.data_files_path =
-# '/Users/adam/Documents/src/Venvs/jupyterhub/share/jupyter/hub'
+#c.JupyterHub.data_files_path = '/Users/adam/Documents/src/Venvs/jupyterhub/share/jupyter/hub'
 
 # Include any kwargs to pass to the database connection. See
 #  sqlalchemy.create_engine for details.
-# c.JupyterHub.db_kwargs = {}
+#c.JupyterHub.db_kwargs = {}
 
 # url for the database. e.g. `sqlite:///jupyterhub.sqlite`
-# c.JupyterHub.db_url = 'sqlite:///jupyterhub.sqlite'
+#c.JupyterHub.db_url = 'sqlite:///jupyterhub.sqlite'
 
 # log all database transactions. This has A LOT of output
-# c.JupyterHub.debug_db = False
+#c.JupyterHub.debug_db = False
 
 # show debug output in configurable-http-proxy
-# c.JupyterHub.debug_proxy = False
+#c.JupyterHub.debug_proxy = False
 
 # Send JupyterHub's logs to this file.
 #
 #  This will *only* include the logs of the Hub itself, not the logs of the proxy
 #  or any single-user servers.
-# c.JupyterHub.extra_log_file = ''
+#c.JupyterHub.extra_log_file = ''
 
 # Extra log handlers to set on JupyterHub logger
-# c.JupyterHub.extra_log_handlers = []
+#c.JupyterHub.extra_log_handlers = []
 
 # Generate default config file
-# c.JupyterHub.generate_config = False
+#c.JupyterHub.generate_config = False
 
 # The ip for this process
-# c.JupyterHub.hub_ip = '127.0.0.1'
+#c.JupyterHub.hub_ip = '127.0.0.1'
 
 # The port for this process
-# c.JupyterHub.hub_port = 8081
+#c.JupyterHub.hub_port = 8081
 
 # The public facing ip of the whole application (the proxy)
-# c.JupyterHub.ip = ''
+#c.JupyterHub.ip = ''
 
 # Supply extra arguments that will be passed to Jinja environment.
-# c.JupyterHub.jinja_environment_options = {}
+#c.JupyterHub.jinja_environment_options = {}
 
 # Interval (in seconds) at which to update last-activity timestamps.
-# c.JupyterHub.last_activity_interval = 300
+#c.JupyterHub.last_activity_interval = 300
 
 # Dict of 'group': ['usernames'] to load at startup.
 #
@@ -151,44 +150,44 @@
 #  Loading one set of groups, then starting JupyterHub again with a different set
 #  will not remove users or groups from previous launches. That must be done
 #  through the API.
-# c.JupyterHub.load_groups = {}
+#c.JupyterHub.load_groups = {}
 
 # Specify path to a logo image to override the Jupyter logo in the banner.
-# c.JupyterHub.logo_file = ''
+#c.JupyterHub.logo_file = ''
 
 # File to write PID Useful for daemonizing jupyterhub.
-# c.JupyterHub.pid_file = ''
+#c.JupyterHub.pid_file = ''
 
 # The public facing port of the proxy
-# c.JupyterHub.port = 8000
+#c.JupyterHub.port = 8000
 
 # The ip for the proxy API handlers
-# c.JupyterHub.proxy_api_ip = '127.0.0.1'
+#c.JupyterHub.proxy_api_ip = '127.0.0.1'
 
 # The port for the proxy API handlers
-# c.JupyterHub.proxy_api_port = 0
+#c.JupyterHub.proxy_api_port = 0
 
 # The Proxy Auth token.
 #
 #  Loaded from the CONFIGPROXY_AUTH_TOKEN env variable by default.
-# c.JupyterHub.proxy_auth_token = ''
+#c.JupyterHub.proxy_auth_token = ''
 
 # Interval (in seconds) at which to check if the proxy is running.
-# c.JupyterHub.proxy_check_interval = 30
+#c.JupyterHub.proxy_check_interval = 30
 
 # The command to start the http proxy.
 #
 #  Only override if configurable-http-proxy is not on your PATH
-# c.JupyterHub.proxy_cmd = ['configurable-http-proxy']
+#c.JupyterHub.proxy_cmd = ['configurable-http-proxy']
 
 # Purge and reset the database.
-# c.JupyterHub.reset_db = False
+#c.JupyterHub.reset_db = False
 
 # Dict of token:servicename to be loaded into the database.
 #
 #  Allows ahead-of-time generation of API tokens for use by externally managed
 #  services.
-# c.JupyterHub.service_tokens = {}
+#c.JupyterHub.service_tokens = {}
 
 # List of service specification dictionaries.
 #
@@ -208,31 +207,31 @@
 #              'environment':
 #          }
 #      ]
-# c.JupyterHub.services = []
+#c.JupyterHub.services = []
 
 # The class to use for spawning single-user servers.
 #
 #  Should be a subclass of Spawner.
-# c.JupyterHub.spawner_class = 'jupyterhub.spawner.LocalProcessSpawner'
+#c.JupyterHub.spawner_class = 'jupyterhub.spawner.LocalProcessSpawner'
 
 # Path to SSL certificate file for the public facing interface of the proxy
 #
 #  Use with ssl_key
-# c.JupyterHub.ssl_cert = ''
+#c.JupyterHub.ssl_cert = ''
 
 # Path to SSL key file for the public facing interface of the proxy
 #
 #  Use with ssl_cert
-# c.JupyterHub.ssl_key = ''
+#c.JupyterHub.ssl_key = ''
 
 # Host to send statsd metrics to
-# c.JupyterHub.statsd_host = ''
+#c.JupyterHub.statsd_host = ''
 
 # Port on which to send statsd metrics about the hub
-# c.JupyterHub.statsd_port = 8125
+#c.JupyterHub.statsd_port = 8125
 
 # Prefix to use for all metrics sent by jupyterhub to statsd
-# c.JupyterHub.statsd_prefix = 'jupyterhub'
+#c.JupyterHub.statsd_prefix = 'jupyterhub'
 
 # Run single-user servers on subdomains of this host.
 #
@@ -247,13 +246,13 @@
 #  In general, this is most easily achieved with wildcard DNS.
 #
 #  When using SSL (i.e. always) this also requires a wildcard SSL certificate.
-# c.JupyterHub.subdomain_host = ''
+#c.JupyterHub.subdomain_host = ''
 
 # Paths to search for jinja templates.
-# c.JupyterHub.template_paths = []
+#c.JupyterHub.template_paths = []
 
 # Extra settings overrides to pass to the tornado application.
-# c.JupyterHub.tornado_settings = {}
+#c.JupyterHub.tornado_settings = {}
 
 #------------------------------------------------------------------------------
 # Spawner(LoggingConfigurable) configuration
@@ -274,7 +273,7 @@
 #  Some spawners allow shell-style expansion here, allowing you to use
 #  environment variables here. Most, including the default, do not. Consult the
 #  documentation for your spawner to verify!
-# c.Spawner.args = []
+#c.Spawner.args = []
 
 # The command used for starting the single-user server.
 #
@@ -287,7 +286,7 @@
 #  Some spawners allow shell-style expansion here, allowing you to use
 #  environment variables. Most, including the default, do not. Consult the
 #  documentation for your spawner to verify!
-# c.Spawner.cmd = ['jupyterhub-singleuser']
+#c.Spawner.cmd = ['jupyterhub-singleuser']
 
 # Minimum number of cpu-cores a single-user notebook server is guaranteed to
 #  have available.
@@ -296,7 +295,7 @@
 #  set to 2, allows use of up to 2 CPUs.
 #
 #  Note that this needs to be supported by your spawner for it to work.
-# c.Spawner.cpu_guarantee = None
+#c.Spawner.cpu_guarantee = None
 
 # Maximum number of cpu-cores a single-user notebook server is allowed to use.
 #
@@ -308,10 +307,10 @@
 #  cpu-cores.
 #
 #  This needs to be supported by your spawner for it to work.
-# c.Spawner.cpu_limit = None
+#c.Spawner.cpu_limit = None
 
 # Enable debug-logging of the single-user server
-# c.Spawner.debug = False
+#c.Spawner.debug = False
 
 # The URL the single-user server should start in.
 #
@@ -321,7 +320,7 @@
 #  - You can set `notebook_dir` to `/` and `default_url` to `/home/{username}` to allow people to
 #    navigate the whole filesystem from their notebook, but still start in their home directory.
 #  - You can set this to `/lab` to have JupyterLab start by default, rather than Jupyter Notebook.
-# c.Spawner.default_url = ''
+#c.Spawner.default_url = ''
 
 # Disable per-user configuration of single-user servers.
 #
@@ -331,7 +330,7 @@
 #  Note: a user could circumvent this if the user modifies their Python
 #  environment, such as when they have their own conda environments / virtualenvs
 #  / containers.
-# c.Spawner.disable_user_config = False
+#c.Spawner.disable_user_config = False
 
 # Whitelist of environment variables for the single-user server to inherit from
 #  the JupyterHub process.
@@ -339,8 +338,7 @@
 #  This whitelist is used to ensure that sensitive information in the JupyterHub
 #  process's environment (such as `CONFIGPROXY_AUTH_TOKEN`) is not passed to the
 #  single-user server's process.
-# c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT',
-# 'CONDA_DEFAULT_ENV', 'VIRTUAL_ENV', 'LANG', 'LC_ALL']
+#c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT', 'CONDA_DEFAULT_ENV', 'VIRTUAL_ENV', 'LANG', 'LC_ALL']
 
 # Extra environment variables to set for the single-user server's process.
 #
@@ -359,19 +357,19 @@
 #  Note that the spawner class' interface is not guaranteed to be exactly same
 #  across upgrades, so if you are using the callable take care to verify it
 #  continues to work after upgrades!
-# c.Spawner.environment = {}
+#c.Spawner.environment = {}
 
 # Timeout (in seconds) before giving up on a spawned HTTP server
 #
 #  Once a server has successfully been spawned, this is the amount of time we
 #  wait before assuming that the server is unable to accept connections.
-# c.Spawner.http_timeout = 30
+#c.Spawner.http_timeout = 30
 
 # The IP address (or hostname) the single-user server should listen on.
 #
 #  The JupyterHub proxy implementation should be able to send packets to this
 #  interface.
-# c.Spawner.ip = '127.0.0.1'
+#c.Spawner.ip = '127.0.0.1'
 
 # Minimum number of bytes a single-user notebook server is guaranteed to have
 #  available.
@@ -383,7 +381,7 @@
 #    - T -> Terabytes
 #
 #  This needs to be supported by your spawner for it to work.
-# c.Spawner.mem_guarantee = None
+#c.Spawner.mem_guarantee = None
 
 # Maximum number of bytes a single-user notebook server is allowed to use.
 #
@@ -398,7 +396,7 @@
 #  to allocate this much memory - only that it can not allocate more than this.
 #
 #  This needs to be supported by your spawner for it to work.
-# c.Spawner.mem_limit = None
+#c.Spawner.mem_limit = None
 
 # Path to the notebook directory for the single-user server.
 #
@@ -411,7 +409,7 @@
 #
 #  Note that this does *not* prevent users from accessing files outside of this
 #  path! They can do so with many other means.
-# c.Spawner.notebook_dir = ''
+#c.Spawner.notebook_dir = ''
 
 # An HTML form for options a user can specify on launching their server.
 #
@@ -430,7 +428,7 @@
 #
 #  The data from this form submission will be passed on to your spawner in
 #  `self.user_options`
-# c.Spawner.options_form = ''
+#c.Spawner.options_form = ''
 
 # Interval (in seconds) on which to poll the spawner for single-user server's
 #  status.
@@ -439,7 +437,7 @@
 #  if the single-user server is still running. If it isn't running, then
 #  JupyterHub modifies its own state accordingly and removes appropriate routes
 #  from the configurable proxy.
-# c.Spawner.poll_interval = 30
+#c.Spawner.poll_interval = 30
 
 # Timeout (in seconds) before giving up on starting of single-user server.
 #
@@ -447,7 +445,7 @@
 #  respond. Callers of spawner.start will assume that startup has failed if it
 #  takes longer than this. start should return when the server process is started
 #  and its location is known.
-# c.Spawner.start_timeout = 60
+#c.Spawner.start_timeout = 60
 
 #------------------------------------------------------------------------------
 # LocalProcessSpawner(Spawner) configuration
@@ -465,19 +463,19 @@
 #
 #  If the process has not exited cleanly after this many seconds, a SIGTERM is
 #  sent.
-# c.LocalProcessSpawner.INTERRUPT_TIMEOUT = 10
+#c.LocalProcessSpawner.INTERRUPT_TIMEOUT = 10
 
 # Seconds to wait for process to halt after SIGKILL before giving up.
 #
 #  If the process does not exit cleanly after this many seconds of SIGKILL, it
 #  becomes a zombie process. The hub process will log a warning and then give up.
-# c.LocalProcessSpawner.KILL_TIMEOUT = 5
+#c.LocalProcessSpawner.KILL_TIMEOUT = 5
 
 # Seconds to wait for single-user server process to halt after SIGTERM.
 #
 #  If the process does not exit cleanly after this many seconds of SIGTERM, a
 #  SIGKILL is sent.
-# c.LocalProcessSpawner.TERM_TIMEOUT = 5
+#c.LocalProcessSpawner.TERM_TIMEOUT = 5
 
 #------------------------------------------------------------------------------
 # Authenticator(LoggingConfigurable) configuration
@@ -497,12 +495,12 @@
 #  Admin access should be treated the same way root access is.
 #
 #  Defaults to an empty set, in which case no user has admin access.
-# c.Authenticator.admin_users = set()
+#c.Authenticator.admin_users = set()
 
 # Dictionary mapping authenticator usernames to JupyterHub users.
 #
 #  Primarily used to normalize OAuth user names to local users.
-# c.Authenticator.username_map = {}
+#c.Authenticator.username_map = {}
 
 # Regular expression pattern that all valid usernames must match.
 #
@@ -510,7 +508,7 @@
 #  not be attempted.
 #
 #  If not set, allow any username.
-# c.Authenticator.username_pattern = ''
+#c.Authenticator.username_pattern = ''
 
 # Whitelist of usernames that are allowed to log in.
 #
@@ -519,7 +517,7 @@
 #  restrictions the authenticator has in place.
 #
 #  If empty, does not perform any additional restriction.
-# c.Authenticator.whitelist = set()
+#c.Authenticator.whitelist = set()
 
 #------------------------------------------------------------------------------
 # LocalAuthenticator(Authenticator) configuration
@@ -548,18 +546,18 @@
 #      adduser -q --gecos "" --home /customhome/river --disabled-password river
 #
 #  when the user 'river' is created.
-# c.LocalAuthenticator.add_user_cmd = []
+#c.LocalAuthenticator.add_user_cmd = []
 
 # If set to True, will attempt to create local system users if they do not exist
 #  already.
 #
 #  Supports Linux and BSD variants only.
-# c.LocalAuthenticator.create_system_users = False
+#c.LocalAuthenticator.create_system_users = False
 
 # Whitelist all users from this UNIX group.
 #
 #  This makes the username whitelist ineffective.
-# c.LocalAuthenticator.group_whitelist = set()
+#c.LocalAuthenticator.group_whitelist = set()
 
 #------------------------------------------------------------------------------
 # PAMAuthenticator(LocalAuthenticator) configuration
@@ -568,7 +566,7 @@
 # Authenticate local UNIX users with PAM
 
 # The text encoding to use when communicating with PAM
-# c.PAMAuthenticator.encoding = 'utf8'
+#c.PAMAuthenticator.encoding = 'utf8'
 
 # Whether to open a new PAM session when spawners are started.
 #
@@ -577,18 +575,16 @@
 #
 #  If any errors are encountered when opening/closing PAM sessions, this is
 #  automatically set to False.
-# c.PAMAuthenticator.open_sessions = True
+#c.PAMAuthenticator.open_sessions = True
 
 # The name of the PAM service to use for authentication
-# c.PAMAuthenticator.service = 'login'
+#c.PAMAuthenticator.service = 'login'
 
 # Don't run this in production
-# c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
-c.JupyterHub.authenticator_class = 'ghowlauth.LocalGHOWLAuthenticator'
+c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
 # This horror is to preserve the EUPS env vars
 c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT',
                       'CONDA_DEFAULT_ENV', 'VIRTUAL_ENV', 'LANG', 'LC_ALL',
-                      'GITHUB_ORGANIZATION_WHITELIST',
                       'ACTIVEMQCPP_DIR', 'AFW_DIR', 'APR_DIR', 'APR_UTIL_DIR',
                       'ASTROMETRY_NET_DATA_DIR', 'ASTROMETRY_NET_DIR',
                       'ASTROPY_DIR', 'BASE_DIR', 'BOOST_DIR', 'CAT_DIR',
@@ -667,9 +663,5 @@ c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT',
                       'TMV_DIR', 'UTILS_DIR', 'WCSLIB_DIR', 'XPA_DIR']
 c.Spawner.cmd = ['jupyterhub-singleuser']
 c.Spawner.default_url = '/lab'
-# c.Spawner.notebook_dir = 'data'
+c.Spawner.notebook_dir = 'data'
 c.Spawner.args = ['--debug']
-c.LocalAuthenticator.create_system_users = True
-c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-c.GitHubOAuthenticator.client_id = os.environ['GITHUB_CLIENT_ID']
-c.GitHubOAuthenticator.client_secret = os.environ['GITHUB_CLIENT_SECRET'

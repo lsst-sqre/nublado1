@@ -2,7 +2,7 @@ FROM lsstsqre/centos:7-stack-lsst_distrib-v13_0
 USER root
 LABEL      description="jupyterlab demo" \
              name="lsstsqre/jupyterlabdemo" \
-             version="0.0.9"
+             version="0.0.8"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum install -y python34 python-pip python34-pip nodejs
@@ -14,7 +14,6 @@ RUN  npm install -g configurable-http-proxy
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install ipykernel jupyterlab
 RUN  useradd -d /home/jupyterlab -m jupyterlab
-COPY sudo-jupyterhub /etc/sudoers.d/20_jupyterhub
 USER jupyterlab
 WORKDIR /home/jupyterlab
 ENV  LANG=C.UTF-8
@@ -25,15 +24,12 @@ RUN  . virtualenvwrapper.sh && \
      mkvirtualenv -p $(which python3) py3 && \
      pip install jupyterhub jupyterlab ipykernel \
        jupyterhub-dummyauthenticator && \
-     jupyter serverextension enable --py jupyterlab --sys-prefix
+     jupyter serverextension enable --py jupyterlab --sys-prefix       
 RUN /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
        -m ipykernel install --prefix $HOME/.virtualenvs/py3 --name 'LSST_Stack'
 COPY lsst_kernel.json \
        .virtualenvs/py3/share/jupyter/kernels/lsst_stack/kernel.json
 COPY py3_kernel.json \
        .virtualenvs/py3/share/jupyter/kernels/python3/kernel.json
-COPY assets/sqre-ghowlauth-0.0.1.tar.gz .
-RUN  . virtualenvwrapper.sh && \
-       workon py3 && pip install ./sqre-ghowlauth-0.0.1.tar.gz
 RUN  mkdir -p data       
 CMD  [ "./run-jupyterhub.bash" ]

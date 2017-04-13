@@ -18,10 +18,10 @@ RUN  /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
       -m ipykernel install --name 'LSST_Stack'
 RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterlab/
-COPY lsst_kernel.json lsstlaunch.sh /opt/lsst/software/jupyterlab/
+COPY lsst_kernel.json lsstlaunch.sh jupyterhub_config.py \
+       /opt/lsst/software/jupyterlab/
 COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
 ENV  LANG=C.UTF-8
-COPY jupyterhub_config.py /opt/lsst/software/jupyterlab
 CMD  [ "/usr/bin/jupyterhub","--debug","-f",\
        "/opt/lsst/software/jupyterlab/jupyterhub_config.py" ]

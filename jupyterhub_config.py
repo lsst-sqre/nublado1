@@ -664,7 +664,6 @@ c.Spawner.env_keep = ['PATH', 'PYTHONPATH', 'CONDA_ROOT',
                       'TMV_DIR', 'UTILS_DIR', 'WCSLIB_DIR', 'XPA_DIR']
 c.Spawner.cmd = ['jupyterhub-singleuser']
 c.Spawner.default_url = '/lab'
-c.Spawner.notebook_dir = 'data'
 c.Spawner.args = ['--debug']
 
 # Authentication

@@ -2,4 +2,5 @@
 
 . virtualenvwrapper.sh
 workon py3
-exec jupyterhub --debug -f ${HOME}/jupyterhub_config.py
+exec sudo /home/jupyterlab/.virtualenvs/py3/bin/jupyterhub --debug -f /home/jupyterlab/jupyterhub_config.py
+

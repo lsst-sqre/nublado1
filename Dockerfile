@@ -2,7 +2,7 @@ FROM lsstsqre/centos:7-stack-lsst_distrib-v13_0
 USER root
 LABEL      description="jupyterlab demo" \
              name="lsstsqre/jupyterlabdemo" \
-             version="0.0.9"
+             version="0.0.8"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum install -y python34 python-pip python34-pip nodejs

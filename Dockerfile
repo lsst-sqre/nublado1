@@ -12,7 +12,7 @@ RUN  pip3 install virtualenv virtualenvwrapper
 RUN  pip2 install virtualenv virtualenvwrapper
 RUN  npm install -g configurable-http-proxy
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
-     pip install ipykernel jupyterlab
+     pip install 'ipython<6.0' jupyterlab
 RUN  pip3 install jupyterhub jupyterlab ipykernel sqre-ghowlauth
 RUN  /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
       -m ipykernel install --name 'LSST_Stack'

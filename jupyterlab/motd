@@ -1,3 +1,6 @@
 Welcome to the LSST Jupyterlab demo environment.
 
-The LSST stack is in /opt/lsst/software/stack
+The LSST stack is in /opt/lsst/software/stack .
+
+If you want to do your own package setup when launching the LSST kernel,
+put that setup in a sourceable shell file in ${HOME}/.user_setups .

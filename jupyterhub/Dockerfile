@@ -11,7 +11,7 @@ RUN  yum install -y python34 python-pip python34-pip nodejs python34-devel \
 RUN  pip3 install --upgrade pip
 RUN  npm install -g configurable-http-proxy
 RUN  pip3 install jupyterlab ipykernel pyyaml pycurl \
-     'sqre_ghowlauth>=0.0.5' 'sqrekubespawner>=0.0.2'
+     'sqre_ghowlauth>=0.0.6' 'sqrekubespawner>=0.0.3'
 # We need JupyterHub 0.8.0, and it is not on PyPi yet (4/24/2017)...
 # So build it locally, then cram the wheel into the assets subdir.
 COPY assets/jupyterhub-0.8.0.dev0-py3-none-any.whl \

@@ -31,7 +31,7 @@ RUN  cd /etc/profile.d && \
      for i in local*; do \
          ln $i $(basename $i .sh).csh ;\
      done
-RUN  mkdir -p /etc/skel/data
+RUN  mkdir -p /etc/skel/notebooks
 RUN  mkdir -p /opt/lsst/software/jupyterlab/
 COPY lsst_kernel.json lsstlaunch.sh lablauncher.sh runlab.sh \
       /opt/lsst/software/jupyterlab/

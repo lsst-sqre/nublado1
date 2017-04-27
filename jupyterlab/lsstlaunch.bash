@@ -3,13 +3,10 @@ set -x
 source /opt/lsst/software/stack/loadLSST.bash
 source eups-setups.sh
 setup lsst_distrib
-<<<<<<< HEAD:jupyterlab/lsstlaunch.bash
 uset=${HOME}/.user_setups
 if [ -e ${uset} ]; then
     source ${uset}
-=======
-if [ -e ${HOME}/.user_setups ]; then
-    source ${HOME}/.user_setups
->>>>>>> tickets/DM-10335:jupyterlab/lsstlaunch.sh
+if [ -e ${HOME}/notebooks/.user_setups ]; then
+    source ${HOME}/notebooks/.user_setups
 fi
 exec python -m ipykernel -f $1

@@ -669,6 +669,7 @@
 # Authentication
 # Don't run this in production
 # c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+import ghowlauth
 c.JupyterHub.authenticator_class = 'ghowlauth.GHOWLAuthenticator'
 #c.JupyterHub.authenticator_class = 'oauthenticator.LocalGitHubOAuthenticator'
 #c.LocalAuthenticator.add_user_cmd = ['adduser', '-m']
@@ -678,9 +679,7 @@ c.GHOWLAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
 c.GHOWLOAuthenticator.client_id = os.environ['GITHUB_CLIENT_ID']
 c.GHOWLOAuthenticator.client_secret = os.environ['GITHUB_CLIENT_SECRET']
 
-#import sqrekubespawner
-
-
+import sqrekubespawner
 c.JupyterHub.spawner_class = 'sqrekubespawner.SQREKubeSpawner'
 #c.JupyterHub.spawner_class = 'kubespawner.KubeSpawner'
 

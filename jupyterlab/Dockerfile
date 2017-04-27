@@ -8,11 +8,14 @@ RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install python-pip gcc python-devel nodejs npm git
 RUN  pip install --upgrade pip setuptools
-RUN  pip install virtualenv virtualenvwrapper jupyterlab ipykernel
+RUN  pip install virtualenv virtualenvwrapper jupyterlab ipykernel 
 #       sqre_labkubespawner
+COPY assets/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl /tmp
+RUN  pip install /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl
+RUN  rm /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install --upgrade pip && \
-     pip install ipykernel jupyterlab jupyterlab_launcher
+     pip install ipykernel jupyterlab
 RUN  /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
       -m ipykernel install --name 'LSST_Stack'
 RUN  python /usr/bin/jupyter serverextension enable --py jupyterlab \
@@ -22,6 +25,12 @@ RUN  python /usr/bin/jupyter serverextension enable --py jupyterlab \
 #RUN  jupyter labextension enable --py --sys-prefix sqre_labkubespawner
 RUN  /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
+COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
+     /etc/profile.d/
+RUN  cd /etc/profile.d && \
+     for i in local*; do \
+         ln $i $(basename $i .sh).csh ;\
+     done
 RUN  mkdir -p /etc/skel/data
 RUN  mkdir -p /opt/lsst/software/jupyterlab/
 COPY lsst_kernel.json lsstlaunch.bash lablauncher.bash runlab.bash \

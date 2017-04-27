@@ -1,6 +1,9 @@
 Welcome to the LSST Jupyterlab demo environment.
 
-The LSST stack is in /opt/lsst/software/stack .
+The LSST stack is in /opt/lsst/software/stack . Source the appropriate
+setup script there to create an LSST environment in a terminal.
 
-If you want to do your own package setup when launching the LSST kernel,
-put that setup in a sourceable shell file in ${HOME}/.user_setups .
+If you want to add your own configuration to LSST stack startup in the
+LSST iPython kernel, create a sourceable shell fragment in
+${HOME}/.user_setups and it will be sourced during kernel startup.
+

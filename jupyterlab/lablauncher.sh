@@ -94,6 +94,43 @@ function add_group() {
     groupadd ${gopt} ${gname}
 }
 
+function forget_extraneous_vars() {
+    local purge="GITHUB_ACCESS_TOKEN"
+    purge="${purge} MEM_LIMIT CPU_LIMIT"
+    echo "Unsetting: ${purge}"
+    unset ${purge}
+    purge_docker_vars KUBERNETES HTTPS:443
+    purge_docker_vars K8S_JLD_NGINX HTTP:80,HTTPS:443
+}
+
+function purge_docker_vars() {
+    local n=$1
+    local plist=$2
+    local purge="${n}_PORT"
+    local portmap=""
+    local portname=""
+    local portnum=""
+    local i=""
+    local k=""
+    for i in "HOST" "PORT"; do
+	purge="${purge} ${n}_SERVICE_${i}"
+    done
+    for portmap in $(echo ${plist} | tr "," "\n"); do
+        portname=$(echo ${portmap} | cut -d ':' -f 1)
+	purge="${purge} ${n}_SERVICE_PORT_${portname}"
+        portnum=$(echo ${portmap} | cut -d ':' -f 2)
+	for prot in "TCP" "UDP"; do
+	    k="${n}_PORT_${portnum}_${prot}"
+	    purge="${purge} ${k}"
+	    for i in "ADDR" "PORT" "PROTO"; do
+		purge="${purge} ${k}_${i}"
+	    done
+	done
+    done
+    echo "Unsetting: ${purge}"
+    unset ${purge}
+}
+
 function setup_git() {
     if [ -n "${GITHUB_ACCESS_TOKEN}" ]; then
         local entry="https://${U_NAME}:${GITHUB_ACCESS_TOKEN}@github.com"
@@ -137,4 +174,5 @@ if [ $(id -u) -eq 0 ]; then
 	echo 1>&2 "Warning: running as UID 0"
     fi
 fi
+forget_extraneous_vars
 exec ${sudo} /opt/lsst/software/jupyterlab/runlab.sh

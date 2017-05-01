@@ -6,6 +6,7 @@ function setup_user() {
 	make_user
     fi
     setup_git
+
 }
 
 function make_user() {
@@ -158,6 +159,7 @@ function setup_git() {
         echo "[credential]" >> ${gitcfg}
         echo "    helper = store" >> ${gitcfg}
         chown ${U_NAME}:${U_NAME} ${gitcfg}
+
     fi
 }
 

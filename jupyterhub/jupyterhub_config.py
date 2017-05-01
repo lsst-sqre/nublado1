@@ -670,7 +670,6 @@
 # Don't run this in production
 # c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
 import ghowlauth
-
 c.JupyterHub.authenticator_class = 'ghowlauth.GHOWLAuthenticator'
 #c.JupyterHub.authenticator_class = 'oauthenticator.LocalGitHubOAuthenticator'
 #c.LocalAuthenticator.add_user_cmd = ['adduser', '-m']

@@ -712,7 +712,6 @@ c.SQREKubeSpawner.cpu_limit = 1
 #c.KubeSpawner.cpu_limit = 1
 
 # Remember to take this out before merge.
-c.SQREKubeSpawner.namespace = 'sandbox'
 #c.KubeSpawner.namespace = 'sandbox'
 #c.Spawner.cmd = 'jupyterhub-singleuser'
 #c.Spawner.default_url = '/lab'

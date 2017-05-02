@@ -711,6 +711,8 @@ c.SQREKubeSpawner.mem_limit = '2G'
 c.SQREKubeSpawner.cpu_limit = 1
 #c.KubeSpawner.cpu_limit = 1
 
+c.SQREKubeSpawner.privileged = True
+
 # Remember to take this out before merge.
 #c.KubeSpawner.namespace = 'sandbox'
 #c.Spawner.cmd = 'jupyterhub-singleuser'

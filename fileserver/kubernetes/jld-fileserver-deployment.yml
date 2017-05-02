@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jld-fileserver
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: jld-fileserver
+    spec:
+      containers:
+        - name: jld-fileserver
+          imagePullPolicy: "Always"
+          image: "lsstsqre/jld-fileserver"
+          env:
+            - name: LOGLEVEL
+              value: INFO
+          ports:
+          - name: nfs
+            containerPort: 2049
+          - name: mountd
+            containerPort: 20048
+          - name: rpcbind
+            containerPort: 111              
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: jld-storage
+              mountPath: /exports/home
+      volumes:
+        - name: jld-storage
+          gcePersistentDisk:
+             pdName: jld-storage
+             fsType: ext4

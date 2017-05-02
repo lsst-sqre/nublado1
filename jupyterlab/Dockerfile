@@ -2,7 +2,7 @@ FROM lsstsqre/centos:7-py3-demo
 USER root
 LABEL      description="jupyterlab demo: jupyterlab" \
              name="lsstsqre/jld-lab" \
-             version="0.0.4"
+             version="0.0.5"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade

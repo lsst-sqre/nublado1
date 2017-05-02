@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 sync
 cd ${HOME}
 pwd

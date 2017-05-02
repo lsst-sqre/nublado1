@@ -97,10 +97,10 @@ function add_group() {
 function forget_extraneous_vars() {
     local purge="GITHUB_ACCESS_TOKEN"
     purge="${purge} MEM_LIMIT CPU_LIMIT"
-    echo "Unsetting: ${purge}"
     unset ${purge}
     purge_docker_vars KUBERNETES HTTPS:443
     purge_docker_vars K8S_JLD_NGINX HTTP:80,HTTPS:443
+    purge_docker_vars JLD_FILESERVER RPCBIND:111,NFS:2049,MOUNTD:20048
 }
 
 function purge_docker_vars() {
@@ -127,7 +127,6 @@ function purge_docker_vars() {
 	    done
 	done
     done
-    echo "Unsetting: ${purge}"
     unset ${purge}
 }
 

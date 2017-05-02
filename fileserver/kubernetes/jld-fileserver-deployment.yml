@@ -26,11 +26,10 @@ spec:
           securityContext:
             privileged: true
           volumeMounts:
-            - name: jld-persistent-storage
+            - name: jld-storage
               mountPath: /exports/home
       volumes:
-        - name: jld-persistent-storage
+        - name: jld-storage
           gcePersistentDisk:
-             pdName: jupyterlab-storage
+             pdName: jld-storage
              fsType: ext4
-        

@@ -1,11 +1,12 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: jld-fileserver-home
+  name: jld-fileserver-physpvc
 spec:
   accessModes:
-    - ReadWriteMany
+    - "ReadWriteOnce"
   resources:
     requests:
-      storage: 490Gi
+      storage: 500Gi
   storageClassName: fast
+

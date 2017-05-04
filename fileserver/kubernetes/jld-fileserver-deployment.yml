@@ -30,6 +30,5 @@ spec:
               mountPath: /exports/home
       volumes:
         - name: jld-storage
-          gcePersistentDisk:
-             pdName: jld-storage
-             fsType: ext4
+          persistentVolumeClaim:
+            claimName: jld-fileserver-physpvc

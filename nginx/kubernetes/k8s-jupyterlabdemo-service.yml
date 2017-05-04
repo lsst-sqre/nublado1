@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: k8s-jld-nginx
+  labels:
+    name: k8s-jld-nginx
+spec:
+  selector:
+    name: k8s-jld-nginx
+  type: LoadBalancer
+  ports:
+  - name: https
+    port: 443
+    targetPort: https
+    protocol: TCP
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP

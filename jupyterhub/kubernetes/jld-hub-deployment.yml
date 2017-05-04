@@ -1,17 +1,16 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: jld
+  name: jld-hub
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: jld
+        name: jld-hub
     spec:
       containers:
-
-        - name: jld
+        - name: jld-hub
           imagePullPolicy: "Always"
           image: "lsstsqre/jld-hub"
           ports:

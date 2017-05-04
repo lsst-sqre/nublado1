@@ -8,9 +8,13 @@ cmd="python3 /usr/bin/jupyter-singlelabuser \
      --notebook-dir=${HOME}/notebooks \
      --LabApp.base_url=/user/${USER}"
 echo ${cmd}
-${cmd}
-while : ; do
-    d=$(date)
-    echo "${d}: sleeping."
-    sleep 60
-done
+if [ -n "${DEBUG}" ]; then
+    ${cmd}
+    while : ; do
+	d=$(date)
+	echo "${d}: sleeping."
+	sleep 60
+    done
+else    
+    exec ${cmd}
+fi

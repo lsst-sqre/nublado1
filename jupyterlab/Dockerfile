@@ -2,7 +2,7 @@ FROM lsstsqre/centos:7-py3-demo
 USER root
 LABEL      description="jupyterlab demo: jupyterlab" \
              name="lsstsqre/jld-lab" \
-             version="0.0.5"
+             version="0.0.6"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
@@ -17,27 +17,33 @@ RUN  cd /tmp && \
      $cmd && \
      tar xpfz ${F} && \
      install -m 0755 ${FN}/bin/hub /usr/bin && \
-     rm -rf ${F} ${FN} && \
-     cd -
+     rm -rf ${F} ${FN}
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
-RUN  pip3 install virtualenv virtualenvwrapper 'jupyterlab<0.20' ipykernel
+RUN  pip3 install virtualenv virtualenvwrapper ipykernel
 RUN  pip2 install virtualenv virtualenvwrapper
-#       sqre_labkubespawner
-COPY assets/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl /tmp
-RUN  pip3 install /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl
-RUN  rm /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl
+COPY assets/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl \
+     assets/jupyterlab-0.17.0-py2.py3-none-any.whl \
+     /tmp/
+RUN  pip3 install /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl \
+      /tmp/jupyterlab-0.17.0-py2.py3-none-any.whl
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
-     pip install --upgrade pip && \
-     pip install ipykernel 'jupyterlab<0.20'
+      pip install --upgrade pip && \
+      pip install ipykernel /tmp/jupyterlab-0.17.0-py2.py3-none-any.whl
+RUN  rm /tmp/jupyterlab-0.17.0-py2.py3-none-any.whl \     
+      /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl 
 RUN  /opt/lsst/software/stack/miniconda3-4.2.12/bin/python \
       -m ipykernel install --name 'LSST_Stack'
 RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  python3 /usr/bin/jupyter labextension install --py --sys-prefix \
-      sqre_labkubespawner
-RUN  python3 /usr/bin/jupyter labextension enable --py --sys-prefix \
-      sqre_labkubespawner
+RUN  python3 /usr/bin/jupyter labextension install \
+#      jupyterhub_labextension \
+      sqre_labkubespawner \
+      --py --sys-prefix
+RUN  python3 /usr/bin/jupyter labextension enable \
+#      jupyterhub_labextension \
+       sqre_labkubespawner \
+       --py --sys-prefix
 RUN  /opt/lsst/software/stack/miniconda3-4.2.12/bin/python \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \

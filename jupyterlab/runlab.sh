@@ -1,4 +1,8 @@
 #!/bin/sh
+export DEBUG=1
+if [ -n "${DEBUG}" ]; then
+    set -x
+fi
 sync
 cd ${HOME}
 pwd

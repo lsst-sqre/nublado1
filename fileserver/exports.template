@@ -1,2 +1,0 @@
-/exports/home {{CONTAINERS}}(rw,fsid=0,insecure,no_root_squash)
-

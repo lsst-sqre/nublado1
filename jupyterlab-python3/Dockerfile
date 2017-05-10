@@ -1,8 +1,8 @@
 FROM lsstsqre/centos:7-py3-demo
 USER root
-LABEL      description="jupyterlab demo: jupyterlab" \
-             name="lsstsqre/jld-lab" \
-             version="0.0.6"
+LABEL      description="jupyterlab demo: jupyterlab (Python 3 LSST Stack)" \
+             name="lsstsqre/jld-lab-py3" \
+             version="0.0.7"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
@@ -54,12 +54,12 @@ RUN  cd /etc/profile.d && \
      done
 RUN  mkdir -p /etc/skel/notebooks
 RUN  mkdir -p /opt/lsst/software/jupyterlab/
-COPY lsst_kernel.json lsstlaunch.sh lablauncher.sh runlab.sh \
+COPY lsst_kernel_py3.json lsstlaunch.sh lablauncher.sh runlab.sh \
       /opt/lsst/software/jupyterlab/
-COPY lsst_kernel.json \
+COPY lsst_kernel_py3.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV  LANG=C.UTF-8
-CMD [ "/opt/lsst/software/jupyterlab/lablauncher.sh" ]
-
+WORKDIR /tmp
+CMD [ "/opt/lsst/software/jupyterlab/lablauncher.sh", "3" ]

@@ -164,6 +164,7 @@ function setup_git() {
 U_NAME="${JPY_USER}" # Expect this to change.
 HOMEDIRS="/home"
 DEFAULT_SHELL="/bin/bash"
+PY_VER="${1}"
 sudo=""
 if [ $(id -u) -eq 0 ]; then
     if [ -n "${U_NAME}" ]; then
@@ -174,4 +175,4 @@ if [ $(id -u) -eq 0 ]; then
     fi
 fi
 forget_extraneous_vars
-exec ${sudo} /opt/lsst/software/jupyterlab/runlab.sh
+exec ${sudo} /opt/lsst/software/jupyterlab/runlab.sh ${PY_VER}

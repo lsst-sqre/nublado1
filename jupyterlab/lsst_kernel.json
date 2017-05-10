@@ -1,8 +1,0 @@
-{
- "display_name": "LSST_Stack (Python 3)",
- "language": "python",
- "argv": [
-  "/opt/lsst/software/jupyterlab/lsstlaunch.sh",
-  "{connection_file}"
- ]
-}

@@ -695,7 +695,7 @@ c.SQREKubeSpawner.http_timeout = 60 * 5
 c.SQREKubeSpawner.start_timeout = 60 * 5
 #c.KubeSpawner.start_timeout = 60 * 5
 
-c.SQREKubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab:latest'
+c.SQREKubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab-new:latest'
 #c.KubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab:latest'
 c.SQREKubeSpawner.singleuser_image_pull_policy = 'Always'
 #c.KubeSpawner.singleuser_image_pull_policy = 'Always'

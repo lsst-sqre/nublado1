@@ -1,24 +1,32 @@
 FROM lsstsqre/centos:7-stack-lsst_distrib-v13_0
 USER root
 LABEL      description="jupyterlab demo: jupyterlab" \
-             name="lsstsqre/jld-lab" \
-             version="0.0.3"
+             name="lsstsqre/jld-lab-new" \
+             version="0.0.4dev0"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install python-pip gcc python-devel nodejs npm git
 RUN  pip install --upgrade pip setuptools
-RUN  pip install virtualenv virtualenvwrapper jupyterlab ipykernel \
+RUN  pip install virtualenv virtualenvwrapper ipykernel \
      jupyterlab-launcher
 #       sqre_labkubespawner
-COPY assets/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl /tmp
-RUN  pip install /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl
-RUN  rm /tmp/sqre_labkubespawner-0.0.1-py2.py3-none-any.whl
+COPY assets/sqre_labkubespawner-0.0.4.dev0-py2.py3-none-any.whl \
+     assets/jupyterlab-0.21.0-py2.py3-none-any.whl \
+     assets/notebook-5.0.0.dev0-py2.py3-none-any.whl \
+     /tmp/
+RUN  pip install /tmp/jupyterlab-0.21.0-py2.py3-none-any.whl \
+     /tmp/sqre_labkubespawner-0.0.4.dev0-py2.py3-none-any.whl \
+     /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install --upgrade pip && \
-     pip install ipykernel jupyterlab
-#RUN  /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
-#      -m ipykernel install --name 'LSST_Stack'
+     pip install ipykernel /tmp/jupyterlab-0.21.0-py2.py3-none-any.whl \
+       /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl
+RUN  rm /tmp/sqre_labkubespawner-0.0.4.dev0-py2.py3-none-any.whl \
+     /tmp/jupyterlab-0.21.0-py2.py3-none-any.whl \
+     /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl     
+RUN  /opt/lsst/software/stack/Linux64/miniconda2/4.2.12.lsst1/bin/python \
+      -m ipykernel install --name 'LSST_Stack'
 #RUN  python /usr/bin/jupyter serverextension enable --py jupyterlab \
 #      --sys-prefix
 #RUN  python /usr/bin/jupyter labextension install --py --sys-prefix \
@@ -49,7 +57,6 @@ RUN  cd /tmp && \
      rm -rf ${FN} ${F} && \
      cd -
 COPY jupyter_notebook_config.json /usr/etc/jupyter/
-COPY virtualenvwrapper.sh showmotd.sh hub.sh /etc/profile.d/     
 ENV  LANG=C.UTF-8
 CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]
 

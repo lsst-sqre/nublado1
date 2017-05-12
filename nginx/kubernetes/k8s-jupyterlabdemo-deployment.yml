@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: k8s-jld-nginx
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: k8s-jld-nginx
+    spec:
+      containers:
+      - name: k8s-jld-nginx
+        image: "lsstsqre/k8s-jupyterlabdemo-nginx"
+        imagePullPolicy: "Always"
+        env:
+          - name: ENABLE_SSL
+            value: 'true'
+          - name: ENABLE_BASIC_AUTH
+            value: 'false'
+          - name: HOSTNAME
+            valueFrom:
+              secretKeyRef:
+                name: k8s-jld-nginx
+                key: hostname
+        ports:
+          - name: http
+            containerPort: 80
+          - name: https
+            containerPort: 443
+        volumeMounts:
+        - name: tls
+          mountPath: /etc/tls
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: ssl-proxy-secret
+      

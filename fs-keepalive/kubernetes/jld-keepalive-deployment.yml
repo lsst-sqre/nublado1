@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jld-keepalive
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: jld-keepalive
+    spec:
+      containers:
+        - name: "jld-keepalive"
+          imagePullPolicy: "Always"
+          image: "lsstsqre/nfsclienttest"
+          # Use this for manual testing.
+          #securityContext:
+          #  privileged: true
+          volumeMounts:
+            - name: jld-fileserver-home
+              mountPath: /home
+      volumes:
+        - name: jld-fileserver-home
+          persistentVolumeClaim:
+             claimName: jld-fileserver-home

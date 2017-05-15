@@ -14,6 +14,7 @@ cmd="python3 /usr/bin/jupyter-singlelabuser \
 echo ${cmd}
 if [ -n "${DEBUG}" ]; then
     while : ; do
+	${cmd}
 	d=$(date)
 	echo "${d}: sleeping."
 	sleep 60

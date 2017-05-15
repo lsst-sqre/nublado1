@@ -609,19 +609,9 @@ c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.cleanup_servers = False
 
 # First pulls can be really slow, so let's give it a big timeout
-<<<<<<< HEAD
-c.SQREKubeSpawner.http_timeout = 60 * 5
-#c.KubeSpawner.http_timeout = 60 * 5
-c.SQREKubeSpawner.start_timeout = 60 * 5
-#c.KubeSpawner.start_timeout = 60 * 5
-
-c.SQREKubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab-new:latest'
-#c.KubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab:latest'
-=======
 c.SQREKubeSpawner.http_timeout = 60 * 10
 c.SQREKubeSpawner.start_timeout = 60 * 10
-c.SQREKubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab:latest'
->>>>>>> master
+c.SQREKubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab-new:latest'
 c.SQREKubeSpawner.singleuser_image_pull_policy = 'Always'
 # The spawned containers need to be able to talk to the hub through the proxy!
 c.SQREKubeSpawner.hub_connect_ip = os.environ['HUB_CONNECT_IP']

@@ -160,6 +160,12 @@ function setup_git() {
     fi
 }
 
+function change_stack_ownership() {
+    if [ -n "${U_NAME}" ]; then
+	chown -R ${U_NAME}:${U_NAME} /opt/lsst
+    fi
+}
+
 ## Begin mainline code. ##
 U_NAME="${JPY_USER}" # Expect this to change.
 HOMEDIRS="/home"
@@ -174,4 +180,5 @@ if [ $(id -u) -eq 0 ]; then
     fi
 fi
 forget_extraneous_vars
+change_stack_ownership
 exec ${sudo} /opt/lsst/software/jupyterlab/runlab.sh

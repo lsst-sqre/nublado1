@@ -161,8 +161,14 @@ function setup_git() {
 }
 
 function change_stack_ownership() {
+    # This is really slow, so run it in the background.  Hopefully the user
+    #  isn't going to get settled enough to start installing things before it
+    #  finishes?  Not ideal, I'm afraid.
     if [ -n "${U_NAME}" ]; then
-	chown -R ${U_NAME}:${U_NAME} /opt/lsst
+	local current_owner=$(ls -ld ${TOPDIR})
+	if [ "${current_owner}" != "${U_NAME}" ]; then
+	    chown -R ${U_NAME}:${U_NAME} ${TOPDIR} >/dev/null 2>&1 &
+	fi
     fi
 }
 
@@ -170,6 +176,7 @@ function change_stack_ownership() {
 U_NAME="${JPY_USER}" # Expect this to change.
 HOMEDIRS="/home"
 DEFAULT_SHELL="/bin/bash"
+TOPDIR="/opt/lsst"
 sudo=""
 if [ $(id -u) -eq 0 ]; then
     if [ -n "${U_NAME}" ]; then
@@ -181,4 +188,4 @@ if [ $(id -u) -eq 0 ]; then
 fi
 forget_extraneous_vars
 change_stack_ownership
-exec ${sudo} /opt/lsst/software/jupyterlab/runlab.sh
+exec ${sudo} ${TOPDIR}/software/jupyterlab/runlab.sh

@@ -16,7 +16,7 @@ spec:
           ports:
             -
               containerPort: 8000
-              name: jld
+              name: jld-hub
           env:
             - name: LOGLEVEL
               value: INFO

@@ -36,7 +36,7 @@ function make_user() {
     fi
     add_groups
     local gentry=""
-    local suppgrp=""
+    local suppgrp="-G jupyter"
     if [ -n "${GITHUB_ORGANIZATIONS}" ]; then
 	for gentry in $(echo ${GITHUB_ORGANIZATIONS} | tr "," "\n"); do
 	    gname=$(echo ${gentry} | cut -d ':' -f 1)
@@ -164,6 +164,7 @@ function setup_git() {
 U_NAME="${JPY_USER}" # Expect this to change.
 HOMEDIRS="/home"
 DEFAULT_SHELL="/bin/bash"
+TOPDIR="/opt/lsst"
 sudo=""
 if [ $(id -u) -eq 0 ]; then
     if [ -n "${U_NAME}" ]; then
@@ -174,4 +175,4 @@ if [ $(id -u) -eq 0 ]; then
     fi
 fi
 forget_extraneous_vars
-exec ${sudo} /opt/lsst/software/jupyterlab/runlab.sh
+exec ${sudo} ${TOPDIR}/software/jupyterlab/runlab.sh

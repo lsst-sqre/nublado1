@@ -3,13 +3,13 @@ USER root
 RUN  groupadd -g 768 jupyter && chgrp -R jupyter /opt/lsst && \
       chmod -R g+w /opt/lsst
 LABEL      description="jupyterlab demo: jupyterlab" \
-             name="lsstsqre/jld-lab-new" \
-             version="0.0.4dev0"
+             name="lsstsqre/jld-lab" \
+             version="0.0.7"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
-      python-devel nodejs npm git jupyterlab=='0.21.0'
+      python-devel nodejs npm git jupyterlab
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -22,53 +22,28 @@ RUN  cd /tmp && \
      rm -rf ${F} ${FN}
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
-RUN  pip3 install virtualenv virtualenvwrapper ipykernel nbdime
+RUN  pip3 install virtualenv virtualenvwrapper ipykernel nbdime \
+      sqre-labkubespawner
 RUN  pip2 install virtualenv virtualenvwrapper
-COPY assets/sqre_labkubespawner-0.0.4.dev0-py2.py3-none-any.whl \
-#       assets/jupyterlab-0.21.0-py2.py3-none-any.whl \
-       assets/notebook-5.0.0.dev0-py2.py3-none-any.whl \
+# We need local notebook to get the equivalent of --allow-root
+COPY assets/notebook-5.0.0.dev0-py2.py3-none-any.whl \
        /tmp/
 RUN  pip3 install \
-#       /tmp/jupyterlab-0.21.0-py2.py3-none-any.whl \
-       /tmp/sqre_labkubespawner-0.0.4.dev0-py2.py3-none-any.whl \
        /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl
 RUN  python3 /usr/bin/nbdime config-git --enable --system
-#RUN  cd /usr/src && \
-#     git clone https://github.com/jupyter/jupyterlab.git && \
-#     cd jupyterlab && \
-#     npm install && \
-#     pip3 install -e . && \
-#     pip2 install -e . && \
-#     pip2 uninstall -y notebook && \
-#     pip3 uninstall -y notebook && \
-#     pip2 install /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl && \
-#     pip3 install /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl && \
-#     python3 /usr/bin/jupyter lab build
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       pip install --upgrade pip && \
       pip install ipykernel \
-#       /tmp/jupyterlab-0.21.0-py2.py3-none-any.whl \
-       /tmp/sqre_labkubespawner-0.0.4.dev0-py2.py3-none-any.whl \
        /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl
-#       pip install -e /usr/src/jupyterlab
 RUN  /opt/lsst/software/stack/miniconda3-4.2.12/bin/python \
       -m ipykernel install --name 'LSST_Stack'
 RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
       --sys-prefix
-#RUN  python3 /usr/bin/jupyter labextension install \
-#      jupyterhub_labextension \
-#      sqre_labkubespawner \
-#      --py --sys-prefix
-#RUN  python3 /usr/bin/jupyter labextension enable \
-#      jupyterhub_labextension \
-#       sqre_labkubespawner \
-#       --py --sys-prefix
 RUN  /opt/lsst/software/stack/miniconda3-4.2.12/bin/python \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
 RUN  python3 /usr/bin/jupyter lab build
-RUN  rm /tmp/sqre_labkubespawner-0.0.4.dev0-py2.py3-none-any.whl \
-#     /tmp/jupyterlab-0.21.0-py2.py3-none-any.whl \
+RUN  rm \
      /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl     
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      /etc/profile.d/

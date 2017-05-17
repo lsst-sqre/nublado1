@@ -14,8 +14,8 @@ cmd="python${PY_VER} /usr/bin/jupyter-singlelabuser \
      --LabApp.base_url=/user/${USER}"
 echo ${cmd}
 if [ -n "${DEBUG}" ]; then
-    ${cmd}
     while : ; do
+	${cmd}
 	d=$(date)
 	echo "${d}: sleeping."
 	sleep 60

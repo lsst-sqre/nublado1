@@ -2,11 +2,7 @@ FROM centos:7
 USER root
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-<<<<<<< HEAD
-             version="0.0.6"
-=======
-             version="0.0.7"
->>>>>>> master
+             version="0.0.8"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
@@ -24,15 +20,7 @@ COPY assets/jupyterhub-0.8.0.dev0-py3-none-any.whl \
       # assets/sqre_ghowlauth-0.0.9-py2.py3-none-any.whl \
       /tmp/
 RUN  pip3 install /tmp/jupyterhub-0.8.0.dev0-py3-none-any.whl
-<<<<<<< HEAD
-      # /tmp/sqrekubespawner-0.0.7-py2.py3-none-any.whl
-      # /tmp/sqre_ghowlauth-0.0.9-py2.py3-none-any.whl
-RUN  rm /tmp/jupyterhub-0.8.0.dev0-py3-none-any.whl 
-     # /tmp/sqrekubespawner-0.0.7-py2.py3-none-any.whl
-     # /tmp/sqre_ghowlauth-0.0.9-py2.py3-none-any.whl
-=======
 RUN  rm /tmp/jupyterhub-0.8.0.dev0-py3-none-any.whl
->>>>>>> master
 RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterhub/

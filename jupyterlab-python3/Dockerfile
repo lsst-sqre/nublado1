@@ -1,15 +1,10 @@
 FROM lsstsqre/centos:7-py3-demo
 USER root
-<<<<<<< HEAD:jupyterlab-python3/Dockerfile
-LABEL      description="jupyterlab demo: jupyterlab (Python 3 LSST Stack)" \
-             name="lsstsqre/jld-lab-py3" \
-=======
 RUN  groupadd -g 768 jupyter && chgrp -R jupyter /opt/lsst && \
       chmod -R g+w /opt/lsst
 LABEL      description="jupyterlab demo: jupyterlab" \
-             name="lsstsqre/jld-lab" \
->>>>>>> master:jupyterlab/Dockerfile
-             version="0.0.7"
+             name="lsstsqre/jld-lab-py3" \
+             version="0.0.8"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
@@ -40,11 +35,12 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       pip install --upgrade pip && \
       pip install ipykernel \
        /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl
-RUN  /opt/lsst/software/stack/miniconda3-4.2.12/bin/python \
+ENV  MCD=miniconda3-4.2.12
+RUN  /opt/lsst/software/stack/${MCD}/bin/python \
       -m ipykernel install --name 'LSST_Stack'
 RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  /opt/lsst/software/stack/miniconda3-4.2.12/bin/python \
+RUN  /opt/lsst/software/stack/${MCD}/bin/python \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
 RUN  python3 /usr/bin/jupyter lab build
@@ -58,24 +54,14 @@ RUN  cd /etc/profile.d && \
      done
 RUN  mkdir -p /etc/skel/notebooks
 RUN  mkdir -p /opt/lsst/software/jupyterlab/
-<<<<<<< HEAD:jupyterlab-python3/Dockerfile
-COPY lsst_kernel_py3.json lsstlaunch.sh lablauncher.sh runlab.sh \
-      /opt/lsst/software/jupyterlab/
-COPY lsst_kernel_py3.json \
-=======
-COPY lsst_kernel.json lsstlaunch.bash lablauncher.bash runlab.sh \
+COPY lsst_kernel_py3.json lsstlaunch.bash lablauncher.bash runlab.sh \
       /opt/lsst/software/jupyterlab/
 RUN  chgrp -R jupyter /opt/lsst/software/jupyterlab && \
      chmod -R g+w /opt/lsst/software/jupyterlab
-COPY lsst_kernel.json \
->>>>>>> master:jupyterlab/Dockerfile
+COPY lsst_kernel_py3.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV  LANG=C.UTF-8
 WORKDIR /tmp
-<<<<<<< HEAD:jupyterlab-python3/Dockerfile
-CMD [ "/opt/lsst/software/jupyterlab/lablauncher.sh", "3" ]
-=======
 CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]
->>>>>>> master:jupyterlab/Dockerfile

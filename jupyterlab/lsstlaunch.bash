@@ -1,6 +1,6 @@
 #!/bin/bash
-CONFIG_FILE=$1
-PYTHON_VER=$2
+PYTHON_VER=$1
+CONFIG_FILE=$2
 source /opt/lsst/software/stack/loadLSST.bash
 setup lsst_distrib
 if [ -e ${HOME}/notebooks/.user_setups ]; then

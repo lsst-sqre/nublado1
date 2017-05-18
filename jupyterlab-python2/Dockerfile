@@ -64,4 +64,4 @@ COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV  LANG=C.UTF-8
 WORKDIR /tmp
-CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash", "2" ]
+CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]

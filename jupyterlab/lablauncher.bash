@@ -161,7 +161,6 @@ function setup_git() {
 
 ## Begin mainline code. ##
 U_NAME="${JPY_USER}" # Expect this to change.
-PY_VER=$1
 HOMEDIRS="/home"
 DEFAULT_SHELL="/bin/bash"
 TOPDIR="/opt/lsst"

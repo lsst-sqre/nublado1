@@ -95,8 +95,7 @@ function add_group() {
 }
 
 function forget_extraneous_vars() {
-    local purge="GITHUB_ACCESS_TOKEN"
-    purge="${purge} MEM_LIMIT CPU_LIMIT"
+    local purge="MCD GITHUB_ACCESS_TOKEN MEM_LIMIT CPU_LIMIT"
     unset ${purge}
     purge_docker_vars KUBERNETES HTTPS:443
     purge_docker_vars K8S_JLD_NGINX HTTP:80,HTTPS:443

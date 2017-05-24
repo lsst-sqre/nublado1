@@ -1,0 +1,30 @@
+#!/bin/bash
+# This relies on a couple of things:
+#  1) "name" and "version" first appear in a Dockerfile as part of a label
+#  2) They're on separate lines (the same logical line with continuations
+#       is OK).
+IMAGE=$(  grep name Dockerfile | \
+	      head -1 | \
+	      sed -e    's/name=\"\(.*\)\"/\1/' | \
+	      tr -d '[[:space:]]' | tr -d '\\' )
+VERSION=$(grep version Dockerfile | \
+	      head -1 | \
+	      sed -e 's/version=\"\(.*\)\"/\1/' | \
+	      tr -d '[[:space:]]' | tr -d '\\' )
+if [ -z "${IMAGE}" ]; then
+    echo 1>&2 "Could not determine name from Dockerfile."
+    exit 2
+fi
+if [ -z "${VERSION}" ]; then
+       echo 1>&2 "Could not determine version from Dockerfile."
+       exit 2
+fi
+docker build -t ${IMAGE}:${VERSION} .
+rc=$?
+if [ "${rc}" -ne 0 ]; then
+    echo 1>&2 "Docker build failed."
+    exit 1
+fi
+docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
+docker push ${IMAGE}:${VERSION}
+docker push ${IMAGE}:latest

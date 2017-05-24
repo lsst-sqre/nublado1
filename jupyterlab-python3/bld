@@ -1,0 +1,12 @@
+#!/bin/bash
+for i in jupyter_notebook_config.json lablauncher.bash \
+				      local01-virtualenvwrapper.sh \
+				      local02-hub.sh local03-showmotd.sh \
+				      lsstlaunch.bash \
+				      motd \
+				      runlab.sh ; do
+    cp ../jupyterlab/$i .
+done
+cp ../../notebook/dist/notebook-5.0.0.dev0-py2.py3-none-any.whl \
+   assets/
+./bld_1

@@ -9,7 +9,7 @@ RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
-      python-devel nodejs npm git jupyterlab
+      python-devel nodejs npm git
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -23,7 +23,8 @@ RUN  cd /tmp && \
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
 RUN  pip3 install virtualenv virtualenvwrapper ipykernel nbdime \
-      sqre-labkubespawner
+     sqre-labkubespawner \
+     jupyterlab
 RUN  pip2 install virtualenv virtualenvwrapper
 # We need local notebook to get the equivalent of --allow-root
 COPY assets/notebook-5.0.0.dev0-py2.py3-none-any.whl \

@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: logstashrmq
+spec:
+  template:
+    metadata:
+      labels:
+        name: logstashrmq
+    spec:
+      containers:
+        - name: logstashrmq
+          imagePullPolicy: "Always"
+          image: "lsstsqre/logstash-rabbitmq-shovel"
+          env:
+            - name: RABBITMQ_TARGET_HOST
+              value: rabbit-0.lsst.codes
+            - name: RABBITMQ_TARGET_VHOST
+              value: logstash
+            - name: RABBITMQ_PAN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logstashrmq
+                  key: rabbitmq.pan.password

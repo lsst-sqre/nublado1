@@ -7,8 +7,8 @@
 
 * You can log in with local (PAM) authentication.
 
-* Or, better, build a kube evironment and run nginx, the hub, and the
-  fileserver, and log in with GitHub OAuth2.
+* Or, better, build a kube evironment and run filebeat, logstashrmq,
+  nginx, the hub, and the fileserver, and log in with GitHub OAuth2.
 
 ### Notebook
 
@@ -55,6 +55,11 @@
 * Nginx terminates TLS and uses the Hub Service as its backend target.
   It too has a Deployment and a Service, and additionally the TLS
   secrets. 
+
+### Logstash
+
+* The `filebeat` daemonset logs to a local `logstash` collector which
+  uses RabbitMQ to send logs to NCSA.
 
 ### JupyterLab
 

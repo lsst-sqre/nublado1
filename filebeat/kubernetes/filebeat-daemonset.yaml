@@ -14,25 +14,13 @@ spec:
           image: "lsstsqre/k8s-filebeat"
           env:
             - name: DEBUG
-              valueFrom:
-                secretKeyRef:
-                  name: filebeat
-                  key: debug
+              value: 'true'
             - name: SHIPPER_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: filebeat
-                  key: shipper.name
+              value: jupyterlabdemo
             - name: LOGSTASH_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: filebeat
-                  key: logstash.host
+              value: logstashrmq
             - name: LOGSTASH_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: filebeat
-                  key: logstash.port
+              value: '5044'
           volumeMounts:
           - mountPath: /containerlogs
             name: varlibcont

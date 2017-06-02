@@ -3,7 +3,7 @@
  "language": "python",
  "argv": [
     "/opt/lsst/software/jupyterlab/lsstlaunch.bash",
-     "3", 
+     "3",
     "{connection_file}"
  ]
 }

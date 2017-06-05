@@ -5,7 +5,6 @@ if [ -n "${DEBUG}" ]; then
 fi
 sync
 cd ${HOME}
-pwd
 cmd="python3 /usr/bin/jupyter-singlelabuser \
      --ip='*' --port=8888 --debug \
      --hub-api-url=${JPY_HUB_API_URL} \

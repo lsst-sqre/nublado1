@@ -24,7 +24,7 @@ RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
 RUN  pip3 install virtualenv virtualenvwrapper ipykernel nbdime \
       sqre-labkubespawner \
-      jupyterlab
+      jupyterlab=='0.22.0'
 RUN  pip2 install virtualenv virtualenvwrapper
 # We need local notebook to get the equivalent of --allow-root
 COPY assets/notebook-5.0.0.dev0-py2.py3-none-any.whl \

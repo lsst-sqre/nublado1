@@ -5,6 +5,7 @@ function setup_user() {
     if [ $? -ne 0 ]; then
 	make_user
     fi
+    change_staging_id
     setup_git
 }
 
@@ -157,6 +158,16 @@ function setup_git() {
         echo "    helper = store" >> ${gitcfg}
         chown ${U_NAME}:${U_NAME} ${gitcfg}
     fi
+}
+
+function change_staging_id() {
+    # JupyterLab wants to rebuild the index for extensions.
+    # If the files it wants exist and are owned by another user, it fails
+    #  even if they are writeable.
+    local stagedir="/usr/share/jupyter/lab/staging"
+    for i in index.js webpack.config.js; do
+	chown ${U_NAME} "${stagedir}/${i}"
+    done
 }
 
 ## Begin mainline code. ##

@@ -45,6 +45,8 @@ RUN  /opt/lsst/software/stack/${MCD}/bin/python \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
 RUN  python3 /usr/bin/jupyter lab build
+RUN  chgrp -R jupyter /usr/share/jupyter/lab && \
+     chmod -R g+wt /usr/share/jupyter/lab
 RUN  rm \
      /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl     
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \

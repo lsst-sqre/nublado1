@@ -1,0 +1,41 @@
+RUN  /opt/lsst/software/stack/${MCD}/bin/python \
+      -m ipykernel install --name 'LSST_Stack'
+RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
+      --sys-prefix
+RUN  /opt/lsst/software/stack/${MCD}/bin/python \
+      /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
+# If jupyterlab-hub isn't updated on npm, you need the git + local build
+#RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
+#RUN  python3 /usr/bin/jupyter lab build
+RUN  mkdir -p /usr/share/git && cd /usr/share/git && \
+     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+     cd jupyterlab-hub && \
+     npm install && \
+     python3 /usr/bin/jupyter labextension link . && \
+     cd /usr/share/git/jupyterlab-hub && \
+     npm run build && \
+     python3 /usr/bin/jupyter lab build
+RUN  rm \
+     /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl     
+COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
+     /etc/profile.d/
+RUN  cd /etc/profile.d && \
+     for i in local*; do \
+         ln $i $(basename $i .sh).csh ;\
+     done
+RUN  mkdir -p /etc/skel/notebooks
+RUN  mkdir -p /opt/lsst/software/jupyterlab/
+COPY lsst_kernel_py${PYVER}.json \
+      lsstlaunch.bash lablauncher.bash runlab.sh \
+      /opt/lsst/software/jupyterlab/
+COPY lsst_kernel_py${PYVER}.json \
+       /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
+RUN  chgrp -R jupyter /opt/lsst/software/jupyterlab && \
+     chmod -R g+w /opt/lsst/software/jupyterlab && \
+     chgrp -R jupyter /usr/share/jupyter/lab && \
+     chmod -R g+wt /usr/share/jupyter/lab
+COPY motd /etc/motd
+COPY jupyter_notebook_config.json /usr/etc/jupyter
+ENV  LANG=C.UTF-8
+WORKDIR /tmp
+CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]

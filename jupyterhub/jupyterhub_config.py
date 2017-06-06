@@ -609,8 +609,8 @@ c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.cleanup_servers = False
 
 # First pulls can be really slow, so let's give it a big timeout
-c.SQREKubeSpawner.http_timeout = 60 * 10
-c.SQREKubeSpawner.start_timeout = 60 * 10
+c.SQREKubeSpawner.http_timeout = 60 * 15
+c.SQREKubeSpawner.start_timeout = 60 * 15
 #c.SQREKubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab-python3:latest'
 # Get image spec from form.
 c.SQREKubeSpawner.singleuser_image_pull_policy = 'Always'
@@ -628,21 +628,6 @@ c.SQREKubeSpawner.volume_mounts = [
      "name": "jld-fileserver-home"}]
 # Add selection form
 c.SQREKubeSpawner.options_form = """
-<script>
-     var time = new Date().getTime();
-     $(document.body).bind("mousemove keypress", function(e) {
-         time = new Date().getTime();
-     });
-
-     function refresh() {
-         if(new Date().getTime() - time >= 60000) 
-             window.location.reload(true);
-         else 
-             setTimeout(refresh, 10000);
-     }
-
-     setTimeout(refresh, 10000);
-</script>
 <label for="LSST Stack Selector">LSST Stack Selector</label></br>
 <input type="radio" name="lsst_stack"
   value="lsstsqre/jld-lab-py2:latest"> Python 2

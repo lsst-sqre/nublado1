@@ -3,11 +3,11 @@
 #  1) "name" and "version" first appear in a Dockerfile as part of a label
 #  2) They're on separate lines (the same logical line with continuations
 #       is OK).
-IMAGE=$(  grep name Dockerfile | \
+IMAGE=$(  grep name\= Dockerfile | \
 	      head -1 | \
 	      sed -e    's/name=\"\(.*\)\"/\1/' | \
 	      tr -d '[[:space:]]' | tr -d '\\' )
-VERSION=$(grep version Dockerfile | \
+VERSION=$(grep version\= Dockerfile | \
 	      head -1 | \
 	      sed -e 's/version=\"\(.*\)\"/\1/' | \
 	      tr -d '[[:space:]]' | tr -d '\\' )

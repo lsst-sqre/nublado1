@@ -165,7 +165,7 @@ function change_staging_id() {
     # If the files it wants exist and are owned by another user, it fails
     #  even if they are writeable.
     local stagedir="/usr/share/jupyter/lab/staging"
-    for i in index.js webpack.config.js; do
+    for i in package.json index.js webpack.config.js; do
 	chown ${U_NAME} "${stagedir}/${i}"
     done
 }

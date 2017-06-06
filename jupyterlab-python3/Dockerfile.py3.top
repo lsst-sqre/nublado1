@@ -1,0 +1,2 @@
+FROM lsstsqre/centos:7-py3-demo
+USER root

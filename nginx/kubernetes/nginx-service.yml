@@ -1,12 +1,12 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: k8s-jld-nginx
+  name: jld-nginx
   labels:
-    name: k8s-jld-nginx
+    name: jld-nginx
 spec:
   selector:
-    name: k8s-jld-nginx
+    name: jld-nginx
   type: LoadBalancer
   ports:
   - name: https

@@ -5,7 +5,7 @@ cp ../../jupyterhub/dist/jupyterhub-0.8.0.dev0-py3-none-any.whl \
 ./bld_1
 kubectl delete deployment jld-hub
 kubectl create -f kubernetes/jld-hub-deployment.yml
-POD=$(kubectl get pods | grep Creating | awk '{print $1}')
+POD=$(kubectl get pods | grep jld-hub | grep Creating | awk '{print $1}')
 while : ;do
     kubectl logs -f $POD
     sleep 10

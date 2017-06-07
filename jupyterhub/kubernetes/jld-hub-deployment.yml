@@ -20,23 +20,33 @@ spec:
           env:
             - name: LOGLEVEL
               value: INFO
+            - name: LAB_CONTAINER_NAMES
+              value: 'lsstsqre/jld-lab-py2:latest,lsstsqre/jld-lab-py3:latest'
+            - name: LAB_CONTAINER_DESCS
+              value: 'LSST Stack (Python 2),LSST Stack (Python 3)'
+            - name: LAB_SELECTOR_TITLE
+              value: 'LSST Stack Selector'
+            # - name: LAB_MEM_LIMIT
+            #   value: '2G'
+            # - name: LAB_CPU_LIMIT
+            #   value: '1'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:
-                  name: jld
+                  name: jld-hub
                   key: github_organization_whitelist
             - name: GITHUB_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: jld
+                  name: jld-hub
                   key: github_client_id
             - name: GITHUB_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: jld
+                  name: jld-hub
                   key: github_secret
             - name: OAUTH_CALLBACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: jld
+                  name: jld-hub
                   key: github_oauth_callback_url

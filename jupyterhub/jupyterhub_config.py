@@ -611,14 +611,21 @@ c.JupyterHub.cleanup_servers = False
 # First pulls can be really slow, so let's give it a big timeout
 c.SQREKubeSpawner.http_timeout = 60 * 15
 c.SQREKubeSpawner.start_timeout = 60 * 15
-#c.SQREKubeSpawner.singleuser_image_spec = 'lsstsqre/jld-lab-python3:latest'
 # Get image spec from form.
 c.SQREKubeSpawner.singleuser_image_pull_policy = 'Always'
 # The spawned containers need to be able to talk to the hub through the proxy!
 c.SQREKubeSpawner.hub_connect_ip = os.environ['HUB_CONNECT_IP']
 c.JupyterHub.hub_ip = os.environ['HUB_CONNECT_IP']
-c.SQREKubeSpawner.mem_limit = '2G'
-c.SQREKubeSpawner.cpu_limit = 1
+memlim = os.getenv('LAB_MEM_LIMIT')
+if not memlim:
+    memlim = '2G'
+cpulimstr = os.getenv('LAB_CPU_LIMIT')
+cpulim = 1.0
+if cpulimstr:
+    cpulim = float(cpulimstr)
+c.SQREKubeSpawner.mem_limit = memlim
+c.SQREKubeSpawner.cpu_limit = cpulim
+
 c.SQREKubeSpawner.default_url = '/lab'
 c.SQREKubeSpawner.volumes = [
     {"name": "jld-fileserver-home",
@@ -626,11 +633,31 @@ c.SQREKubeSpawner.volumes = [
 c.SQREKubeSpawner.volume_mounts = [
     {"mountPath": "/home",
      "name": "jld-fileserver-home"}]
-# Add selection form
-c.SQREKubeSpawner.options_form = """
-<label for="LSST Stack Selector">LSST Stack Selector</label></br>
-<input type="radio" name="lsst_stack"
-  value="lsstsqre/jld-lab-py2:latest"> Python 2
-<input type="radio" name="lsst_stack"
-  value="lsstsqre/jld-lab-py3:latest"> Python 3
-"""
+
+# Get (possibly list of) image(s)
+imgspec = os.getenv("LAB_CONTAINER_NAMES")
+if not imgspec:
+    imgspec = "lsstsqre/jld-lab-py3:latest"
+imagelist = imgspec.split(',')
+if len(imagelist) < 2:
+    c.SQREKubeSpawner.singleuser_image_spec = imgspec
+else:
+    title = os.getenv("LAB_SELECTOR_TITLE")
+    idescstr = os.getenv("LAB_CONTAINER_DESCS")
+    if not idescstr:
+        idesc = imagelist
+    else:
+        idesc = idescstr.split(',')
+    if not title:
+        title = "Container Image Selector"
+    optform = "<label for=\"%s\">%s</label></br>\n" % (title, title)
+    for idx, img in enumerate(imagelist):
+        optform += "<input type=\"radio\" name=\"lsst_stack\"\n"
+        try:
+            imgdesc = idesc[idx]
+        except IndexError:
+            imgdesc = img
+        if not imgdesc:
+            imgdesc = img
+        optform += "  value = \"%s\"> %s\n" % (img, imgdesc)
+    c.SQREKubeSpawner.options_form = optform

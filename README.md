@@ -2,13 +2,7 @@
 
 ## Running
 
-* `docker run -it --rm -p 8000:8000 --name jupyterlabdemo
-  lsstsqre/jupyterlabdemo`
-
-* You can log in with local (PAM) authentication.
-
-* Or, better, build a kube evironment and run filebeat, logstashrmq,
-  nginx, the hub, and the fileserver, and log in with GitHub OAuth2.
+* Build a kubernetes evironment and log in with GitHub OAuth2.
 
 ### Notebook
 
@@ -24,11 +18,12 @@
 
 * Each component has a `Dockerfile`.  `docker build -t <container-name>
   .` in its directory will build the container.
-
+  
 ## Kubernetes
 
 * Each component has a `kubernetes` directory (except for JupyterLab,
-  which is spawned on demand).
+  which is spawned on demand).  This is used to create a container (or
+  multiple containers) for each component, in the following order.
   
 ### Fileserver
 
@@ -39,6 +34,17 @@
   export.  Then there is a (namespaced) PersistentVolumeClaim for the
   NFS export that the Lab pods will use.
   
+* There is also a keepalive pod that just writes to the exported volume
+  periodically.  Without it the NFS server will time out from inactivity
+  eventually.
+
+### Logstash
+
+* The `filebeat` daemonset logs to a local `logstash` collector which
+  uses RabbitMQ to send logs to a remote collector.  The name of the
+  filebeat log, the target host, and the target port are described in
+  deployment environment variables.
+
 ### Hub
 
 * The Hub component has a Deployment and a Service.  It will need an
@@ -46,20 +52,35 @@
   component.  On the Hub set up a GitHub application and environment
   variables as described at https://github.com/jupyterhub/oauthenticator .
   
+#### Additional environment variables
+  
 * Additionally define the `GITHUB_ORGANIZATION_WHITELIST` environment
   variable with a comma-separated list of organizations whose members
   should be allowed to log in.
+  
+* Define `LAB_CONTAINER_NAMES` with the image names of the possible
+  containers to spawn; it's also comma-separated.  If this is left
+  undefined, the default image is `lsstsqre/jld-lab-py3`.
+  
+* `LAB_CONTAINER_DESCS` matches `LAB_CONTAINER_NAMES`: each
+  (comma-separated) item corresponds to the image name in the same
+  position in the list.
+  
+* `LAB_SELECTOR_TITLE` is a text string corresponding to the title text
+  displayed above the image list.
+  
+* `LAB_CPU_LIMIT` corresponds to the number of CPUs a container is
+  allowed.  The default is `1`.  Fractional CPUs can be defined in the
+  form `0.2` or `200m`.
+  
+* `LAB_MEM_LIMIT` corresponds to the amount of memory a container is
+  allowed to use.  The default is `2G`.
   
 ### Nginx
 
 * Nginx terminates TLS and uses the Hub Service as its backend target.
   It too has a Deployment and a Service, and additionally the TLS
-  secrets. 
-
-### Logstash
-
-* The `filebeat` daemonset logs to a local `logstash` collector which
-  uses RabbitMQ to send logs to NCSA.
+  secrets necessary for TLS termination.
 
 ### JupyterLab
 

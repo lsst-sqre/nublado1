@@ -30,6 +30,10 @@ spec:
             #   value: '2G'
             # - name: LAB_CPU_LIMIT
             #   value: '1'
+            # - name: LAB_MEM_GUARANTEE
+            #   value: '0K'
+            # - name: LAB_CPU_GUARANTEE
+            #   value: '0'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:

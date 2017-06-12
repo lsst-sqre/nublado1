@@ -661,3 +661,8 @@ else:
             imgdesc = img
         optform += "  value = \"%s\"> %s\n" % (img, imgdesc)
     c.SQREKubeSpawner.options_form = optform
+
+# SESSION_DB_URL may contain a password, so it belongs in a secret.
+db_url = os.getenv('SESSION_DB_URL')
+if db_url:
+    c.JupyterHub.db_url = db_url

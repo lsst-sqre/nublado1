@@ -1,6 +1,6 @@
 #!/bin/bash
 cp ../../jupyterhub/dist/jupyterhub-0.8.0.dev0-py3-none-any.whl \
-    ../../sqre-kubespawner/dist/sqrekubespawner-0.0.8.dev0-py2.py3-none-any.whl \
+    ../../sqre-kubespawner/dist/sqrekubespawner-0.0.9-py2.py3-none-any.whl \
     assets/
 ./bld_1
 kubectl delete deployment jld-hub

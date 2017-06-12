@@ -619,12 +619,21 @@ c.JupyterHub.hub_ip = os.environ['HUB_CONNECT_IP']
 memlim = os.getenv('LAB_MEM_LIMIT')
 if not memlim:
     memlim = '2G'
+memguar = os.getenv('LAB_MEM_GUARANTEE')
+if not memguar:
+    memguar = '0K'
 cpulimstr = os.getenv('LAB_CPU_LIMIT')
 cpulim = 1.0
 if cpulimstr:
     cpulim = float(cpulimstr)
+cpuguar = 0.0
+cpuguarstr = os.getenv('LAB_CPU_GUARANTEE')
+if cpuguarstr:
+    cpugaur = float(gpuguarstr)
 c.SQREKubeSpawner.mem_limit = memlim
 c.SQREKubeSpawner.cpu_limit = cpulim
+c.SQREKubeSpawner.mem_guarantee = memguar
+c.SQREKubeSpawner.cpu_guarantee = cpuguar
 
 c.SQREKubeSpawner.default_url = '/lab'
 c.SQREKubeSpawner.volumes = [

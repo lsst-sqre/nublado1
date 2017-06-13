@@ -36,6 +36,7 @@ RUN  chgrp -R jupyter /opt/lsst/software/jupyterlab && \
      chmod -R g+wt /usr/share/jupyter/lab
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
+RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 ENV  LANG=C.UTF-8
 WORKDIR /tmp
 CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]

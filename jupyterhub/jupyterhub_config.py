@@ -614,8 +614,9 @@ c.SQREKubeSpawner.start_timeout = 60 * 15
 # Get image spec from form.
 c.SQREKubeSpawner.singleuser_image_pull_policy = 'Always'
 # The spawned containers need to be able to talk to the hub through the proxy!
-c.SQREKubeSpawner.hub_connect_ip = os.environ['HUB_CONNECT_IP']
-c.JupyterHub.hub_ip = os.environ['HUB_CONNECT_IP']
+c.SQREKubeSpawner.hub_connect_port = int(os.environ['JLD_HUB_SERVICE_PORT'])
+c.SQREKubeSpawner.hub_connect_ip = os.environ['JLD_HUB_SERVICE_HOST']
+c.JupyterHub.hub_ip = os.environ['HUB_BIND_IP']
 memlim = os.getenv('LAB_MEM_LIMIT')
 if not memlim:
     memlim = '2G'

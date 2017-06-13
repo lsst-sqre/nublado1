@@ -614,17 +614,27 @@ c.SQREKubeSpawner.start_timeout = 60 * 15
 # Get image spec from form.
 c.SQREKubeSpawner.singleuser_image_pull_policy = 'Always'
 # The spawned containers need to be able to talk to the hub through the proxy!
-c.SQREKubeSpawner.hub_connect_ip = os.environ['HUB_CONNECT_IP']
-c.JupyterHub.hub_ip = os.environ['HUB_CONNECT_IP']
+c.SQREKubeSpawner.hub_connect_port = int(os.environ['JLD_HUB_SERVICE_PORT'])
+c.SQREKubeSpawner.hub_connect_ip = os.environ['JLD_HUB_SERVICE_HOST']
+c.JupyterHub.hub_ip = os.environ['HUB_BIND_IP']
 memlim = os.getenv('LAB_MEM_LIMIT')
 if not memlim:
     memlim = '2G'
+memguar = os.getenv('LAB_MEM_GUARANTEE')
+if not memguar:
+    memguar = '0K'
 cpulimstr = os.getenv('LAB_CPU_LIMIT')
 cpulim = 1.0
 if cpulimstr:
     cpulim = float(cpulimstr)
+cpuguar = 0.0
+cpuguarstr = os.getenv('LAB_CPU_GUARANTEE')
+if cpuguarstr:
+    cpugaur = float(gpuguarstr)
 c.SQREKubeSpawner.mem_limit = memlim
 c.SQREKubeSpawner.cpu_limit = cpulim
+c.SQREKubeSpawner.mem_guarantee = memguar
+c.SQREKubeSpawner.cpu_guarantee = cpuguar
 
 c.SQREKubeSpawner.default_url = '/lab'
 c.SQREKubeSpawner.volumes = [
@@ -661,3 +671,8 @@ else:
             imgdesc = img
         optform += "  value = \"%s\"> %s\n" % (img, imgdesc)
     c.SQREKubeSpawner.options_form = optform
+
+# SESSION_DB_URL may contain a password, so it belongs in a secret.
+db_url = os.getenv('SESSION_DB_URL')
+if db_url:
+    c.JupyterHub.db_url = db_url

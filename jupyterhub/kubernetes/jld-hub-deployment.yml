@@ -30,6 +30,10 @@ spec:
             #   value: '2G'
             # - name: LAB_CPU_LIMIT
             #   value: '1'
+            # - name: LAB_MEM_GUARANTEE
+            #   value: '0K'
+            # - name: LAB_CPU_GUARANTEE
+            #   value: '0'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:
@@ -50,3 +54,17 @@ spec:
                 secretKeyRef:
                   name: jld-hub
                   key: github_oauth_callback_url
+            - name: SESSION_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jld-hub
+                  key: session_db_url
+          # If you use sqlite, you want this to persist sessions across
+          #  jupyterhub restarts.
+          volumeMounts:
+            - name: jld-fileserver-home
+              mountPath: /home
+      volumes:
+        - name: jld-fileserver-home
+          persistentVolumeClaim:
+             claimName: jld-fileserver-home

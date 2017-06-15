@@ -25,8 +25,9 @@ RUN  rm /tmp/jupyterhub-0.8.0.dev0-py3-none-any.whl
       # /tmp/sqrekubespawner-0.0.10-py2.py3-none-any.whl
 RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix
-RUN  mkdir -p /opt/lsst/software/jupyterhub/
-COPY jupyterhub_config.py hublauncher.sh /opt/lsst/software/jupyterhub/
+RUN  mkdir -p /opt/lsst/software/jupyterhub/config
+# jupyterhub_config.py is stored in a ConfigMap
+COPY hublauncher.sh /opt/lsst/software/jupyterhub/
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter

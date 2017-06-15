@@ -64,7 +64,17 @@ spec:
           volumeMounts:
             - name: jld-fileserver-home
               mountPath: /home
+            - name: jld-hub-config
+              mountPath: /opt/lsst/software/jupyterhub/config
       volumes:
         - name: jld-fileserver-home
           persistentVolumeClaim:
              claimName: jld-fileserver-home
+        - name: jld-hub-config
+          configMap:
+            name: jld-hub-config
+            #  Create with `kubectl configmap jld-hub-config \
+            #   --from-file=config/jld-hub-cfg.py`
+            items:
+            - key: jld-hub-cfg.py
+              path: jupyterhub_config.py

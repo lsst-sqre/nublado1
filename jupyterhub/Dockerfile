@@ -32,4 +32,3 @@ ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]
-

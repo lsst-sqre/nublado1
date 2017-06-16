@@ -10,13 +10,13 @@ RUN  /opt/lsst/software/stack/${MCD}/bin/python \
 RUN  mkdir -p /usr/share/git && cd /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      cd jupyterlab-hub && \
-     npm install && \
+     npm install --unsafe-perm && \
      python3 /usr/bin/jupyter labextension link . && \
      cd /usr/share/git/jupyterlab-hub && \
      npm run build && \
      python3 /usr/bin/jupyter lab build
 RUN  rm \
-     /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl     
+     /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \

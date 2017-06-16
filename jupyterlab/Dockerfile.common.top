@@ -17,16 +17,16 @@ RUN  cd /tmp && \
      rm -rf ${F} ${FN}
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
-RUN  pip3 install virtualenv virtualenvwrapper ipykernel nbdime \
+RUN  pip3 install --upgrade virtualenv virtualenvwrapper ipykernel nbdime \
       sqre-labkubespawner jupyterlab
-RUN  pip2 install virtualenv virtualenvwrapper
+RUN  pip2 install --upgrade virtualenv virtualenvwrapper
 # We need local notebook to get the equivalent of --allow-root
-COPY assets/notebook-5.0.0.dev0-py2.py3-none-any.whl \
+COPY assets/notebook-5.1.0.dev0-py2.py3-none-any.whl \
        /tmp/
 RUN  pip3 install \
-       /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl
+       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl
 RUN  python3 /usr/bin/nbdime config-git --enable --system
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       pip install --upgrade pip && \
       pip install ipykernel \
-       /tmp/notebook-5.0.0.dev0-py2.py3-none-any.whl
+       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl

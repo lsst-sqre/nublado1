@@ -26,6 +26,7 @@ spec:
               value: 'LSST Stack (Python 2),LSST Stack (Python 3)'
             - name: LAB_SELECTOR_TITLE
               value: 'LSST Stack Selector'
+            # Set these if you want to change them.
             # - name: LAB_MEM_LIMIT
             #   value: '2G'
             # - name: LAB_CPU_LIMIT
@@ -54,6 +55,7 @@ spec:
                 secretKeyRef:
                   name: jld-hub
                   key: github_oauth_callback_url
+            # This may contain credentials, so it should be a secret
             - name: SESSION_DB_URL
               valueFrom:
                 secretKeyRef:
@@ -73,7 +75,7 @@ spec:
         - name: jld-hub-config
           configMap:
             name: jld-hub-config
-            #  Create with `kubectl configmap jld-hub-config \
+            #  Create with `kubectl create configmap jld-hub-config \
             #   --from-file=config/jld-hub-cfg.py`
             items:
             - key: jld-hub-cfg.py

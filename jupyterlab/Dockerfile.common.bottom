@@ -1,22 +1,35 @@
-RUN  /opt/lsst/software/stack/${MCD}/bin/python \
+RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
+     export pdir && \
+     if ! [ -d ${pdir} ]; then \
+         mkdir -p ${pdir} && \
+         cd ${pdir} && \
+         source /opt/lsst/software/stack/loadLSST.bash && \     
+         ln -sf $(which python${PYVER}) . ;\
+      fi
+RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       -m ipykernel install --name 'LSST_Stack'
 RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  /opt/lsst/software/stack/${MCD}/bin/python \
+RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 # If jupyterlab-hub isn't updated on npm, you need the git + local build
 #RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
 #RUN  python3 /usr/bin/jupyter lab build
-RUN  mkdir -p /usr/share/git && cd /usr/share/git && \
+RUN  mkdir -p /usr/share/git && \
+     cd /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-     cd jupyterlab-hub && \
-     npm install --unsafe-perm && \
-     python3 /usr/bin/jupyter labextension link . && \
-     cd /usr/share/git/jupyterlab-hub && \
-     npm run build && \
+     git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
+     for i in hub savequit; do \
+     	 cd jupyterlab-${i} && \
+         npm install --unsafe-perm && \
+         python3 /usr/bin/jupyter labextension link . && \
+         npm run build && \
+         cd .. ;\
+     done && \
      python3 /usr/bin/jupyter lab build
 RUN  rm \
-     /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl
+     /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl \
+     /tmp/jupyterlab-0.24.1-py2.py3-none-any.whl
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
@@ -36,6 +49,9 @@ RUN  chgrp -R jupyter /opt/lsst/software/jupyterlab && \
      chmod -R g+wt /usr/share/jupyter/lab
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
+COPY handlers.py.monkeypatched \
+     /usr/lib/python3.4/site-packages/jupyterlab_launcher/handlers.py
+COPY 20_jupytervars /etc/sudoers.d/
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 ENV  LANG=C.UTF-8
 WORKDIR /tmp

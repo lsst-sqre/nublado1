@@ -1,0 +1,2 @@
+FROM lsstsqre/centos:7-stack-lsst_distrib-w_2017_25
+USER root

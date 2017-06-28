@@ -1,2 +1,1 @@
-ENV  MCD=miniconda3-4.2.12
 ENV  PYVER=3

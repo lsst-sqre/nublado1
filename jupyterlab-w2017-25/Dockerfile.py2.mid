@@ -1,2 +1,1 @@
-ENV  MCD=Linux64/miniconda2/4.2.12.lsst1
 ENV  PYVER=2

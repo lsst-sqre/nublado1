@@ -6,10 +6,13 @@ for i in jupyter_notebook_config.json lablauncher.bash \
 				      motd \
 				      Dockerfile.common.top \
 				      Dockerfile.common.bottom \
+ 				      handlers.py.monkeypatched \
+ 				      20_jupytervars \
 				      runlab.sh ; do
     cp ../jupyterlab/$i .
 done
 cp ../../notebook/dist/notebook-5.1.0.dev0-py2.py3-none-any.whl \
+   ../../jupyterlab/dist/jupyterlab-0.24.1-py2.py3-none-any.whl \
    assets/
 cat Dockerfile.py3.top Dockerfile.common.top Dockerfile.py3.mid \
      Dockerfile.common.bottom Dockerfile.py3.bottom > Dockerfile

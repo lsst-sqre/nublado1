@@ -18,15 +18,19 @@ RUN  cd /tmp && \
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
 RUN  pip3 install --upgrade virtualenv virtualenvwrapper ipykernel nbdime \
-      sqre-labkubespawner jupyterlab
+      'sqre-labkubespawner>=0.0.6' jupyterhub 'jupyterlab<0.24.1'
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper
 # We need local notebook to get the equivalent of --allow-root
+# This JL has hub_user in it.
 COPY assets/notebook-5.1.0.dev0-py2.py3-none-any.whl \
+     assets/jupyterlab-0.24.1-py2.py3-none-any.whl \
        /tmp/
 RUN  pip3 install \
-       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl
+       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl \
+       /tmp/jupyterlab-0.24.1-py2.py3-none-any.whl
 RUN  python3 /usr/bin/nbdime config-git --enable --system
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       pip install --upgrade pip && \
       pip install ipykernel \
-       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl
+       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl \
+       /tmp/jupyterlab-0.24.1-py2.py3-none-any.whl

@@ -4,7 +4,9 @@ RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
-      python-devel nodejs npm git
+      python-devel nodejs npm git \
+      texlive texlive-collection-xetex texlive-ec texlive-upquote \
+      texlive-adjustbox
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -17,7 +19,8 @@ RUN  cd /tmp && \
      rm -rf ${F} ${FN}
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
-RUN  pip3 install --upgrade virtualenv virtualenvwrapper ipykernel nbdime \
+RUN  pip3 install --upgrade virtualenv virtualenvwrapper ipykernel \
+      nbdime pandoc \
       'sqre-labkubespawner>=0.0.6' jupyterhub 'jupyterlab<0.24.1'
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper
 # We need local notebook to get the equivalent of --allow-root

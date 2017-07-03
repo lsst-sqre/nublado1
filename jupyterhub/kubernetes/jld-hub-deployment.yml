@@ -21,9 +21,9 @@ spec:
             - name: LOGLEVEL
               value: INFO
             - name: LAB_CONTAINER_NAMES
-              value: 'lsstsqre/jld-lab-w201725,lsstsqre/jld-lab-py2:latest,lsstsqre/jld-lab-py3:latest'
+              value: 'lsstsqre/jld-lab-w201726,lsstsqre/jld-lab-w201725,lsstsqre/jld-lab-w201724,lsstsqre/jld-lab-w201723,lsstsqre/jld-lab-r13.0'
             - name: LAB_CONTAINER_DESCS
-              value: 'LSST Stack Weekly 2017_25 (Python 2),LSST Stack 13.0 (Python 2),LSST Stack 13.0 (Python 3)'
+              value: 'LSST Stack Weekly 2017_26 (Python 3),LSST Stack Weekly 2017_25 (Python 3),LSST Stack Weekly 2017_24 (Python 3),LSST Stack Weekly 2017_23 (Python 3),LSST Stack Release 13.0 (Python 2)'
             - name: LAB_SELECTOR_TITLE
               value: 'LSST Stack Selector'
             # Set these if you want to change them.

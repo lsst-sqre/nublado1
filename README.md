@@ -90,3 +90,8 @@
   number, and the groups are created with GIDs from the GitHub
   organizations the user is a member of, and their IDs.
 
+## Particular versions
+
+* JupyterHub 49bf4747fd4598e7c1501f083f41c0cbf37adcf9
+* JupyterLab 575fed6cf8c6219fc0b711e728c8fae4ea5b6edd
+

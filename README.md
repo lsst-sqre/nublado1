@@ -92,6 +92,24 @@
 
 ## Particular versions
 
-* JupyterHub 49bf4747fd4598e7c1501f083f41c0cbf37adcf9
+* JupyterHub 396f4549989f593c91bfed0e9255229d48ea2ada
+* * Plus:
+        ```python
+        def user_from_username(self, nameobj):
+        """Get User for username, creating if it doesn't exist"""
+        if type(nameobj) is dict:
+            username = nameobj["name"]
+        else:
+            username = nameobj  # This will explode if it's not a string
+        user = self.find_user(username)
+        if user is None:
+            # not found, create and register user
+            u = orm.User(name=username)
+            self.db.add(u)
+            self.db.commit()
+            user = self._user_from_orm(u)
+            self.authenticator.add_user(user)
+        return user
+		```
 * JupyterLab 575fed6cf8c6219fc0b711e728c8fae4ea5b6edd
 

@@ -94,8 +94,13 @@
 
 * JupyterHub 396f4549989f593c91bfed0e9255229d48ea2ada
 * * Plus:
-        ```python
-        def user_from_username(self, nameobj):
+* JupyterLab 575fed6cf8c6219fc0b711e728c8fae4ea5b6edd
+
+JupyterHub needs the following replacement in
+`jupyterhub/jupyterhub/handlers/base.py`:
+
+```python
+    def user_from_username(self, nameobj):
         """Get User for username, creating if it doesn't exist"""
         if type(nameobj) is dict:
             username = nameobj["name"]
@@ -110,6 +115,4 @@
             user = self._user_from_orm(u)
             self.authenticator.add_user(user)
         return user
-		```
-* JupyterLab 575fed6cf8c6219fc0b711e728c8fae4ea5b6edd
-
+```

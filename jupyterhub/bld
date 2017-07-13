@@ -1,7 +1,5 @@
 #!/bin/bash
-cp ../../jupyterhub/dist/jupyterhub-0.8.0.dev0-py3-none-any.whl \
-   assets/
-./bld_1
+./bld_1 || exit 2
 kubectl delete deployment jld-hub
 kubectl create -f kubernetes/jld-hub-deployment.yml
 POD=$(kubectl get pods | grep jld-hub | grep Creating | awk '{print $1}')

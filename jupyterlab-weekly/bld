@@ -11,9 +11,11 @@ for i in jupyter_notebook_config.json lablauncher.bash \
 				      runlab.sh ; do
     cp ../jupyterlab/$i .
 done
-cp ../../notebook/dist/notebook-5.1.0.dev0-py2.py3-none-any.whl \
-   ../../jupyterlab/dist/jupyterlab-0.24.1-py2.py3-none-any.whl \
-   assets/
+#cp ../../notebook/dist/notebook-5.1.0.dev0-py2.py3-none-any.whl \
+#   ../../jupyterhub/dist/jupyterhub-0.8.0.dev0-py3-none-any.whl \
+#   ../../sqre-labkubespawner/dist/sqre_labkubespawner-0.0.7-py3-none-any.whl \
+#   assets/
+#   ../../jupyterlab/dist/jupyterlab-0.24.1-py2.py3-none-any.whl \
 YEAR=$1
 WEEK=$2
 PYVER=3

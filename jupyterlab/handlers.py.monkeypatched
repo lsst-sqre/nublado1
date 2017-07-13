@@ -69,7 +69,10 @@ class LabHandler(IPythonHandler):
         page_config.setdefault('appVersion', config.version)
         page_config.setdefault('appNamespace', config.namespace)
         page_config.setdefault('devMode', config.dev_mode)
-        page_config.setdefault('token', self.settings.get('token', ''))
+        api_token = os.getenv('JUPYTERLAB_API_TOKEN')
+        if not api_token:
+            api_token = ''  # Turn None into empty string
+        page_config.setdefault('token', self.settings.get('token', api_token))
         page_config.setdefault(
             'settingsDir', config.settings_dir.replace(os.sep, '/')
         )

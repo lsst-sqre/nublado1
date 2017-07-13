@@ -48,9 +48,13 @@ RUN  chgrp -R jupyter /opt/lsst/software/jupyterlab && \
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 # Add API Token support
-ENV  hpy=/usr/lib/python3.4/site-packages/jupyterlab_launcher/handlers.py
+ENV  sp=/usr/lib/python3.4/site-packages
+ENV  hpy=${sp}/jupyterlab_launcher/handlers.py
 RUN  cp ${hpy} ${hpy}.ORIG
 COPY handlers.py.monkeypatched ${hpy}
+ENV  lha=${sp}/jupyterlab/labhubapp.py
+RUN  cp ${lha} ${lha}.ORIG
+COPY labhubapp.py.monkeypatched ${lha}
 COPY 20_jupytervars /etc/sudoers.d/
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 ENV  LANG=C.UTF-8

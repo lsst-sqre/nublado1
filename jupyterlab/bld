@@ -1,0 +1,52 @@
+#!/bin/bash
+BTYPE=$1
+YEAR=$2
+WEEK=$3
+case ${BTYPE} in
+    r|R|release)
+	BTYPE="r"
+	MAJ=${YEAR}
+	MIN=${WEEK}
+	;;
+    w|W|weekly)
+	    BTYPE="w"
+	    ;;
+	*)
+	    BTYPE=""
+	    YEAR=""
+	    ;;
+esac
+PYVER="3"
+if [ -n "${4}" ]; then
+   PYVER=$4
+fi
+if [ -z "${BTYPE}" ] || [ -z "${YEAR}" ] || [ -z "${WEEK}" ]; then
+    echo 1>&2 "Usage: $0 r MAJOR_VERSION MINOR_VERSION [PYTHON_VERSION (3|2)]"
+    echo 1>&2 "       $0 w YEAR WEEK [PYTHON_VERSION (3|2)]"
+    exit 2
+fi
+if [ "${PYVER}" != "2" ] && [ "${PYVER}" != "3" ]; then
+    echo 1>&2 "PYTHON_VERSION must be either 2 or 3"
+    exit 2
+fi
+KFILE=lsst_kernel_py${PYVER}.json
+sed -e "s/{{PYVER}}/${PYVER}/g" lsst_kernel.json.template > ${KFILE}
+if [ "${BTYPE}" == "r" ]; then
+    echo "FROM lsstsqre/centos:7-stack-lsst_distrib-v${MAJ}_${MIN}" > Dockerfile
+    else
+	echo "FROM lsstsqre/stacktest:7-stack-lsst_distrib-w_${YEAR}_${WEEK}" > Dockerfile
+fi
+echo "USER root" >> Dockerfile
+cat Dockerfile.common.top >> Dockerfile
+echo "ENV   PYVER=${PYVER}" >> Dockerfile
+cat Dockerfile.common.bottom >> Dockerfile
+desc="JupyterLab demo: LSST Stack (Python ${PYVER})"
+echo "LABEL description=\"${desc}\" \\" >> Dockerfile
+echo "       name=\"lsstsqre/jld-lab-${BTYPE}${YEAR}${WEEK}\" \\" >> Dockerfile
+if [ "${BYTPE}" == "r" ]; then
+    echo "      version=\"${MAJ}.${MIN}\"" >> Dockerfile
+else
+    echo "       version=\"0.${YEAR}.${WEEK}\"" >> Dockerfile
+fi
+./bld_1
+

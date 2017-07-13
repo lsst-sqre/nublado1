@@ -1,2 +1,0 @@
-FROM lsstsqre/centos:7-stack-lsst_distrib-v13_0
-USER root

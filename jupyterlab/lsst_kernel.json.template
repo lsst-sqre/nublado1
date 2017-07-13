@@ -1,9 +1,9 @@
 {
- "display_name": "LSST_Stack (Python 2)",
+ "display_name": "LSST_Stack (Python {{PYVER}})",
  "language": "python",
  "argv": [
     "/opt/lsst/software/jupyterlab/lsstlaunch.bash",
-     "2",
+     "{{PYVER}}",
     "{connection_file}"
  ]
 }

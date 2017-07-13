@@ -93,14 +93,15 @@ else:
     # Build the options form.
     optform = "<label for=\"%s\">%s</label></br>\n" % (title, title)
     for idx, img in enumerate(imagelist):
-        optform += "<input type=\"radio\" name=\"lsst_stack\"\n"
+        optform += "      "
+        optform += "<input type=\"radio\" name=\"lsst_stack\""
         try:
             imgdesc = idesc[idx]
         except IndexError:
             imgdesc = img
         if not imgdesc:
             imgdesc = img
-        optform += "  value = \"%s\"> %s\n" % (img, imgdesc)
+        optform += " value=\"%s\">%s<br>\n" % (img, imgdesc)
     # Options form built.
     c.SQREKubeSpawner.options_form = optform
 

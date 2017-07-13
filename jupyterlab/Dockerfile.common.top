@@ -4,7 +4,7 @@ RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
-      python-devel nodejs npm git \
+      python-devel nodejs git \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
       texlive-adjustbox
 RUN  cd /tmp && \
@@ -19,21 +19,18 @@ RUN  cd /tmp && \
      rm -rf ${F} ${FN}
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
-RUN  pip3 install --upgrade virtualenv virtualenvwrapper ipykernel \
-      nbdime pandoc \
-      'sqre-labkubespawner>=0.0.6' jupyterhub 'jupyterlab<0.24.1'
+RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
+      ipykernel \
+      nbdime pandoc
+# Now do weird snowflake versions of things, and order matters.
+RUN   pip3 install \
+      https://github.com/jupyter/notebook/zipball/master \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/jupyterhub/jupyterhub/zipball/master \
+     'sqre-labkubespawner>=0.0.8'
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper
-# We need local notebook to get the equivalent of --allow-root
-# This JL has hub_user in it.
-COPY assets/notebook-5.1.0.dev0-py2.py3-none-any.whl \
-     assets/jupyterlab-0.24.1-py2.py3-none-any.whl \
-       /tmp/
-RUN  pip3 install \
-       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl \
-       /tmp/jupyterlab-0.24.1-py2.py3-none-any.whl
+# We need notebook from master to get the equivalent of --allow-root
 RUN  python3 /usr/bin/nbdime config-git --enable --system
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       pip install --upgrade pip && \
-      pip install ipykernel \
-       /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl \
-       /tmp/jupyterlab-0.24.1-py2.py3-none-any.whl
+      pip install ipykernel

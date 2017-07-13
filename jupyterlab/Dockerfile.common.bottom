@@ -18,6 +18,7 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+     git clone https://github.com/jupyterlab/jupyterlab-git.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
@@ -27,9 +28,6 @@ RUN  mkdir -p /usr/share/git && \
          cd .. ;\
      done && \
      python3 /usr/bin/jupyter lab build
-RUN  rm \
-     /tmp/notebook-5.1.0.dev0-py2.py3-none-any.whl \
-     /tmp/jupyterlab-0.24.1-py2.py3-none-any.whl
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
@@ -49,8 +47,14 @@ RUN  chgrp -R jupyter /opt/lsst/software/jupyterlab && \
      chmod -R g+wt /usr/share/jupyter/lab
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-COPY handlers.py.monkeypatched \
-     /usr/lib/python3.4/site-packages/jupyterlab_launcher/handlers.py
+# Add API Token support
+ENV  sp=/usr/lib/python3.4/site-packages
+ENV  hpy=${sp}/jupyterlab_launcher/handlers.py
+RUN  cp ${hpy} ${hpy}.ORIG
+COPY handlers.py.monkeypatched ${hpy}
+ENV  lha=${sp}/jupyterlab/labhubapp.py
+RUN  cp ${lha} ${lha}.ORIG
+COPY labhubapp.py.monkeypatched ${lha}
 COPY 20_jupytervars /etc/sudoers.d/
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 ENV  LANG=C.UTF-8

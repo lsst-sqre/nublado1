@@ -1,3 +1,0 @@
-LABEL      description="JupyterLab demo: LSST Stack (Python 2) LSST Stack" \
-             name="lsstsqre/jld-lab-r130" \
-             version="0.13.0"

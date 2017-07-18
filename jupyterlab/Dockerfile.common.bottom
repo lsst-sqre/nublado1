@@ -15,17 +15,13 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 # If jupyterlab-hub isn't updated on npm, you need the git + local build
 #RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
 #RUN  python3 /usr/bin/jupyter lab build
+# Not yet ready: https://github.com/jupyterlab/jupyterlab-git.git && \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-     git clone https://github.com/jupyterlab/jupyterlab-git.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
-	 if [ "${i}" == "savequit" ] ; then \
-             git checkout tickets/DM-11281 ; \
-	     git branch ; \
-	 fi && \
          npm install --unsafe-perm && \
          python3 /usr/bin/jupyter labextension link . && \
          npm run build && \

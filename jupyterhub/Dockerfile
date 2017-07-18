@@ -7,7 +7,7 @@ RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum install -y python34 python-pip python34-pip nodejs python34-devel \
-       libcurl-devel gcc net-tools sudo git
+       libcurl-devel gcc net-tools sudo git patch
 RUN  pip3 install --upgrade pip setuptools
 RUN  npm install -g configurable-http-proxy
 RUN  pip3 install jupyterlab ipykernel pyyaml pycurl python-oauth2 wheel \
@@ -25,11 +25,10 @@ RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterhub/config
 # Patch handlers/base.py to be OK with "name" being a dict:
-ENV b=/usr/lib/python3.4/site-packages/jupyterhub/handlers/base.py
-RUN cp ${b} ${b}.ORIG
-COPY base.py.monkeypatched ${b}
+COPY hublauncher.sh base.py.patch /opt/lsst/software/jupyterhub/
+RUN cd /usr/lib/python3.4/site-packages/jupyterhub/handlers && \
+    patch < /opt/lsst/software/jupyterhub/base.py.patch
 # jupyterhub_config.py is stored in a ConfigMap
-COPY hublauncher.sh /opt/lsst/software/jupyterhub/
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter

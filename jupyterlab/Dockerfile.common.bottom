@@ -15,10 +15,10 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 # If jupyterlab-hub isn't updated on npm, you need the git + local build
 #RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
 #RUN  python3 /usr/bin/jupyter lab build
+# Not yet ready: https://github.com/jupyterlab/jupyterlab-git.git && \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-     git clone https://github.com/jupyterlab/jupyterlab-git.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
@@ -35,26 +35,26 @@ RUN  cd /etc/profile.d && \
          ln $i $(basename $i .sh).csh ;\
      done
 RUN  mkdir -p /etc/skel/notebooks
-RUN  mkdir -p /opt/lsst/software/jupyterlab/
+ENV  jl=/opt/lsst/software/jupyterlab
+RUN  mkdir -p ${jl}
 COPY lsst_kernel_py${PYVER}.json \
       lsstlaunch.bash lablauncher.bash runlab.sh \
-      /opt/lsst/software/jupyterlab/
+      labhubapp.py.patch handlers.py.patch \
+      ${jl}/
 COPY lsst_kernel_py${PYVER}.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
-RUN  chgrp -R jupyter /opt/lsst/software/jupyterlab && \
-     chmod -R g+w /opt/lsst/software/jupyterlab && \
+RUN  chgrp -R jupyter ${jl} && \
+     chmod -R g+w ${jl} && \
      chgrp -R jupyter /usr/share/jupyter/lab && \
      chmod -R g+wt /usr/share/jupyter/lab
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 # Add API Token support
 ENV  sp=/usr/lib/python3.4/site-packages
-ENV  hpy=${sp}/jupyterlab_launcher/handlers.py
-RUN  cp ${hpy} ${hpy}.ORIG
-COPY handlers.py.monkeypatched ${hpy}
-ENV  lha=${sp}/jupyterlab/labhubapp.py
-RUN  cp ${lha} ${lha}.ORIG
-COPY labhubapp.py.monkeypatched ${lha}
+RUN  cd ${sp}/jupyterlab_launcher && \
+     patch < ${jl}/handlers.py.patch && \
+     cd ${sp}/jupyterlab && \
+     patch < ${jl}/labhubapp.py.patch
 COPY 20_jupytervars /etc/sudoers.d/
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 ENV  LANG=C.UTF-8

@@ -9,12 +9,12 @@ case ${BTYPE} in
 	MIN=${WEEK}
 	;;
     w|W|weekly)
-	    BTYPE="w"
-	    ;;
-	*)
-	    BTYPE=""
-	    YEAR=""
-	    ;;
+	BTYPE="w"
+	;;
+    *)
+	BTYPE=""
+	YEAR=""
+	;;
 esac
 PYVER="3"
 if [ -n "${4}" ]; then
@@ -42,11 +42,11 @@ echo "ENV   PYVER=${PYVER}" >> Dockerfile
 cat Dockerfile.common.bottom >> Dockerfile
 desc="JupyterLab demo: LSST Stack (Python ${PYVER})"
 echo "LABEL description=\"${desc}\" \\" >> Dockerfile
-echo "       name=\"lsstsqre/jld-lab-${BTYPE}${YEAR}${WEEK}\" \\" >> Dockerfile
-if [ "${BYTPE}" == "r" ]; then
-    echo "      version=\"${MAJ}.${MIN}\"" >> Dockerfile
+echo "       name=\"lsstsqre/jld-lab\" \\" >> Dockerfile
+if [ "${BTYPE}" == "r" ]; then
+    echo "      version=\"r${MAJ}${MIN}\"" >> Dockerfile
 else
-    echo "       version=\"0.${YEAR}.${WEEK}\"" >> Dockerfile
+    echo "       version=\"w${YEAR}${WEEK}\"" >> Dockerfile
 fi
 ./bld_1
 

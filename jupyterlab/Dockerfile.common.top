@@ -21,12 +21,12 @@ RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
 RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
-      nbdime pandoc
+      nbdime \
+      pandoc
 # Now do weird snowflake versions of things, and order matters.
-#       https://github.com/jupyterlab/jupyterlab/zipball/13b074667221ce922ed7b6baa9f4d37045c155aa \
 RUN   pip3 install \
       https://github.com/jupyter/notebook/zipball/master \
-      https://github.com/blink1073/jupyterlab/zipball/should_build_sudo \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master \
      'sqre-labkubespawner>=0.0.8'
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper

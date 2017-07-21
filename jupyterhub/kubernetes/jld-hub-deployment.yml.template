@@ -21,9 +21,9 @@ spec:
             - name: LOGLEVEL
               value: INFO
             - name: LAB_CONTAINER_NAMES
-              value: 'lsstsqre/jld-lab-w201727,lsstsqre/jld-lab-w201726,lsstsqre/jld-lab-w201725,lsstsqre/jld-lab-w201724,lsstsqre/jld-lab-r130'
+              value: {{LAB_CONTAINER_NAMES}}
             - name: LAB_CONTAINER_DESCS
-              value: 'Weekly 2017_27 (Python 3),Weekly 2017_26 (Python 3),Weekly 2017_25 (Python 3),Weekly 2017_24 (Python 3),Release 13.0 (Python 2)'
+              value: {{LAB_CONTAINER_DESCS}}
             - name: LAB_SELECTOR_TITLE
               value: 'LSST Stack Selector'
             # Set these if you want to change them.

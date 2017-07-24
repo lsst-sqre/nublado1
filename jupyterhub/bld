@@ -1,4 +1,8 @@
 #!/bin/bash
+K8S_NAMESPACE=""
+if [ -n "${1}" ]; then
+    K8S_NAMESPACE="${1}"
+fi
 if [ -x ./get_builds ]; then
     ./get_builds > ./jld-lab.env.sh
 fi
@@ -14,10 +18,52 @@ sed -e "s|{{LAB_CONTAINER_NAMES}}|\"${LAB_CONTAINER_NAMES}\"|" \
     -e "s|{{LAB_CONTAINER_DESCS}}|\"${LAB_CONTAINER_DESCS}\"|" \
     ${depyaml}.template > ${depyaml}
 ./bld_1 || exit 2
+if [ -z "${K8S_CONTEXT}" ]; then
+    K8S_CONTEXT="gke_plasma-geode-127520_us-central1-a_jupyterlabdemo-lsst-codes"
+fi
+# Get current context
+CC=$(kubectl config current-context)
+ccl="cluster: ${CC}"
+# Get current namespace
+CNM=$(kubectl config view | grep -A1 "${ccl}" | grep namespace | \
+	  cut -d ':' -f 2 | cut -d ' ' -f 2)
+namecmd=""
+changed=1
+if [ "${CC}" == "${K8S_CONTEXT}" ]; then
+    # already in right context
+    if [ -z "${K8S_NAMESPACE}" ] || \
+	   [ "${K8S_NAMESPACE}" == "${CNM}" ]; then
+	# Also already in right namespace
+	changed=0
+    fi
+fi
+cnamespace=0
+ccontext=0
+if [ ${changed} -ne 0 ]; then
+    # Change K8S context
+    if [ "${CC}" != "${K8S_CONTEXT}" ]; then
+	kubectl config use-context "${K8S_CONTEXT}" || exit 2
+	cnamespace=1
+	ccontext=0
+    fi
+    if [ -n "${K8S_NAMESPACE}" ] && \
+	   [ "${CNM}" != "${K8S_NAMESPACE}" ]; then
+	cnamespace=1
+    fi
+    if [ ${cnamespace} -ne 0 ]; then
+	kubectl config set-context "${K8S_CONTEXT}" \
+		--namespace ${K8S_NAMESPACE} || exit 2
+    fi
+fi
 kubectl delete deployment jld-hub
 kubectl create -f ${depyaml}
-POD=$(kubectl get pods | grep jld-hub | grep Creating | awk '{print $1}')
-while : ;do
-    kubectl logs -f $POD
-    sleep 10
-done
+if [ ${changed} -ne 0 ]; then
+    # Restore old context info if needed
+    if [ ${ccontext} -ne 0 ]; then
+	kubectl config use-context "${CC}" || exit 2
+    fi
+    # Restore original namespace if needed
+    if [ ${cnamespace} ]; then
+	kubectl config set-context "${CC}" --namespace "${CNM}" || exit 2
+    fi
+fi

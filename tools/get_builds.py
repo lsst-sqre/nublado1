@@ -25,12 +25,13 @@ class ScanRepo(object):
     debug = False
     json = False
     insecure = False
+    sort_field = "comp_ts"
     weeklies = 4
     releases = 1
 
     def __init__(self, host='', path='/', owner='', name='',
                  weeklies=4, releases=1, json=False,
-                 insecure=False, debug=False):
+                 insecure=False, sort_field="", debug=False):
         if host:
             self.host = host
         if path:
@@ -49,6 +50,8 @@ class ScanRepo(object):
         if insecure:
             self.insecure = insecure
             protocol = "http"
+        if sort_field:
+            self.sort_field = sort_field
         if debug:
             self.debug = debug
         self.url = protocol + "://" + self.host + self.path
@@ -126,6 +129,7 @@ class ScanRepo(object):
         self._reduce_results(results)
 
     def _reduce_results(self, results):
+        sort_field = self.sort_field
         r_candidates = []
         w_candidates = []
         ws = 0
@@ -138,8 +142,8 @@ class ScanRepo(object):
                 r_candidates.append(res)
             if fc == "w":
                 w_candidates.append(res)
-        r_candidates.sort(key=lambda x: x["comp_ts"], reverse=True)
-        w_candidates.sort(key=lambda x: x["comp_ts"], reverse=True)
+        r_candidates.sort(key=lambda x: x[sort_field], reverse=True)
+        w_candidates.sort(key=lambda x: x[sort_field], reverse=True)
         r = {}
         r["weekly"] = w_candidates[:self.weeklies]
         r["release"] = r_candidates[:self.releases]
@@ -186,7 +190,11 @@ def parse_args():
                         default=1)
     parser.add_argument("-i", "--insecure", "--no-tls", "--no-ssl",
                         help="Do not use TLS to connect [False]",
-                        default=1)
+                        type=bool,
+                        default=False)
+    parser.add_argument("-s", "--sort", "--sort-field", "--sort-by",
+                        help="Field to sort results by [comp_ts]",
+                        default="comp_ts")
     results = parser.parse_args()
     results.path = "/v2/repositories/" + results.owner + "/" + \
         results.name + "/tags"
@@ -200,7 +208,8 @@ def main():
     repo = ScanRepo(host=args.repo, path=args.path,
                     owner=args.owner, name=args.name,
                     weeklies=args.weeklies, releases=args.releases,
-                    json=args.json, insecure=args.insecure, debug=args.debug)
+                    json=args.json, insecure=args.insecure,
+                    sort_field=args.sort, debug=args.debug)
     repo.scan()
     repo.report()
 

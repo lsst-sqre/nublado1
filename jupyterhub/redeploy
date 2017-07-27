@@ -1,4 +1,3 @@
 #!/bin/bash
 ./rebuild_depyaml || exit 2
-./bld_1 || exit 2
 ./deploy || exit 2

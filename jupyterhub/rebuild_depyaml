@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ -x ./get_builds ]; then
-    ./get_builds > ./jld-lab.env.sh
+    ./get_builds -s name > ./jld-lab.env.sh
 fi
 if [ -f ./jld-lab.env.sh ]; then
     . ./jld-lab.env.sh

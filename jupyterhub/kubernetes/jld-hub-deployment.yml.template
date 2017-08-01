@@ -35,6 +35,14 @@ spec:
             #   value: '0K'
             # - name: LAB_CPU_GUARANTEE
             #   value: '0'
+            - name: GITHUB_USE_ORGANIZATIONS
+              value: 'TRUE'
+            # GITHUB_USE_PRIVATE_PUSH_TOKEN allows access to private
+            # repos as well.
+            - name: GITHUB_USE_PUSH_TOKEN
+              value: 'TRUE'
+            - name: GITHUB_USE_EMAIL
+              value: 'TRUE'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:
@@ -61,6 +69,14 @@ spec:
                 secretKeyRef:
                   name: jld-hub
                   key: session_db_url
+            # This is one or more 32-byte encryption keys (separated
+            # with ';') needed to persist auth_state.  They can be
+            # base64 or hex-encoded.  Two lets you do key rotation
+            - name: JUPYTERHUB_CRYPT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jld-hub
+                  key: jupyterhub_crypto_key
           # If you use sqlite, you want this to persist sessions across
           #  jupyterhub restarts.
           volumeMounts:

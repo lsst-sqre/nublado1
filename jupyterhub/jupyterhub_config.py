@@ -81,12 +81,20 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         spawner.mem_guarantee = memguar
         spawner.cpu_guarantee = cpuguar
         # Persistent shared user volume
-        spawner.volumes.extend([
-            {"name": "jld-fileserver-home",
-             "persistentVolumeClaim": {"claimName": "jld-fileserver-home"}}])
-        spawner.volume_mounts.extend([
-            {"mountPath": "/home",
-             "name": "jld-fileserver-home"}])
+        volname = "jld-fileserver-home"
+        homefound = False
+        for v in spawner.volumes:
+            if v["name"] == volname:
+                homefound = True
+                break
+        if not homefound:
+            spawner.volumes.extend([
+                {"name": "jld-fileserver-home",
+                 "persistentVolumeClaim":
+                 {"claimName": "jld-fileserver-home"}}])
+            spawner.volume_mounts.extend([
+                {"mountPath": "/home",
+                 "name": "jld-fileserver-home"}])
         # We are running the Lab at the far end, not the old Notebook
         spawner.default_url = '/lab'
         spawner.singleuser_image_pull_policy = 'Always'
@@ -186,9 +194,9 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             if self.user_options.get('kernel_image'):
                 image_spec = self.user_options.get('kernel_image')
                 image_name = image_spec
+                self.log.info("Replacing image spec from options form: %s" %
+                              image_spec)
         self.singleuser_image_spec = image_spec
-        self.log.info("Replacing image spec from options form: %s" %
-                      image_spec)
         s_idx = image_spec.find('/')
         c_idx = image_spec.find(':')
         if s_idx != -1:
@@ -202,7 +210,6 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                 self.log.info("Updating userid from %d to %d" %
                               (self.user.id, auth_state["uid"]))
                 self.user.id = auth_state["uid"]
-        self.log.info("Image template: %s" % pn_template)
         pod_name = self._expand_user_properties(pn_template)
         self.pod_name = pod_name
         self.log.info("Replacing pod name from options form: %s" %

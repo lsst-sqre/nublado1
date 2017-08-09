@@ -131,17 +131,19 @@ function purge_docker_vars() {
 }
 
 function setup_git() {
+    # Always remove old token and overwrite with latest credentials.
+    # That way if we change permissions on our scope, the old (possibly
+    # more permissive) one doesn't hang around.
+    local file="${HOMEDIRS}/${U_NAME}/.git-credentials"
+    rm -f ${file} 2>/dev/null || /bin/true
     if [ -n "${GITHUB_ACCESS_TOKEN}" ]; then
         local entry="https://${U_NAME}:${GITHUB_ACCESS_TOKEN}@github.com"
-        local file="${HOMEDIRS}/${U_NAME}/.git-credentials"
-        if [ ! -e "${file}" ]; then
-            echo "${entry}" > ${file}
-            chmod 0600 ${file}
-            chown ${U_NAME}:${U_NAME} ${file}
-        fi
+        echo "${entry}" > ${file}
+        chmod 0600 ${file}
+        chown ${U_NAME}:${U_NAME} ${file}
     fi
+    local gitcfg="${HOMEDIRS}/${U_NAME}/.gitconfig"
     if [ ! -e "${gitcfg}" ]; then
-        local gitcfg="${HOMEDIRS}/${U_NAME}/.gitconfig"
 	touch ${gitcfg}
 	if [ -n "${GITHUB_NAME}" ] || [ -n "${GITHUB_EMAIL}" ]; then
 	    echo "[user]" >> ${gitcfg}
@@ -171,7 +173,7 @@ function change_staging_id() {
 }
 
 ## Begin mainline code. ##
-U_NAME="${JPY_USER}" # Expect this to change.
+U_NAME="${JUPYTERHUB_USER}"
 HOMEDIRS="/home"
 DEFAULT_SHELL="/bin/bash"
 TOPDIR="/opt/lsst"

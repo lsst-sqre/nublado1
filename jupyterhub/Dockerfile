@@ -27,7 +27,7 @@ RUN  mkdir -p /usr/share/git && \
 #      https://github.com/lsst-sqre/oauthenticator/zipball/09b2a5323bda0d9a81a53a644c4b699b1e156087 \
 #     https://github.com/lsst-sqre/oauthenticator/zipball/tickets/DM-11417  \
 RUN pip3 install \
-     https://github.com/lsst-sqre/oauthenticator/zipball/09b2a5323bda0d9a81a53a644c4b699b1e156087 \
+     https://github.com/lsst-sqre/oauthenticator/zipball/tickets/DM-11557  \
      https://github.com/jupyterhub/kubespawner/zipball/master
 RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix

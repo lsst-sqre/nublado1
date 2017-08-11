@@ -1,8 +1,8 @@
 #!/bin/bash
-if [ -x ./get_builds ]; then
+if [ -x ./get_builds ] && [ -z "${LAB_CONTAINER_NAMES}" ]; then
     ./get_builds -s name > ./jld-lab.env.sh
 fi
-if [ -f ./jld-lab.env.sh ]; then
+if [ -f ./jld-lab.env.sh ] && [ -z "${LAB_CONTAINER_NAMES}" ]; then
     . ./jld-lab.env.sh
 fi
 if [ -z "${LAB_CONTAINER_NAMES}" ]; then

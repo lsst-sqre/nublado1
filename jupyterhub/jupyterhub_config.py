@@ -66,6 +66,10 @@ def _api_headers(access_token):
             }
 
 
+class LSSTLoginHandler(oauthenticator.GitHubLoginHandler):
+    scope = ['public_repo', 'read:org', 'user:email']
+
+
 class LSSTAuth(oauthenticator.GitHubOAuthenticator):
     """Authenticator to use our custom environment settings.
     """
@@ -73,29 +77,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
 
     _state = None
 
-    def get_state(self):
-        next_url = self.get_argument('next', None)
-        if self._state is None:
-            self._state = json.dumps({
-                'state_id': uuid.uuid4().hex,
-                'next_url': next_url,
-            })
-        self.log.info("State: %s" % self._state)
-        return self._state
-
-    def get_state_url(self):
-        """Get OAuth state from URL parameters
-        to be compared with the value in cookies
-        """
-        return self.get_argument("state")
-
-    def get_next_url(self):
-        """New one inherited from parent doesn't work?
-        Get the redirect target from the state field"""
-        state = self.get_state_url()
-        if state:
-            self.log.info("State (get_next_url): %s" % state)
-            return json.loads(state).get('next_url')
+    login_handler = LSSTLoginHandler
 
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
@@ -103,7 +85,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         #  so let's give it a big timeout
         # spawner.http_timeout = 60 * 15
         # ^^ This seems to cause bizarre redirect problems.
-        spawner.start_timeout = 60 * 15
+        # spawner.start_timeout = 60 * 15
         # The spawned containers need to be able to talk to the hub through
         #  the proxy!
         spawner.hub_connect_port = int(os.environ['JLD_HUB_SERVICE_PORT'])
@@ -341,7 +323,6 @@ c.JupyterHub.authenticator_class = LSSTAuth
 c.JupyterHub.spawner_class = LSSTSpawner
 
 # Set up auth environment
-c.LSSTAuth.scope = ['public_repo', 'read:org', 'user:email']
 c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
 c.LSSTAuth.client_id = os.environ['GITHUB_CLIENT_ID']
 c.LSSTAuth.client_secret = os.environ['GITHUB_CLIENT_SECRET']

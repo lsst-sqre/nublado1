@@ -80,14 +80,14 @@ spec:
           # If you use sqlite, you want this to persist sessions across
           #  jupyterhub restarts.
           volumeMounts:
-            - name: jld-fileserver-home
-              mountPath: /home
+            - name: jld-hub-home-jupyter
+              mountPath: /home/jupyter
             - name: jld-hub-config
               mountPath: /opt/lsst/software/jupyterhub/config
       volumes:
-        - name: jld-fileserver-home
+        - name: jld-hub-home-jupyter
           persistentVolumeClaim:
-             claimName: jld-fileserver-home
+           claimName: jld-hub-physpvc
         - name: jld-hub-config
           configMap:
             name: jld-hub-config

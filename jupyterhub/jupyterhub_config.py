@@ -143,7 +143,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         if not self.enable_auth_state:
             return
         auth_state = yield user.get_auth_state()
-        gh_id = auth_state.get("uid")
+        gh_id = auth_state.get("id")
         gh_token = auth_state.get("access_token")
         gh_org = yield self._get_user_organizations(gh_token)
         gh_email = auth_state.get("email")
@@ -153,7 +153,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
             spawner.environment['GITHUB_EMAIL'] = gh_email
         gh_name = auth_state.get("name")
         if not gh_name:
-            gh_name = auth_state.get("username")
+            gh_name = auth_state.get("login")
         if gh_id:
             spawner.environment['GITHUB_ID'] = str(gh_id)
         if gh_org:

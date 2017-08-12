@@ -13,6 +13,13 @@ spec:
         - name: jld-hub
           imagePullPolicy: "Always"
           image: "lsstsqre/jld-hub"
+          resources:
+            limits:
+              memory: 4G
+              cpu: 8.0
+            requests:
+              memory: 2G
+              cpu: 1.5
           ports:
             -
               containerPort: 8000
@@ -27,14 +34,14 @@ spec:
             - name: LAB_SELECTOR_TITLE
               value: 'LSST Stack Selector'
             # Set these if you want to change them.
-            # - name: LAB_MEM_LIMIT
-            #   value: '2G'
-            # - name: LAB_CPU_LIMIT
-            #   value: '1'
-            # - name: LAB_MEM_GUARANTEE
-            #   value: '0K'
-            # - name: LAB_CPU_GUARANTEE
-            #   value: '0'
+            - name: LAB_MEM_LIMIT
+              value: '4G'
+            - name: LAB_CPU_LIMIT
+              value: '1.5'
+            - name: LAB_MEM_GUARANTEE
+              value: '1G'
+            - name: LAB_CPU_GUARANTEE
+              value: '0.5'
             - name: GITHUB_USE_ORGANIZATIONS
               value: 'TRUE'
             # GITHUB_USE_PRIVATE_PUSH_TOKEN allows access to private

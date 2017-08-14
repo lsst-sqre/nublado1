@@ -15,15 +15,9 @@ RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterhub.git  && \
      cd jupyterhub && \
-     git checkout 184a9bceb9069ae60f86eddedba279552b1bc2e8 && \
      git rev-parse HEAD > /root/jupyterhub.commit && \
      python3 setup.py bdist_wheel  && \
      pip3 install dist/jupyterhub-0.8.0.dev0-py3-none-any.whl
-#     https://github.com/lsst-sqre/oauthenticator/zipball/tickets/DM-11417  \
-# 09b2a5323bda0d9a81a53a644c4b699b1e156087
-# More recent ones are having issues with the redirect.
-#      https://github.com/lsst-sqre/oauthenticator/zipball/09b2a5323bda0d9a81a53a644c4b699b1e156087 \
-#     https://github.com/lsst-sqre/oauthenticator/zipball/tickets/DM-11417  \
 RUN pip3 install \
      https://github.com/lsst-sqre/oauthenticator/zipball/master  \
      https://github.com/jupyterhub/kubespawner/zipball/master
@@ -31,9 +25,6 @@ RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterhub/config
 COPY hublauncher.sh /opt/lsst/software/jupyterhub/
-#COPY auth.py.patch /opt/lsst/software/jupyterhub
-#RUN  cd /usr/lib/python3.4/site-packages/jupyterhub/apihandlers && \
-#     patch < /opt/lsst/software/jupyterhub/auth.py.patch
 # jupyterhub_config.py is stored in a ConfigMap
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jupyter

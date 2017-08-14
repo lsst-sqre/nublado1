@@ -85,7 +85,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         #  so let's give it a big timeout
         # spawner.http_timeout = 60 * 15
         # ^^ This seems to cause bizarre redirect problems.
-        # spawner.start_timeout = 60 * 15
+        spawner.start_timeout = 60 * 15
         # The spawned containers need to be able to talk to the hub through
         #  the proxy!
         spawner.hub_connect_port = int(os.environ['JLD_HUB_SERVICE_PORT'])
@@ -277,13 +277,14 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             image_name = image_spec[(s_idx + 1):]
             if c_idx > 0:
                 image_name = image_spec[(s_idx + 1):c_idx]
-        pn_template = image_name + "-{username}-{userid}"
+        pn_template = image_name + "-{username}"
         auth_state = yield self.user.get_auth_state()
-        if auth_state and "uid" in auth_state:
-            if auth_state["uid"] != self.user.id:
+        if auth_state and "id" in auth_state:
+            if auth_state["id"] != self.user.id:
                 self.log.info("Updating userid from %d to %d" %
-                              (self.user.id, auth_state["uid"]))
-                self.user.id = auth_state["uid"]
+                              (self.user.id, auth_state["id"]))
+                #self.user.id = auth_state["id"]
+                # I think this messes up auth_token.
         pod_name = self._expand_user_properties(pn_template)
         self.pod_name = pod_name
         self.log.info("Replacing pod name from options form: %s" %

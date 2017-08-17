@@ -15,11 +15,11 @@ spec:
           image: "lsstsqre/jld-hub"
           resources:
             limits:
-              memory: 4G
-              cpu: 8.0
-            requests:
               memory: 2G
-              cpu: 1.5
+              cpu: 2.0
+            requests:
+              memory: 1G
+              cpu: 0.8
           ports:
             -
               containerPort: 8000
@@ -35,21 +35,13 @@ spec:
               value: 'LSST Stack Selector'
             # Set these if you want to change them.
             - name: LAB_MEM_LIMIT
-              value: '4G'
+              value: '2G'
             - name: LAB_CPU_LIMIT
-              value: '1.5'
+              value: '1.0'
             - name: LAB_MEM_GUARANTEE
-              value: '1G'
+              value: '512M'
             - name: LAB_CPU_GUARANTEE
-              value: '0.5'
-            - name: GITHUB_USE_ORGANIZATIONS
-              value: 'TRUE'
-            # GITHUB_USE_PRIVATE_PUSH_TOKEN allows access to private
-            # repos as well.
-            - name: GITHUB_USE_PUSH_TOKEN
-              value: 'TRUE'
-            - name: GITHUB_USE_EMAIL
-              value: 'TRUE'
+              value: '0.25'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:

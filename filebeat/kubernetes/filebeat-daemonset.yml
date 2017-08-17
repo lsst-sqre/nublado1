@@ -16,7 +16,7 @@ spec:
             - name: DEBUG
               value: 'true'
             - name: SHIPPER_NAME
-              value: jupyterlabtutorial
+              value: jupyterlabahdemo
             - name: LOGSTASH_HOST
               value: logstashrmq
             - name: LOGSTASH_PORT

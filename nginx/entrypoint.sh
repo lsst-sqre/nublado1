@@ -13,7 +13,7 @@ set_config() {
 env|sort
 
 set_config HOSTNAME
-for i in JLD_HUB; do
+for i in JLD_HUB FIREFLY; do
     for j in HOST PORT; do
 	set_config ${i}_SERVICE_${j}
     done

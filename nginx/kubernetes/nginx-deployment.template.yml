@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: jld-nginx
-        image: "lsstsqre/jld-nginx"
+        image: "lsstsqre/jld-nginx-ff"
         imagePullPolicy: "Always"
         env:
           - name: ENABLE_SSL

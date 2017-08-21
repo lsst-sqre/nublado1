@@ -9,6 +9,7 @@
 # jld-hub-config/jld-hub-cfg.py ->
 #  /opt/lsst/software/jupyterhub/config/jupyterhub_config.py
 
+import json
 import os
 import escapism
 import kubespawner
@@ -16,7 +17,10 @@ import oauthenticator
 from kubernetes.client.models.v1_volume import V1Volume
 from kubernetes.client.models.v1_volume_mount import V1VolumeMount
 from kubespawner.objects import make_pod
+from oauthenticator.common import next_page_from_links
 from tornado import gen
+from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
+
 
 # Make options form
 title = os.getenv("LAB_SELECTOR_TITLE")
@@ -45,17 +49,42 @@ for idx, img in enumerate(imagelist):
     optform += " value=\"%s\">%s<br>\n" % (img, imgdesc)
 # Options form built.
 
+# Utility definitions from GitHub OAuthenticator.
+
+# Support github.com and github enterprise installations
+GITHUB_HOST = os.environ.get('GITHUB_HOST') or 'github.com'
+if GITHUB_HOST == 'github.com':
+    GITHUB_API = 'api.github.com'
+else:
+    GITHUB_API = '%s/api/v3' % GITHUB_HOST
+
+
+def _api_headers(access_token):
+    return {"Accept": "application/json",
+            "User-Agent": "JupyterHub",
+            "Authorization": "token {}".format(access_token)
+            }
+
+
+class LSSTLoginHandler(oauthenticator.GitHubLoginHandler):
+    scope = ['public_repo', 'read:org', 'user:email']
+
 
 class LSSTAuth(oauthenticator.GitHubOAuthenticator):
     """Authenticator to use our custom environment settings.
     """
     enable_auth_state = True
 
+    _state = None
+
+    login_handler = LSSTLoginHandler
+
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
         # First pulls can be really slow for the LSST stack containers,
         #  so let's give it a big timeout
-        spawner.http_timeout = 60 * 15
+        # spawner.http_timeout = 60 * 15
+        # ^^ This seems to cause bizarre redirect problems.
         spawner.start_timeout = 60 * 15
         # The spawned containers need to be able to talk to the hub through
         #  the proxy!
@@ -89,12 +118,12 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
                 break
         if not homefound:
             spawner.volumes.extend([
-                {"name": "jld-fileserver-home",
+                {"name": volname,
                  "persistentVolumeClaim":
-                 {"claimName": "jld-fileserver-home"}}])
+                 {"claimName": volname}}])
             spawner.volume_mounts.extend([
                 {"mountPath": "/home",
-                 "name": "jld-fileserver-home"}])
+                 "name": volname}])
         # We are running the Lab at the far end, not the old Notebook
         spawner.default_url = '/lab'
         spawner.singleuser_image_pull_policy = 'Always'
@@ -114,17 +143,19 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         if not self.enable_auth_state:
             return
         auth_state = yield user.get_auth_state()
-        gh_id = auth_state.get("uid")
+        gh_id = auth_state.get("id")
         gh_token = auth_state.get("access_token")
-        gh_org = auth_state.get("organization_map")
+        gh_org = yield self._get_user_organizations(gh_token)
         gh_email = auth_state.get("email")
+        if not gh_email:
+            gh_email = yield self._get_user_email(gh_token)
+        if gh_email:
+            spawner.environment['GITHUB_EMAIL'] = gh_email
         gh_name = auth_state.get("name")
         if not gh_name:
-            gh_name = auth_state.get("username")
+            gh_name = auth_state.get("login")
         if gh_id:
             spawner.environment['GITHUB_ID'] = str(gh_id)
-        if gh_token:
-            spawner.environment['GITHUB_ACCESS_TOKEN'] = gh_token
         if gh_org:
             orglstr = ""
             for k in gh_org:
@@ -132,10 +163,56 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
                     orglstr += ","
                 orglstr += k + ":" + str(gh_org[k])
             spawner.environment['GITHUB_ORGANIZATIONS'] = orglstr
-        if gh_email:
-            spawner.environment['GITHUB_EMAIL'] = gh_email
         if gh_name:
             spawner.environment['GITHUB_NAME'] = gh_name
+        if gh_token:
+            spawner.environment['GITHUB_ACCESS_TOKEN'] = "[secret]"
+            self.log.info("Spawned environment: %s", json.dumps(
+                spawner.environment, sort_keys=True, indent=4))
+            spawner.environment['GITHUB_ACCESS_TOKEN'] = gh_token
+
+    @gen.coroutine
+    def _get_user_organizations(self, access_token):
+        """Get list of orgs user is a member of.  Requires 'read:org'
+        token scope.
+        """
+
+        http_client = AsyncHTTPClient()
+        headers = _api_headers(access_token)
+        next_page = "https://%s/user/orgs" % (GITHUB_API)
+        orgmap = {}
+        while next_page:
+            req = HTTPRequest(next_page, method="GET", headers=headers)
+            try:
+                resp = yield http_client.fetch(req)
+            except HTTPError:
+                return None
+            resp_json = json.loads(resp.body.decode('utf8', 'replace'))
+            next_page = next_page_from_links(resp)
+            for entry in resp_json:
+                # This could result in non-unique groups, if the first 32
+                #  characters of the group names are the same.
+                normalized_group = escapism.escape(entry["login"][:32])
+                orgmap[normalized_group] = entry["id"]
+        return orgmap
+
+    @gen.coroutine
+    def _get_user_email(self, access_token):
+        """Determine even private email, if the token has 'user:email'
+        scope."""
+        http_client = AsyncHTTPClient()
+        headers = _api_headers(access_token)
+        next_page = "https://%s/user/emails" % (GITHUB_API)
+        while next_page:
+            req = HTTPRequest(next_page, method="GET", headers=headers)
+            resp = yield http_client.fetch(req)
+            resp_json = json.loads(resp.body.decode('utf8', 'replace'))
+            next_page = next_page_from_links(resp)
+            for entry in resp_json:
+                if "email" in entry:
+                    if "primary" in entry and entry["primary"]:
+                        return entry["email"]
+        return None
 
 
 class LSSTSpawner(kubespawner.KubeSpawner):
@@ -203,13 +280,14 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             image_name = image_spec[(s_idx + 1):]
             if c_idx > 0:
                 image_name = image_spec[(s_idx + 1):c_idx]
-        pn_template = image_name + "-{username}-{userid}"
+        pn_template = image_name + "-{username}"
         auth_state = yield self.user.get_auth_state()
-        if auth_state and "uid" in auth_state:
-            if auth_state["uid"] != self.user.id:
+        if auth_state and "id" in auth_state:
+            if auth_state["id"] != self.user.id:
                 self.log.info("Updating userid from %d to %d" %
-                              (self.user.id, auth_state["uid"]))
-                self.user.id = auth_state["uid"]
+                              (self.user.id, auth_state["id"]))
+                #self.user.id = auth_state["id"]
+                # I think this messes up auth_token.
         pod_name = self._expand_user_properties(pn_template)
         self.pod_name = pod_name
         self.log.info("Replacing pod name from options form: %s" %

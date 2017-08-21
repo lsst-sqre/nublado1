@@ -25,10 +25,12 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       pandoc
 # Now do weird snowflake versions of things, and order matters.
 RUN   pip3 install \
-      https://github.com/jupyter/notebook/zipball/master \
-      https://github.com/jupyterlab/jupyterlab/zipball/master \
-      https://github.com/jupyterhub/jupyterhub/zipball/master \
+      https://github.com/jupyter/notebook/zipball/master       \
+      https://github.com/jupyterlab/jupyterlab/zipball/master  \
+      https://github.com/jupyterhub/jupyterhub/zipball/master  \
      'sqre-labkubespawner>=0.0.8'
+RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
+       awk '{print $1}' > /root/jupyterlab.commit
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper
 # We need notebook from master to get the equivalent of --allow-root
 RUN  python3 /usr/bin/nbdime config-git --enable --system

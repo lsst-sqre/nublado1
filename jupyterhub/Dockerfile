@@ -1,8 +1,5 @@
 FROM centos:7
 USER root
-LABEL      description="jupyterlab demo: jupyterhub" \
-             name="lsstsqre/jld-hub" \
-             version="0.2.0"
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
@@ -16,12 +13,13 @@ RUN  pip3 install jupyterlab ipykernel pyyaml pycurl python-oauth2 wheel \
 #  does not work, because it doesn't rebuild the JS
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
-     git clone https://github.com/jupyterhub/jupyterhub.git && \
+     git clone https://github.com/jupyterhub/jupyterhub.git  && \
      cd jupyterhub && \
-     python3 setup.py bdist_wheel && \
+     git rev-parse HEAD > /root/jupyterhub.commit && \
+     python3 setup.py bdist_wheel  && \
      pip3 install dist/jupyterhub-0.8.0.dev0-py3-none-any.whl
 RUN pip3 install \
-     https://github.com/lsst-sqre/oauthenticator/zipball/master \
+     https://github.com/lsst-sqre/oauthenticator/zipball/master  \
      https://github.com/jupyterhub/kubespawner/zipball/master
 RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix
@@ -31,4 +29,7 @@ COPY hublauncher.sh /opt/lsst/software/jupyterhub/
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
+LABEL      description="jupyterlab demo: jupyterhub" \
+             name="lsstsqre/jld-hub" \
+	     version="0.2.5"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

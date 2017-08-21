@@ -190,7 +190,10 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
             resp_json = json.loads(resp.body.decode('utf8', 'replace'))
             next_page = next_page_from_links(resp)
             for entry in resp_json:
-                orgmap[entry["login"]] = entry["id"]
+                # This could result in non-unique groups, if the first 32
+                #  characters of the group names are the same.
+                normalized_group = escapism.escape(entry["login"][:32])
+                orgmap[normalized_group] = entry["id"]
         return orgmap
 
     @gen.coroutine

@@ -3,6 +3,9 @@ RUN  groupadd -g 768 jupyter && chgrp -R jupyter /opt/lsst && \
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
+# Manual http-parser installation needed for newer nodejs, until CentOS 7.4
+#  is released.
+RUN  rpm -ivh https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
       python-devel nodejs git \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \

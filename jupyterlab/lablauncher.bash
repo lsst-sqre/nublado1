@@ -145,15 +145,6 @@ function setup_git() {
     local gitcfg="${HOMEDIRS}/${U_NAME}/.gitconfig"
     if [ ! -e "${gitcfg}" ]; then
 	touch ${gitcfg}
-	if [ -n "${GITHUB_NAME}" ] || [ -n "${GITHUB_EMAIL}" ]; then
-	    echo "[user]" >> ${gitcfg}
-	    if [ -n "${GITHUB_NAME}" ]; then
-		echo "    name = ${GITHUB_NAME}" >> ${gitcfg}
-	    fi
-	    if [ -n "${GITHUB_EMAIL}" ]; then
-		echo "    email = ${GITHUB_EMAIL}" >> ${gitcfg}
-	    fi
-	fi
 	echo "[push]" >> ${gitcfg}
 	echo "    default = simple" >> ${gitcfg}
         echo "[credential]" >> ${gitcfg}

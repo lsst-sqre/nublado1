@@ -1,31 +1,8 @@
 diff -cr a/handlers.py b/handlers.py
-*** a/handlers.py	Fri Jul 14 14:17:05 2017
---- b/handlers.py	Fri Jul 14 14:17:30 2017
+*** a/handlers.py	Mon Aug 21 13:51:45 2017
+--- b/handlers.py	Mon Aug 21 13:52:46 2017
 ***************
-*** 53,62 ****
-              msg = msg % (config.name, config.assets_dir)
-              self.log.error(msg)
-              self.write(self.render_template('error.html',
-!                        status_code=500,
-!                        status_message='%s Error' % config.name,
-!                        page_title='%s Error' % config.name,
-!                        message=msg))
-              return
-  
-          # Handle page config data.
---- 53,62 ----
-              msg = msg % (config.name, config.assets_dir)
-              self.log.error(msg)
-              self.write(self.render_template('error.html',
-!                                             status_code=500,
-!                                             status_message='%s Error' % config.name,
-!                                             page_title='%s Error' % config.name,
-!                                             message=msg))
-              return
-  
-          # Handle page config data.
-***************
-*** 75,81 ****
+*** 83,89 ****
           page_config.setdefault(
               'assetsDir', config.assets_dir.replace(os.sep, '/')
           )
@@ -33,7 +10,7 @@ diff -cr a/handlers.py b/handlers.py
           if os.path.exists(page_config_file):
               with open(page_config_file) as fid:
                   try:
---- 75,90 ----
+--- 83,98 ----
           page_config.setdefault(
               'assetsDir', config.assets_dir.replace(os.sep, '/')
           )
@@ -50,62 +27,3 @@ diff -cr a/handlers.py b/handlers.py
           if os.path.exists(page_config_file):
               with open(page_config_file) as fid:
                   try:
-***************
-*** 105,132 ****
-      """The lab application configuration object.
-      """
-      settings_dir = Unicode('',
-!         help='The settings directory')
-  
-      assets_dir = Unicode('',
-!         help='The assets directory')
-  
-      name = Unicode('',
-!         help='The name of the application')
-  
-      version = Unicode('',
-!         help='The version of the application')
-  
-      namespace = Unicode('',
-!         help='The namespace for the application')
-  
-      page_title = Unicode('JupyterLab',
-!         help='The page title for the application')
-  
-      page_url = Unicode('/lab',
-!         help='The url for the application')
-  
-      dev_mode = Bool(False,
-!         help='Whether the application is in dev mode')
-  
-  
-  def add_handlers(web_app, config):
---- 114,141 ----
-      """The lab application configuration object.
-      """
-      settings_dir = Unicode('',
-!                            help='The settings directory')
-  
-      assets_dir = Unicode('',
-!                          help='The assets directory')
-  
-      name = Unicode('',
-!                    help='The name of the application')
-  
-      version = Unicode('',
-!                       help='The version of the application')
-  
-      namespace = Unicode('',
-!                         help='The namespace for the application')
-  
-      page_title = Unicode('JupyterLab',
-!                          help='The page title for the application')
-  
-      page_url = Unicode('/lab',
-!                        help='The url for the application')
-  
-      dev_mode = Bool(False,
-!                     help='Whether the application is in dev mode')
-  
-  
-  def add_handlers(web_app, config):

@@ -12,8 +12,15 @@ set_config() {
 
 env|sort
 
+if [ -z "${FIREFLY_SERVICE_HOST}" ]; then
+    FIREFLY_SERVICE_HOST=${JLD_HUB_SERVICE_HOST}
+fi
+if [ -z "${FIREFLY_SERVICE_PORT}" ]; then
+    FIREFLY_SERVICE_PORT=${JLD_HUB_SERVICE_PORT}
+fi
+
 set_config HOSTNAME
-for i in JLD_HUB; do
+for i in JLD_HUB FIREFLY; do
     for j in HOST PORT; do
 	set_config ${i}_SERVICE_${j}
     done

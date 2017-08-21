@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: firefly
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: firefly
+    spec:
+      containers:
+        - name: "firefly"
+          imagePullPolicy: "Always"
+          image: "ipac/firefly:lsst-dev"
+          # Use this for manual testing.
+          #securityContext:
+          #  privileged: true
+          volumeMounts:
+            - name: jld-fileserver-home
+              mountPath: /home
+          resources:
+            limits:
+              memory: 4G
+              cpu: 2.0
+            requests:
+              memory: 2G
+              cpu: 0.8
+          env:
+            - name: MANAGER
+              value: 'FALSE'
+            - name: FIREFLY_OPTS
+              value: "-Dvisualize.fits.search.path=/home"
+            - name: MAX_JVM_SIZE
+              value: 4G
+            - name: DEBUG
+              value: 'false'
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: firefly
+                  key: admin.password              
+      volumes:
+        - name: jld-fileserver-home
+          persistentVolumeClaim:
+             claimName: jld-fileserver-home

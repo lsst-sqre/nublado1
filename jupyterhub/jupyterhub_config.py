@@ -192,7 +192,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
             for entry in resp_json:
                 # This could result in non-unique groups, if the first 32
                 #  characters of the group names are the same.
-                normalized_group = escapism.escape(entry["login"][:32])
+                normalized_group = entry["login"][:32]
                 orgmap[normalized_group] = entry["id"]
         return orgmap
 

@@ -12,9 +12,6 @@ RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
       --sys-prefix
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
-# If jupyterlab-hub isn't updated on npm, you need the git + local build
-#RUN  python3 /usr/bin/jupyter labextension install jupyterlab-hub
-#RUN  python3 /usr/bin/jupyter lab build
 # Patch JL master
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
@@ -28,11 +25,11 @@ RUN  cd ${sp}/jupyterlab_launcher && \
      patch < ${jl}/handlers.py.patch && \
      cd ${sp}/jupyterlab && \
      patch < ${jl}/labhubapp.py.patch
-#    patch < ${jl}/package.app.json.patch
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
+     npm install -g node-gyp webpack && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
          npm install --unsafe-perm && \
@@ -41,6 +38,7 @@ RUN  mkdir -p /usr/share/git && \
          cd .. ;\
      done
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
+     local04-pythonrc.sh \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \
@@ -70,9 +68,18 @@ RUN  chgrp -R jupyter ${jl} && \
      chmod -R g+wt /usr/share/jupyter/lab
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-# Add API Token support
 COPY 20_jupytervars /etc/sudoers.d/
+COPY pythonrc /etc/skel/.pythonrc
+# "lsst" is a real GitHub organization.
+RUN  sed -i -e \
+      's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \
+      /etc/passwd && \
+     sed -i -e 's/^lsst:x:1000/lsst_lcl:x:1000/' /etc/group && \
+     pwconv && \
+     grpconv && \
+     mv /home/lsst /home/lsst_lcl
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
+RUN  rm -rf /root/.eups
 ENV  LANG=C.UTF-8
 WORKDIR /tmp
 CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]

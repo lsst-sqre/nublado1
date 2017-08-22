@@ -1,0 +1,11 @@
+#!/bin/sh
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=""
+get_builds > /tmp/jld-lab.env
+. /tmp/jld-lab.env
+rm /tmp/jld-lab.env
+IMAGES=$(echo ${LAB_CONTAINER_NAMES} | tr ',' ' ')
+for i in ${IMAGES}; do
+    docker pull ${i}
+done
+docker rmi $(docker images --quiet --filter "dangling=true")

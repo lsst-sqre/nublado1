@@ -19,7 +19,7 @@ RUN  mkdir -p /usr/share/git && \
      python3 setup.py bdist_wheel  && \
      pip3 install dist/jupyterhub-0.8.0.dev0-py3-none-any.whl
 RUN pip3 install \
-     https://github.com/lsst-sqre/oauthenticator/zipball/master  \
+     https://github.com/jupyterhub/oauthenticator/zipball/master \
      https://github.com/jupyterhub/kubespawner/zipball/master
 RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix
@@ -31,5 +31,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.2.5"
+	     version="0.3.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

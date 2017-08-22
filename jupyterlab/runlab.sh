@@ -4,10 +4,10 @@ if [ -n "${DEBUG}" ]; then
     set -x
 fi
 if [ -n "${GITHUB_EMAIL}" ]; then
-    git config --global user.email "${GITHUB_EMAIL}"
+    git config --global --replace-all user.email "${GITHUB_EMAIL}"
 fi
 if [ -n "${GITHUB_NAME}" ]; then
-    git config --global user.name "${GITHUB_NAME}"
+    git config --global --replace-all user.name "${GITHUB_NAME}"
 fi
 sync
 cd ${HOME}

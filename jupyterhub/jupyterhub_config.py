@@ -83,8 +83,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
     def pre_spawn_start(self, user, spawner):
         # First pulls can be really slow for the LSST stack containers,
         #  so let's give it a big timeout
-        # spawner.http_timeout = 60 * 15
-        # ^^ This seems to cause bizarre redirect problems.
+        spawner.http_timeout = 60 * 15
         spawner.start_timeout = 60 * 15
         # The spawned containers need to be able to talk to the hub through
         #  the proxy!

@@ -19,7 +19,6 @@ COPY lsst_kernel_py${PYVER}.json \
       lsstlaunch.bash lablauncher.bash runlab.sh \
       labhubapp.py.patch handlers.py.patch \
       ${jl}/
-# package.app.json.patch \      
 ENV  sp=/usr/lib/python3.4/site-packages
 RUN  cd ${sp}/jupyterlab_launcher && \
      patch < ${jl}/handlers.py.patch && \
@@ -27,9 +26,9 @@ RUN  cd ${sp}/jupyterlab_launcher && \
      patch < ${jl}/labhubapp.py.patch
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
+     npm install -g webpack && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-     npm install -g node-gyp webpack && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
          npm install --unsafe-perm && \
@@ -79,6 +78,19 @@ RUN  sed -i -e \
      grpconv && \
      mv /home/lsst /home/lsst_lcl
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
+# Set up firefly
+RUN  cd /usr/share/git && \
+     source /opt/lsst/software/stack/loadLSST.bash && \
+     pip install firefly_client && \
+     git clone https://github.com/lsst/display_firefly && \
+     cd display_firefly/ups && \
+     sed -i -e \
+       's/setupRequired(firefly_client)/#setupRequired(firefly_client)/' \
+       display_firefly.table && \
+     cd .. && \
+     setup afw && \
+     scons install force=True && \
+     scons declare force=True     
 RUN  rm -rf /root/.eups
 ENV  LANG=C.UTF-8
 WORKDIR /tmp

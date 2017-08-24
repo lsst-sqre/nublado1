@@ -32,6 +32,12 @@ RUN  mkdir -p /usr/share/git && \
      npm install -g node-gyp webpack && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
+	 if [ "${i}" == "savequit" ]; then \
+	     git checkout tickets/DM-11622 ; \
+	 fi && \
+	 if [ "${i}" == "hub" ]; then \
+	     git checkout c0b287f0159e118492e6cd95603115099c6c0dc2 ; \
+	 fi && \
          npm install --unsafe-perm && \
          python3 /usr/bin/jupyter labextension link . && \
          npm run build && \
@@ -51,16 +57,17 @@ COPY lsst_kernel_py${PYVER}.json \
 RUN  cd /usr/share/git && \
      git clone https://github.com/jupyterlab/jupyterlab.git && \
      cd jupyterlab/packages && \
+     git checkout d47a2c1d9f2ee4063aeddf9b3c5fc536b3ff1a08 && \
      cp *-extension/schema/*.json \
        /usr/lib/python3.4/site-packages/jupyterlab/schemas/
 # Hack to get theme files injected
-RUN cd /usr/share/git/jupyterlab/packages && \
-    for i in light dark; do \
-        t="theme-${i}-extension" ; \
-	td="/usr/lib/python3.4/site-packages/jupyterlab/themes" ; \
-	mkdir -p ${td}/${t} ; \
-        cp -rP ${t}/style/* ${td}/${t} ; \
-    done
+#RUN cd /usr/share/git/jupyterlab/packages && \
+#    for i in light dark; do \
+#        t="theme-${i}-extension" ; \
+#	td="/usr/lib/python3.4/site-packages/jupyterlab/themes" ; \
+#	mkdir -p ${td}/${t} ; \
+#        cp -rP ${t}/style/* ${td}/${t} ; \
+#    done
 RUN  /usr/bin/python3 /usr/bin/jupyter lab build
 RUN  chgrp -R jupyter ${jl} && \
      chmod -R g+w ${jl} && \

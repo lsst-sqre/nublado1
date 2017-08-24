@@ -88,7 +88,7 @@ RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 # Set up firefly
 RUN  cd /usr/share/git && \
      source /opt/lsst/software/stack/loadLSST.bash && \
-     pip install firefly_client && \
+     pip install https://github.com/Caltech-IPAC/firefly_client/zipball/master && \
      git clone https://github.com/lsst/display_firefly && \
      cd display_firefly/ups && \
      sed -i -e \

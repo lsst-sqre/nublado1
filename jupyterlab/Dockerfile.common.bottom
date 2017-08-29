@@ -18,16 +18,19 @@ RUN  mkdir -p ${jl}
 COPY lsst_kernel_py${PYVER}.json \
       lsstlaunch.bash lablauncher.bash runlab.sh \
       labhubapp.py.patch handlers.py.patch \
+      _version.py.patch \
       ${jl}/
 ENV  sp=/usr/lib/python3.4/site-packages
 RUN  cd ${sp}/jupyterlab_launcher && \
      patch < ${jl}/handlers.py.patch && \
      cd ${sp}/jupyterlab && \
-     patch < ${jl}/labhubapp.py.patch
+     patch < ${jl}/labhubapp.py.patch && \
+     cd ${sp}/jupyterhub && \
+     patch < ${jl}/_version.py.patch
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \
-     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+     git clone https://github.com/jupyterhub/jupyterlab-hub.git &&  \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
@@ -37,7 +40,7 @@ RUN  mkdir -p /usr/share/git && \
          cd .. ;\
      done
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
-     local04-pythonrc.sh \
+     local04-pythonrc.sh local05-path.sh \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \
@@ -46,19 +49,15 @@ RUN  cd /etc/profile.d && \
 RUN  mkdir -p /etc/skel/notebooks
 COPY lsst_kernel_py${PYVER}.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
-# Hack to get schema files injected
-RUN  cd /usr/share/git && \
-     git clone https://github.com/jupyterlab/jupyterlab.git && \
-     cd jupyterlab/packages && \
-     cp *-extension/schema/*.json \
-       /usr/lib/python3.4/site-packages/jupyterlab/schemas/
 # Hack to get theme files injected
-RUN cd /usr/share/git/jupyterlab/packages && \
+RUN cd /usr/share/git && \
+    git clone https://github.com/jupyterlab/jupyterlab.git && \
+    cd jupyterlab/packages && \
     for i in light dark; do \
         t="theme-${i}-extension" ; \
-	td="/usr/lib/python3.4/site-packages/jupyterlab/themes" ; \
-	mkdir -p ${td}/${t} ; \
-        cp -rP ${t}/style/* ${td}/${t} ; \
+        td="/usr/lib/python3.4/site-packages/jupyterlab/themes" ; \
+        mkdir -p ${td}/jupyterlab-${t} ; \
+        cp -rP ${t}/style/* ${td}/jupyterlab-${t} ; \
     done
 RUN  /usr/bin/python3 /usr/bin/jupyter lab build
 RUN  chgrp -R jupyter ${jl} && \
@@ -81,7 +80,8 @@ RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 # Set up firefly
 RUN  cd /usr/share/git && \
      source /opt/lsst/software/stack/loadLSST.bash && \
-     pip install firefly_client && \
+     pip install \
+       https://github.com/Caltech-IPAC/firefly_client/zipball/master && \
      git clone https://github.com/lsst/display_firefly && \
      cd display_firefly/ups && \
      sed -i -e \

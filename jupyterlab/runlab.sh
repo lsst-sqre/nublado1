@@ -14,7 +14,7 @@ cd ${HOME}
 #cmd="python3 /usr/bin/jupyter-labhub \
 cmd="python3 /usr/bin/jupyter-singlelabuser \
      --ip='*' --port=8888 --debug \
-     --hub-api-url=${JPY_HUB_API_URL} \
+     --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}/notebooks"
 echo ${cmd}
 if [ -n "${DEBUG}" ]; then

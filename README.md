@@ -61,10 +61,12 @@ churn, and an IPAC Firefly server.
   IP endpoint of the Jupyter cluster is known.
 
 * You will additionally need SSL certificates that correspond to that
-  DNS record; I'm currently a big fan of letsencrypt.org but if you
-  already have a wildcard record for your domain, that works well too.
-  GitHub will require that your certificate be signed by a CA it trusts,
-  so you cannot use a self-signed certificate.
+  DNS record; I have been using a wildcard record, but I am also very
+  fond of letsencrypt.org.  If you go with letsencrypt.org then you will
+  need to determine a way to answer the Let's Encrypt challenge, which
+  is beyond the scope of this document.  GitHub will require that your
+  certificate be signed by a CA it trusts, so you cannot use a
+  self-signed certificate.
 
 * You will need to create a GitHub application, either on your personal
   account or in an organization you administer.  Given that you're

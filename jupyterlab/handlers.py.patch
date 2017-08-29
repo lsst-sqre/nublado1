@@ -1,6 +1,6 @@
 diff -cr a/handlers.py b/handlers.py
-*** a/handlers.py	Mon Aug 21 13:51:45 2017
---- b/handlers.py	Mon Aug 21 13:52:46 2017
+*** a/handlers.py	Tue Aug 29 11:53:28 2017
+--- b/handlers.py	Tue Aug 29 12:30:14 2017
 ***************
 *** 83,89 ****
           page_config.setdefault(
@@ -14,16 +14,16 @@ diff -cr a/handlers.py b/handlers.py
           page_config.setdefault(
               'assetsDir', config.assets_dir.replace(os.sep, '/')
           )
-!         # Grab API token from environment
+!         # Get API token from environment
 !         api_token = os.getenv('JUPYTERLAB_API_TOKEN')
 !         if not api_token:
-!             api_token = ''  # Turn None into empty string
+!             api_token = ''  # Turn None into empty string.
 !         page_config.setdefault('token', api_token)
-!         if not self.token:
+!         if not getattr(self, "api_token", None):
 !             try:
-!                 self.token = api_token
+!                 self.api_token = api_token
 !             except AttributeError:
-!                 self.log.error("Can't set self.token.")
+!                 self.log.warning("Can't set self.api_token.")
           if os.path.exists(page_config_file):
               with open(page_config_file) as fid:
                   try:

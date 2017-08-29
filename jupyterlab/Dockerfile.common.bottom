@@ -34,9 +34,6 @@ RUN  mkdir -p /usr/share/git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \
-	 if [ "${i}" == "savequit" ]; then \
-	     git checkout tickets/DM-11643 ; \
-	 fi && \
          npm install --unsafe-perm && \
          python3 /usr/bin/jupyter labextension link . && \
          npm run build && \
@@ -52,14 +49,7 @@ RUN  cd /etc/profile.d && \
 RUN  mkdir -p /etc/skel/notebooks
 COPY lsst_kernel_py${PYVER}.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
-# Hack to get schema files injected
-#RUN  cd /usr/share/git && \
-#     git clone https://github.com/jupyterlab/jupyterlab.git && \
-#     cd jupyterlab/packages && \
-#     cp *-extension/schema/*.json \
-#       /usr/lib/python3.4/site-packages/jupyterlab/schemas/
 # Hack to get theme files injected
-#RUN cd /usr/share/git/jupyterlab/packages && \
 RUN cd /usr/share/git && \
     git clone https://github.com/jupyterlab/jupyterlab.git && \
     cd jupyterlab/packages && \
@@ -90,7 +80,8 @@ RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 # Set up firefly
 RUN  cd /usr/share/git && \
      source /opt/lsst/software/stack/loadLSST.bash && \
-     pip install https://github.com/Caltech-IPAC/firefly_client/zipball/master && \
+     pip install \
+       https://github.com/Caltech-IPAC/firefly_client/zipball/master && \
      git clone https://github.com/lsst/display_firefly && \
      cd display_firefly/ups && \
      sed -i -e \

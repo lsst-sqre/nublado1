@@ -40,7 +40,7 @@ RUN  mkdir -p /usr/share/git && \
          cd .. ;\
      done
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
-     local04-pythonrc.sh \
+     local04-pythonrc.sh local05-path.sh \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \

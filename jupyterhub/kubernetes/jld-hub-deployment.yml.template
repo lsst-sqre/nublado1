@@ -39,7 +39,7 @@ spec:
             - name: LAB_CPU_LIMIT
               value: '1.0'
             - name: LAB_MEM_GUARANTEE
-              value: '512M'
+              value: '128M'
             - name: LAB_CPU_GUARANTEE
               value: '0.25'
             - name: GITHUB_ORGANIZATION_WHITELIST

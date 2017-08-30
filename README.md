@@ -99,7 +99,7 @@ churn, and an IPAC Firefly server.
   cluster.
 
 * Anywhere there is a template file (denoted with `.template.yml` as the
-  end of the filename) , it should have the template variables (usually
+  end of the filename), it should have the template variables (usually
   denoted with `FIXME`) substituted with a value before use.
 
 ### Creating secrets
@@ -283,8 +283,11 @@ containers to use.
 ### Prepuller [optional]
 
 * Prepuller is very much geared to the LSST Science Platform use case.
-  You will probably want to create your own version of `get_builds.py`
-  that finds the containers you want to use.
+  It is only needed because our containers are on the order of 8GB each;
+  thus the first user of any particular build on a given node would have
+  to wait 10 to 15 minutes if we were not prepulling.  Even if you want
+  a image prepuller, you will probably want to create your own version
+  of `get_builds.py` that finds the containers you want to use.
 
 * `prepuller` is the location of this component.
 

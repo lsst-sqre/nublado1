@@ -44,10 +44,22 @@ churn, and an IPAC Firefly server.
 ## Deploying a Kubernetes Cluster
 
 ### Requirements
+ 
+* Begin by cloning this repository: `git clone
+  https://github.com/lsst-sqre/jupyterlabdemo`.  You will be working
+  with the kubernetes deployment files inside it, so it will probably be
+  convenient to `cd` inside it.
 
 * You need to start with a cluster to which you have administrative
   access.  This is created out-of-band at this point, using whatever
-  tools your Kubernetes administrative interface gives you.
+  tools your Kubernetes administrative interface gives you.  Use
+  `kubectl config use-context <context-name>` to set the default
+  context.
+
+* We recommend creating a non-default namespace for the cluster and
+  using that, with `kubectl create namespace <namespace>` followed by
+  `kubectl config set-context $(kubectl config current-context)
+  --namespace <namespace>`.  This step is optional.
 
 * You will need to expose your Jupyter Lab instance to the public
   internet, and GitHub's egress IPs must be able to reach it.  This is
@@ -86,11 +98,21 @@ churn, and an IPAC Firefly server.
 * The next sections provide an ordered list of services to deploy in the
   cluster.
 
-* Anywhere there is a template file, it should have the template
-  variables (usually denoted with `FIXME`) substituted with a value
-  before use.
+* Anywhere there is a template file (denoted with `.template.yml` as the
+  end of the filename), it should have the template variables (usually
+  denoted with `FIXME`) substituted with a value before use.
+
+### Creating secrets
+
+* In general, secrets are stored as base64-encoded strings within
+  `<component>-secrets.yml` files.  The incantation to create a secret
+  is `echo -n <secret> | base64 -i -`.  The `-n` is necessary to prevent
+  a newline from being encoded at the end.
 
 ### Logging [optional]
+
+* The logging components are located in the `logstashrmq` and `filebeat`
+  directories within the repository.
 
 * The logging architecture is as follows: `filebeat` runs as a daemonset
   (that is, exactly one container per node), and scrapes the docker logs
@@ -129,6 +151,8 @@ churn, and an IPAC Firefly server.
 
 ### Fileserver
 
+* The fileserver is located in the `fileserver` directory.
+
 * This creates an auto-provisioned PersistentVolume by creating a
   PersistentVolumeClaim for the physical storage; then it
   stacks an NFS server atop that, adds a service for the NFS server, and
@@ -145,7 +169,8 @@ churn, and an IPAC Firefly server.
   configure.
 
 * Currently we're using NFS.  At some point we probably want to use Ceph
-instead.
+  instead, or, even better, consume an externally-provided storage
+  system rather than having to provision it ourselves.
 
 #### Order of Operations
 
@@ -216,10 +241,11 @@ deployment of a new Jupyterlab Demo instance, because you have to create
 the service, then pull the IP address off it and use that in the PV
 definition.
 
-Copy the template to a working file, replace the `name` field with
-something making it unique (such as the cluster-plus-namespace), and
-replace the `server` field with the IP address of the NFS service.  Then
-just create the resource with `kubectl create -f`.
+Copy the template (`jld-fileserver-pv.template.yml`) to a working file,
+replace the `name` field with something making it unique (such as the
+cluster-plus-namespace), and replace the `server` field with the IP
+address of the NFS service.  Then just create the resource with `kubectl
+create -f`.
 
 #### NFS Mount PersistentVolumeClaim
 
@@ -231,26 +257,49 @@ referring to the PersistentVolume just created:
 And now there is a multiple-read-and-write NFS mount for your JupyterLab
 containers to use.
 
+### NFS Keepalive Service
+
+* This service lives in `fs-keepalive`.
+
+* All it does is periodically write a record to the NFS-mounted
+  filesystem, which insures that it doesn't get descheduled when idle.
+  
+* Create it with `kubectl create -f jld-keepalive-deployment.yml`
+
 ### Firefly [optional]
 
-Create secrets from the template by base64-encoding and adding an admin
-password.  Create the service and then the deployment with `kubectl
-create -f`.  Firefly will automatically be available at `/firefly` with
-the included nginx configuration.
+* The Firefly server is a multi-user server developed by IPAC at
+  Caltech.  This component, located in `firefly`, provides a multi-user
+  server within the Kubernetes cluster.
+
+* Create secrets from the template by copying
+  `firefly-secrets.template.yml` to a working file, and then
+  base64-encode and adding an admin password in place of `FIXME`.
+
+* Create the service and then the deployment with `kubectl create -f`
+  against the appropriate YAML files..  Firefly will automatically be
+  available at `/firefly` with the included nginx configuration.
 
 ### Prepuller [optional]
 
-Prepuller is very much geared to the LSST Science Platform use case.
-You will probably want to create your own version of `get_builds.py`
-that finds the containers you want to use.
+* Prepuller is very much geared to the LSST Science Platform use case.
+  It is only needed because our containers are on the order of 8GB each;
+  thus the first user of any particular build on a given node would have
+  to wait 10 to 15 minutes if we were not prepulling.  Even if you want
+  a image prepuller, you will probably want to create your own version
+  of `get_builds.py` that finds the containers you want to use.
 
-The `prepuller-daemonset.yml` file can be used as an input to `kubectl
-create -f` without modifications, if you're using this image.
+* `prepuller` is the location of this component.
+
+* The `prepuller-daemonset.yml` file can be used as an input to `kubectl
+  create -f` without modifications, if you're using this image.
 
 ### JupyterHub
 
 This is the most complex piece, and is the one that requires the most
 customization on your part.
+
+* This is located in `jupyterhub`.
 
 * Start by creating the `jld-hub-service` component.
 
@@ -271,24 +320,30 @@ customization on your part.
      `sqlite:////home/jupyter/jupyterhub.sqlite`; any RDBMS supported by
      SQLAlchemy can be used.
   4. `jupyterhub_crypto_key`; I use `openssl rand -hex 32` to get 16
-     random bytes.  I also append two of these separated by a semicolon,
-     and the reason for that is that I can simply implement key rotation
-     by, every month or so, dropping the first key, moving the second
-     key to the first position, and generating a new key for the second
-     position.
+     random bytes.  I use two of these separated by a semicolon as the
+     secret, and the reason for that is that I can simply implement key
+     rotation by, every month or so, dropping the first key, moving the
+     second key to the first position, and generating a new key for the
+     second position.
 
-  Then create the secrets from that file.
+  Then create the secrets from that file: `kubectl create -f <filename>`.
   
-* Set up your deployment environment.  Set the environment variable
-  `K8S_CONTEXT` to the context in which your deployment is running.  Set
-  the namespace with the environment variable `K8S_NAMESPACE`.  If you
-  have a list of kernels and corresponding descriptions, you should set
-  `LAB_CONTAINER_NAMES` and `LAB_CONTAINER_DESCS`.  Both of those are
-  comma-separated strings; the first contains a list of JupyterLab
-  images, and the second the corresponding descriptions.  If you leave
-  them unset, the script [`tools/get_builds.py`](tools/get_builds.py)
-  will attempt to build a list; `get_builds --help` will give you usage
-  information.
+* Set up your deployment environment.  
+
+  1. Set the environment variable
+    `K8S_CONTEXT` to the context in which your deployment is running
+    (`kubectl config current-context` will give you that information).
+	
+  2. If you changed the namespace, put the current namespace in the
+     environment variable `K8S_NAMESPACE`.  If you have a list of
+     kernels and corresponding descriptions, you should set
+     `LAB_CONTAINER_NAMES` and `LAB_CONTAINER_DESCS`.  Both of those are
+     comma-separated strings; the first contains a list of JupyterLab
+     images, and the second the corresponding descriptions.  If you
+     leave them unset, the
+     script [`tools/get_builds.py`](tools/get_builds.py) will attempt to
+     build a list at deployment time; `get_builds --help` will give you
+     usage information if you wish to run it manually.
 
 * Edit `jupyterhub_config.py` if you want to.
   - The first section just sets up the deployment image menu from

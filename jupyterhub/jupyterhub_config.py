@@ -142,17 +142,19 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         if not self.enable_auth_state:
             return
         auth_state = yield user.get_auth_state()
-        gh_id = auth_state.get("id")
+        gh_user = auth_state.get("github_user")
         gh_token = auth_state.get("access_token")
+        if gh_user:
+            gh_id = gh_user.get("id")
         gh_org = yield self._get_user_organizations(gh_token)
-        gh_email = auth_state.get("email")
+        gh_email = gh_user.get("email")
         if not gh_email:
             gh_email = yield self._get_user_email(gh_token)
         if gh_email:
             spawner.environment['GITHUB_EMAIL'] = gh_email
-        gh_name = auth_state.get("name")
+        gh_name = gh_user.get("name")
         if not gh_name:
-            gh_name = auth_state.get("login")
+            gh_name = gh_user.get("login")
         if gh_id:
             spawner.environment['GITHUB_ID'] = str(gh_id)
         if gh_org:
@@ -302,6 +304,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             node_selector=self.singleuser_node_selector,
             run_as_uid=singleuser_uid,
             fs_gid=singleuser_fs_gid,
+            run_privileged=self.singleuser_privileged,
             env=pod_env,
             volumes=self._expand_all(self.volumes) + [hack_volume],
             volume_mounts=self._expand_all(

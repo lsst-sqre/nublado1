@@ -304,7 +304,7 @@ customization on your part.
 * Start by creating the `jld-hub-service` component.
 
 * Next, create the Persistent Volume Claim: `kubectl create -f
-  jld-hub-physpvc`.  The Hub needs some persistent storage so its
+  jld-hub-physpvc.yml`.  The Hub needs some persistent storage so its
   knowledge of user sessions survives a container restart.
 
 * Create a file from the secrets template.  Populate this secrets file

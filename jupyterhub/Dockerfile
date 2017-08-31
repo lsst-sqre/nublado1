@@ -13,11 +13,13 @@ RUN  pip3 install jupyterlab ipykernel pyyaml pycurl python-oauth2 wheel \
 #  does not work, because it doesn't rebuild the JS
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
-     git clone https://github.com/jupyterhub/jupyterhub.git  && \
+     git clone https://github.com/jupyterhub/jupyterhub.git && \
      cd jupyterhub && \
      git rev-parse HEAD > /root/jupyterhub.commit && \
-     python3 setup.py bdist_wheel  && \
-     pip3 install dist/jupyterhub-0.8.0.dev0-py3-none-any.whl
+     python3 setup.py bdist_wheel && \
+     cd dist && \
+     whl=$(ls *.whl) && \
+     pip3 install ${whl}
 RUN pip3 install \
      https://github.com/jupyterhub/oauthenticator/zipball/master \
      https://github.com/jupyterhub/kubespawner/zipball/master
@@ -31,5 +33,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.3.0"
+	     version="0.4.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

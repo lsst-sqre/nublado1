@@ -17,12 +17,10 @@ ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY lsst_kernel_py${PYVER}.json \
       lsstlaunch.bash lablauncher.bash runlab.sh \
-      labhubapp.py.patch handlers.py.patch \
+      labhubapp.py.patch \
       ${jl}/
 ENV  sp=/usr/lib/python3.4/site-packages
-RUN  cd ${sp}/jupyterlab_launcher && \
-     patch < ${jl}/handlers.py.patch && \
-     cd ${sp}/jupyterlab && \
+RUN  cd ${sp}/jupyterlab && \
      patch < ${jl}/labhubapp.py.patch
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \

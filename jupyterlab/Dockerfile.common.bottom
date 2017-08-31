@@ -70,7 +70,9 @@ RUN  sed -i -e \
      sed -i -e 's/^lsst:x:1000/lsst_lcl:x:1000/' /etc/group && \
      pwconv && \
      grpconv && \
-     mv /home/lsst /home/lsst_lcl
+     if [ -d /home/lsst ]; then \
+         mv /home/lsst /home/lsst_lcl ; \
+     fi
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 # Set up firefly
 RUN  cd /usr/share/git && \

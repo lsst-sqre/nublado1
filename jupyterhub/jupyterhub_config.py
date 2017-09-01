@@ -277,11 +277,13 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         self.singleuser_image_spec = image_spec
         s_idx = image_spec.find('/')
         c_idx = image_spec.find(':')
+        tag = "latest"
         if s_idx != -1:
             image_name = image_spec[(s_idx + 1):]
             if c_idx > 0:
                 image_name = image_spec[(s_idx + 1):c_idx]
-        pn_template = image_name + "-{username}"
+                tag = image_spec[(c_idx + 1):]
+        pn_template = image_name + "-{username}-" + tag
         auth_state = yield self.user.get_auth_state()
         if auth_state and "id" in auth_state:
             if auth_state["id"] != self.user.id:

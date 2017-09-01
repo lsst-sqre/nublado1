@@ -66,10 +66,16 @@ def _api_headers(access_token):
             }
 
 
+# Request additional scope on GitHub token to auto-provision magic in the
+# user container.
 class LSSTLoginHandler(oauthenticator.GitHubLoginHandler):
+    """Request additional scope on GitHub token.
+    """
     scope = ['public_repo', 'read:org', 'user:email']
 
 
+# Enable the authenticator to spawn with additional information acquired
+# with token with larger-than-default scope.
 class LSSTAuth(oauthenticator.GitHubOAuthenticator):
     """Authenticator to use our custom environment settings.
     """
@@ -216,6 +222,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         return None
 
 
+# Spawn the pod with custom settings retrieved via token additional scope.
 class LSSTSpawner(kubespawner.KubeSpawner):
     """Spawner to use our custom environment settings as reflected through
     auth_state."""
@@ -323,7 +330,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
 
     def options_from_form(self, formdata=None):
         options = {}
-        if formdata and 'kernel_image' in formdata and formdata['kernel_image']:
+        if formdata and 'kernel_image' in formdata and \
+           formdata['kernel_image']:
             options['kernel_image'] = formdata['kernel_image'][0]
         return options
 

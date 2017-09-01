@@ -12,12 +12,6 @@ RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
       --sys-prefix
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
-# Patch JL master
-ENV  jl=/opt/lsst/software/jupyterlab
-RUN  mkdir -p ${jl}
-COPY lsst_kernel_py${PYVER}.json \
-      lsstlaunch.bash lablauncher.bash runlab.sh \
-      ${jl}/
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \
@@ -30,16 +24,6 @@ RUN  mkdir -p /usr/share/git && \
          npm run build && \
          cd .. ;\
      done
-COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
-     local04-pythonrc.sh local05-path.sh \
-     /etc/profile.d/
-RUN  cd /etc/profile.d && \
-     for i in local*; do \
-         ln $i $(basename $i .sh).csh ;\
-     done
-RUN  mkdir -p /etc/skel/notebooks
-COPY lsst_kernel_py${PYVER}.json \
-       /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
 # Hack to get theme files injected
 RUN cd /usr/share/git && \
     git clone https://github.com/jupyterlab/jupyterlab.git && \
@@ -50,26 +34,6 @@ RUN cd /usr/share/git && \
         mkdir -p ${td}/jupyterlab-${t} ; \
         cp -rP ${t}/style/* ${td}/jupyterlab-${t} ; \
     done
-RUN  /usr/bin/python3 /usr/bin/jupyter lab build
-RUN  chgrp -R jupyter ${jl} && \
-     chmod -R g+w ${jl} && \
-     chgrp -R jupyter /usr/share/jupyter/lab && \
-     chmod -R g+wt /usr/share/jupyter/lab
-COPY motd /etc/motd
-COPY jupyter_notebook_config.json /usr/etc/jupyter
-COPY 20_jupytervars /etc/sudoers.d/
-COPY pythonrc /etc/skel/.pythonrc
-# "lsst" is a real GitHub organization.
-RUN  sed -i -e \
-      's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \
-      /etc/passwd && \
-     sed -i -e 's/^lsst:x:1000/lsst_lcl:x:1000/' /etc/group && \
-     pwconv && \
-     grpconv && \
-     if [ -d /home/lsst ]; then \
-         mv /home/lsst /home/lsst_lcl ; \
-     fi
-RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 # Set up firefly
 RUN  cd /usr/share/git && \
      source /opt/lsst/software/stack/loadLSST.bash && \
@@ -84,6 +48,42 @@ RUN  cd /usr/share/git && \
      setup afw && \
      scons install force=True && \
      scons declare force=True     
+RUN  /usr/bin/python3 /usr/bin/jupyter lab build
+# Custom local files
+COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
+     local04-pythonrc.sh local05-path.sh \
+     /etc/profile.d/
+RUN  cd /etc/profile.d && \
+     for i in local*; do \
+         ln $i $(basename $i .sh).csh ;\
+     done
+RUN  mkdir -p /etc/skel/notebooks
+COPY lsst_kernel_py${PYVER}.json \
+       /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
+COPY motd /etc/motd
+COPY jupyter_notebook_config.json /usr/etc/jupyter
+COPY 20_jupytervars /etc/sudoers.d/
+COPY pythonrc /etc/skel/.pythonrc
+ENV  jl=/opt/lsst/software/jupyterlab
+RUN  mkdir -p ${jl}
+COPY lsst_kernel_py${PYVER}.json \
+      lsstlaunch.bash lablauncher.bash runlab.sh \
+      ${jl}/
+RUN  chgrp -R jupyter ${jl} && \
+     chmod -R g+w ${jl} && \
+     chgrp -R jupyter /usr/share/jupyter/lab && \
+     chmod -R g+wt /usr/share/jupyter/lab
+# "lsst" is a real GitHub organization.
+RUN  sed -i -e \
+      's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \
+      /etc/passwd && \
+     sed -i -e 's/^lsst:x:1000/lsst_lcl:x:1000/' /etc/group && \
+     pwconv && \
+     grpconv && \
+     if [ -d /home/lsst ]; then \
+         mv /home/lsst /home/lsst_lcl ; \
+     fi
+RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 RUN  rm -rf /root/.eups
 ENV  LANG=C.UTF-8
 WORKDIR /tmp

@@ -39,6 +39,7 @@ RUN  pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
 RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
+      pipenv \
       nbdime \
       pandoc
 RUN   pip3 install  \
@@ -48,8 +49,7 @@ RUN   pip3 install  \
       https://github.com/lsst-sqre/labkubespawner/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
-RUN  pip2 install --upgrade virtualenv virtualenvwrapper
-# We need notebook from master to get the equivalent of --allow-root
+RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
 RUN  python3 /usr/bin/nbdime config-git --enable --system
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       pip install --upgrade pip && \

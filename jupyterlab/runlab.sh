@@ -11,8 +11,8 @@ if [ -n "${GITHUB_NAME}" ]; then
 fi
 sync
 cd ${HOME}
-#cmd="python3 /usr/bin/jupyter-labhub \
-cmd="python3 /usr/bin/jupyter-singlelabuser \
+#cmd="python3 /usr/bin/jupyter-singlelabuser \
+cmd="python3 /usr/bin/jupyter-labhub \
      --ip='*' --port=8888 --debug \
      --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}/notebooks"

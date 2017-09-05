@@ -38,8 +38,18 @@ RUN cd /usr/share/git && \
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
-RUN  cd /opt/lsst/software/stack/eups/current/bin && \
-     patch < ${jl}/eups.patch
+# Patch eups if it needs patching -- that is, is it prior to 2.1.4?
+RUN  source /opt/lsst/software/stack/loadLSST.bash && \
+     eups="/opt/lsst/software/stack/eups/current/bin/eups" && \
+     e_ver=$(${eups} --version | cut -d ':' -f 2 | cut -c 2- ) && \
+     e_maj=$(echo ${e_ver} | cut -d '.' -f 1 ) && \
+     e_min=$(echo ${e_ver} | cut -d '.' -f 2 ) && \
+     e_pat=$(echo ${e_ver} | cut -d '.' -f 3 ) && \
+     if [ "${e_maj}" -lt 2 ] || [ "${e_min}" -lt 1 ] || \
+      [ ${e_pat} -lt 4 ]; then \
+         cd $(dirname "${eups}") ; \
+         patch < ${jl}/eups.patch ; \
+     fi
 # Set up firefly
 RUN  cd /usr/share/git && \
      source /opt/lsst/software/stack/loadLSST.bash && \
@@ -70,8 +80,6 @@ COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 COPY 20_jupytervars /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
-ENV  jl=/opt/lsst/software/jupyterlab
-RUN  mkdir -p ${jl}
 COPY lsst_kernel_py${PYVER}.json \
       lsstlaunch.bash lablauncher.bash runlab.sh \
       ${jl}/

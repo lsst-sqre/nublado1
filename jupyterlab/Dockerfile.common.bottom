@@ -34,6 +34,12 @@ RUN cd /usr/share/git && \
         mkdir -p ${td}/jupyterlab-${t} ; \
         cp -rP ${t}/style/* ${td}/jupyterlab-${t} ; \
     done
+# Patch eups (should not need in _36)
+ENV  jl=/opt/lsst/software/jupyterlab
+RUN  mkdir -p ${jl}
+COPY eups.patch ${jl}/
+RUN  cd /opt/lsst/software/stack/eups/current/bin && \
+     patch < ${jl}/eups.patch
 # Set up firefly
 RUN  cd /usr/share/git && \
      source /opt/lsst/software/stack/loadLSST.bash && \

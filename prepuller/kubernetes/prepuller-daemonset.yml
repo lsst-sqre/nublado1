@@ -15,8 +15,14 @@ spec:
           securityContext:
             privileged: true
           volumeMounts:
+            - name: dockerdir
+              mountPath: /var/run/docker
             - name: dockersock
-              mountPath: /var/run
+              mountPath: /var/run/docker.sock
+            - name: dockershim
+              mountPath: /var/run/dockershim.sock
+            - name: dockerpid
+              mountPath: /var/run/docker.pid
             - name: dockerbin
               mountPath: /usr/bin/docker
             - name: dockerlib
@@ -34,9 +40,18 @@ spec:
             - name: libseccomp231
               mountPath: /usr/lib64/libseccomp.so.2.3.1
       volumes:
+        - name: dockerdir
+          hostPath:
+            path: /var/run/docker
         - name: dockersock
           hostPath:
-            path: /var/run
+            path: /var/run/docker.sock
+        - name: dockershim
+          hostPath:
+            path: /var/run/dockershim.sock
+        - name: dockerpid
+          hostPath:
+            path: /var/run/docker.pid
         - name: dockerbin
           hostPath:
             path: /usr/bin/docker

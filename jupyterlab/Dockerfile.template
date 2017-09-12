@@ -1,4 +1,4 @@
-FROM lsstsqre/stacktest:7-stack-lsst_distrib-{{TAG}}
+FROM lsstsqre/centos:7-stack-lsst_distrib-{{TAG}}
 LABEL description="JupyterLab demo: LSST Stack (Python {{PYVER}})" \
        name="lsstsqre/jld-lab" \
        version="{{VERSION}}"

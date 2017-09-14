@@ -1,0 +1,165 @@
+FROM {{BASE_IMAGE}}:{{TAG_PREFIX}}{{TAG}}
+USER root
+RUN  groupadd -g 768 jupyter && chgrp -R jupyter /opt/lsst && \
+      chmod -R g+w /opt/lsst
+RUN  yum install -y epel-release
+RUN  yum repolist
+RUN  yum -y  upgrade
+# Manual http-parser installation needed for newer nodejs, until CentOS 7.4
+#  is released.
+RUN  rpm -ivh https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm
+RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
+      git \
+      python-devel nodejs \
+      pandoc \
+      texlive texlive-collection-xetex texlive-ec texlive-upquote \
+      texlive-adjustbox \
+      make zlib-devel perl-ExtUtils-MakeMaker gettext
+# Newer git; install to /usr/local/bin
+RUN  V="2.9.5" && \
+     D="git-${V}" && \
+     FN="${D}.tar.gz" && \
+     mkdir -p /usr/local/src && \
+     cd /usr/local/src && \
+     curl -L https://www.kernel.org/pub/software/scm/git/${FN} -o ${FN} && \
+     tar xvfz ${FN} && \
+     cd ${D} && \
+     ./configure --without-tcltk && \
+     make && \
+     make install
+RUN  cd /tmp && \
+     V="2.2.9" && \
+     FN="hub-linux-amd64-${V}" && \
+     F="${FN}.tgz" && \
+     URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
+     cmd="curl -L ${URL} -o ${F}" && \
+     $cmd && \
+     tar xpfz ${F} && \
+     install -m 0755 ${FN}/bin/hub /usr/bin && \
+     rm -rf ${F} ${FN}
+RUN  pip3 install --upgrade pip setuptools
+RUN  pip2 install --upgrade pip setuptools
+RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
+      ipykernel \
+      pipenv \
+      nbdime \
+      pandoc
+RUN   pip3 install  \
+      https://github.com/jupyter/notebook/zipball/master \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/jupyterhub/jupyterhub/zipball/master
+RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
+       awk '{print $1}' > /root/jupyterlab.commit
+RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
+RUN  python3 /usr/bin/nbdime config-git --enable --system
+RUN  source /opt/lsst/software/stack/loadLSST.bash && \
+      pip install --upgrade pip && \
+      pip install ipykernel
+ENV   PYVER={{PYVER}}
+RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
+     export pdir && \
+     if ! [ -d ${pdir} ]; then \
+         mkdir -p ${pdir} && \
+         cd ${pdir} && \
+         source /opt/lsst/software/stack/loadLSST.bash && \     
+         ln -sf $(which python${PYVER}) . ;\
+      fi
+RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      -m ipykernel install --name 'LSST_Stack'
+RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
+      --sys-prefix
+RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
+RUN  mkdir -p /usr/share/git && \
+     cd /usr/share/git && \
+     npm install -g webpack && \
+     git clone https://github.com/jupyterhub/jupyterlab-hub.git &&  \
+     git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
+     for i in hub savequit; do \
+     	 cd jupyterlab-${i} && \
+         npm install --unsafe-perm && \
+         python3 /usr/bin/jupyter labextension link . && \
+         npm run build && \
+         cd .. ;\
+     done
+# Hack to get theme files injected
+RUN cd /usr/share/git && \
+    git clone https://github.com/jupyterlab/jupyterlab.git && \
+    cd jupyterlab/packages && \
+    for i in light dark; do \
+        t="theme-${i}-extension" ; \
+        td="/usr/lib/python3.4/site-packages/jupyterlab/themes" ; \
+        mkdir -p ${td}/jupyterlab-${t} ; \
+        cp -rP ${t}/style/* ${td}/jupyterlab-${t} ; \
+    done
+# Patch eups (should not need in _36)
+ENV  jl=/opt/lsst/software/jupyterlab
+RUN  mkdir -p ${jl}
+COPY eups.patch ${jl}/
+# Patch eups if it needs patching -- that is, is it prior to 2.1.4?
+RUN  source /opt/lsst/software/stack/loadLSST.bash && \
+     eups="/opt/lsst/software/stack/eups/current/bin/eups" && \
+     e_ver=$(${eups} --version | cut -d ':' -f 2 | cut -c 2- ) && \
+     e_maj=$(echo ${e_ver} | cut -d '.' -f 1 ) && \
+     e_min=$(echo ${e_ver} | cut -d '.' -f 2 ) && \
+     e_pat=$(echo ${e_ver} | cut -d '.' -f 3 ) && \
+     if [ "${e_maj}" -lt 2 ] || [ "${e_min}" -lt 1 ] || \
+      [ ${e_pat} -lt 4 ]; then \
+         cd $(dirname "${eups}") ; \
+         patch < ${jl}/eups.patch ; \
+     fi
+# Set up firefly
+RUN  cd /usr/share/git && \
+     source /opt/lsst/software/stack/loadLSST.bash && \
+     pip install \
+       https://github.com/Caltech-IPAC/firefly_client/zipball/master && \
+     git clone https://github.com/lsst/display_firefly && \
+     cd display_firefly/ups && \
+     sed -i -e \
+       's/setupRequired(firefly_client)/#setupRequired(firefly_client)/' \
+       display_firefly.table && \
+     cd .. && \
+     setup afw && \
+     scons install force=True && \
+     scons declare force=True     
+RUN  /usr/bin/python3 /usr/bin/jupyter lab build
+# Custom local files
+COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
+     local04-pythonrc.sh local05-path.sh \
+     /etc/profile.d/
+RUN  cd /etc/profile.d && \
+     for i in local*; do \
+         ln $i $(basename $i .sh).csh ;\
+     done
+RUN  mkdir -p /etc/skel/notebooks
+COPY lsst_kernel_py${PYVER}.json \
+       /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
+COPY motd /etc/motd
+COPY jupyter_notebook_config.json /usr/etc/jupyter
+COPY 20_jupytervars /etc/sudoers.d/
+COPY pythonrc /etc/skel/.pythonrc
+COPY lsst_kernel_py${PYVER}.json \
+      lsstlaunch.bash lablauncher.bash runlab.sh \
+      ${jl}/
+RUN  chgrp -R jupyter ${jl} && \
+     chmod -R g+w ${jl} && \
+     chgrp -R jupyter /usr/share/jupyter/lab && \
+     chmod -R g+wt /usr/share/jupyter/lab
+# "lsst" is a real GitHub organization.
+RUN  sed -i -e \
+      's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \
+      /etc/passwd && \
+     sed -i -e 's/^lsst:x:1000/lsst_lcl:x:1000/' /etc/group && \
+     pwconv && \
+     grpconv && \
+     if [ -d /home/lsst ]; then \
+         mv /home/lsst /home/lsst_lcl ; \
+     fi
+RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
+RUN  rm -rf /root/.eups
+ENV  LANG=C.UTF-8
+WORKDIR /tmp
+CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]
+LABEL description="JupyterLab demo: LSST Stack (Python {{PYVER}})" \
+       name="{{IMAGE_NAME}}" \
+       version="{{VERSION}}"

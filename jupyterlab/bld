@@ -1,52 +1,71 @@
 #!/bin/bash
-BTYPE=$1
-YEAR=$2
-WEEK=$3
-case ${BTYPE} in
-    r|R|release)
-	BTYPE="r"
-	MAJ=${YEAR}
-	MIN=${WEEK}
-	;;
-    w|W|weekly)
-	BTYPE="w"
-	;;
-    *)
-	BTYPE=""
-	YEAR=""
-	;;
-esac
-PYVER="3"
-if [ -n "${4}" ]; then
-   PYVER=$4
-fi
-if [ -z "${BTYPE}" ] || [ -z "${YEAR}" ] || [ -z "${WEEK}" ]; then
-    echo 1>&2 "Usage: $0 r MAJOR_VERSION MINOR_VERSION [PYTHON_VERSION (3|2)]"
-    echo 1>&2 "       $0 w YEAR WEEK [PYTHON_VERSION (3|2)]"
+set -e
+
+function usage() {
+    echo 1>&2 "Usage: $0 [-d] [-p PYVER] [-b BASE_IMAGE] [-n IMAGE_NAME ] \\"
+    echo 1>&2 "           [-t TAG_PREFIX ] TAG"
+    echo 1>&2 "  -d enables dry run (no Docker build or push)"
+    echo 1>&2 "  default PYVER=3 (legal values: 2,3)"
+    echo 1>&2 "  default BASE_IMAGE='lsstsqre/stack_test'"
+    echo 1>&2 "  default IMAGE_NAME='lsstsqre/jld-lab'"
+    echo 1>&2 "  default TAG_PREFIX='7-stack-lsst_distrib-'"
+    echo 1>&2 "  typical TAG='w_2017_35'"
     exit 2
+}
+
+OPTIND=1
+DRY_RUN=0
+PYVER=3
+BASE_IMAGE="lsstsqre/stacktest"
+IMAGE_NAME="lsstsqre/jld-lab"
+TAG_PREFIX="7-stack-lsst_distrib-"
+while getopts ':hdp:n:b:t:' opt; do
+    case $opt in
+	h)
+	    usage
+	    ;;
+	d)
+	    DRY_RUN=1
+	    ;;
+	p)
+	    PYVER=${OPTARG}
+	    if [ "${PYVER}" -ne 2 ] || [ "${PYVER}" -ne 3 ]; then
+		usage
+	    fi
+	    ;;
+	b)
+	    BASE_IMAGE=${OPTARG}
+	    ;;
+	n)
+	    IMAGE_NAME=${OPTARG}
+	    ;;
+	t)
+	    TAG_PREFIX=${OPTARG}
+	    ;;
+	\?)
+	    usage
+	    ;;
+    esac
+done
+shift $((OPTIND - 1))
+TAG=${1}
+if [ -z "${TAG}" ] || [ $# -gt 1 ]; then
+    usage
 fi
-if [ "${PYVER}" != "2" ] && [ "${PYVER}" != "3" ]; then
-    echo 1>&2 "PYTHON_VERSION must be either 2 or 3"
-    exit 2
-fi
+VERSION=${TAG//_/}
+VERSION=${VERSION/#v/r}
 KFILE=lsst_kernel_py${PYVER}.json
-sed -e "s/{{PYVER}}/${PYVER}/g" lsst_kernel.json.template > ${KFILE}
-if [ "${BTYPE}" == "r" ]; then
-    echo "FROM lsstsqre/centos:7-stack-lsst_distrib-v${MAJ}_${MIN}" > Dockerfile
-    else
-	echo "FROM lsstsqre/stacktest:7-stack-lsst_distrib-w_${YEAR}_${WEEK}" > Dockerfile
-fi
-echo "USER root" >> Dockerfile
-cat Dockerfile.common.top >> Dockerfile
-echo "ENV   PYVER=${PYVER}" >> Dockerfile
-cat Dockerfile.common.bottom >> Dockerfile
-desc="JupyterLab demo: LSST Stack (Python ${PYVER})"
-echo "LABEL description=\"${desc}\" \\" >> Dockerfile
-echo "       name=\"lsstsqre/jld-lab\" \\" >> Dockerfile
-if [ "${BTYPE}" == "r" ]; then
-    echo "      version=\"r${MAJ}${MIN}\"" >> Dockerfile
-else
-    echo "       version=\"w${YEAR}${WEEK}\"" >> Dockerfile
+sed -e "s|{{PYVER}}|${PYVER}|g" lsst_kernel.json.template > ${KFILE}
+sed -e "s|{{BASE_IMAGE}}|${BASE_IMAGE}|g" \
+    -e "s|{{IMAGE_NAME}}|${IMAGE_NAME}|g" \
+    -e "s|{{TAG_PREFIX}}|${TAG_PREFIX}|g" \
+    -e "s|{{PYVER}}|${PYVER}|g" \
+    -e "s|{{VERSION}}|${VERSION}|g" \
+    -e "s|{{TAG}}|${TAG}|g" \
+    < Dockerfile.template > Dockerfile
+if [ "${DRY_RUN}" -ne 0 ]; then
+    echo 1>&2 "Dry run: Dockerfile written, stopping before build/push."
+    exit 0
 fi
 ./bld_1
 

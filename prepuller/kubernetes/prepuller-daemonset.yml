@@ -14,6 +14,13 @@ spec:
           image: "lsstsqre/prepuller"
           securityContext:
             privileged: true
+          # env:
+          # Both of these should be comma-separated lists
+          #  - name: LAB_CONTAINER_NAMES
+          #    value: <set if you don't want to just get most recent
+          #            builds>
+          #  - name: JLD_INFRASTRUCTURE_IMAGES
+          #    value: defaults to "lsstsqre/jld-hub"
           volumeMounts:
             - name: dockerdir
               mountPath: /var/run/docker
@@ -27,6 +34,9 @@ spec:
               mountPath: /usr/bin/docker
             - name: dockerlib
               mountPath: /var/lib/docker
+              # You may need to vary these depending on the host system.
+              #  Basically, run `ldd /usr/bin/docker` and capture the
+              #  locations of the libraries you will need to link.
             - name: libapparmor
               mountPath: /usr/lib64/libapparmor.so
             - name: libapparmor1
@@ -39,6 +49,8 @@ spec:
               mountPath: /usr/lib64/libseccomp.so.2
             - name: libseccomp231
               mountPath: /usr/lib64/libseccomp.so.2.3.1
+            # - name: libltdl7
+            #   mountPath: /usr/lib64/libltdl.so.7
       volumes:
         - name: dockerdir
           hostPath:
@@ -76,3 +88,6 @@ spec:
         - name: libseccomp231
           hostPath:
             path: /usr/lib64/libseccomp.so.2.3.1
+        # - name: libltdl7
+        #   hostPath:
+        #     path: /usr/lib64/libltdl.so.7

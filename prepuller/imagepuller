@@ -1,10 +1,17 @@
 #!/bin/sh
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
-get_builds > /tmp/jld-lab.env
-. /tmp/jld-lab.env
-rm /tmp/jld-lab.env
-IMAGES=$(echo ${LAB_CONTAINER_NAMES} | tr ',' ' ')
+RANDOM_DELAY=30 # So they don't all run at once.
+if [ -z "${LAB_CONTAINER_NAMES}" ]; then
+    get_builds > /tmp/jld-lab.env
+    . /tmp/jld-lab.env
+    rm /tmp/jld-lab.env
+fi
+if [ -z "${JLD_INFRASTRUCTURE_IMAGES}" ]; then
+    JLD_INFRASTRUCTURE_IMAGES="lsstsqre/jld-hub"
+fi
+IMAGES=$(echo ${LAB_CONTAINER_NAMES} ${JLD_INFRASTRUCTURE_IMAGES} | \
+          tr ',' ' ')
 for i in ${IMAGES}; do
     docker pull ${i}
 done

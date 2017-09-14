@@ -1,52 +1,43 @@
 #!/bin/bash
-BTYPE=$1
-YEAR=$2
-WEEK=$3
-case ${BTYPE} in
-    r|R|release)
-	BTYPE="r"
-	MAJ=${YEAR}
-	MIN=${WEEK}
-	;;
-    w|W|weekly)
-	BTYPE="w"
-	;;
-    *)
-	BTYPE=""
-	YEAR=""
-	;;
-esac
-PYVER="3"
-if [ -n "${4}" ]; then
-   PYVER=$4
-fi
-if [ -z "${BTYPE}" ] || [ -z "${YEAR}" ] || [ -z "${WEEK}" ]; then
-    echo 1>&2 "Usage: $0 r MAJOR_VERSION MINOR_VERSION [PYTHON_VERSION (3|2)]"
-    echo 1>&2 "       $0 w YEAR WEEK [PYTHON_VERSION (3|2)]"
-    exit 2
-fi
-if [ "${PYVER}" != "2" ] && [ "${PYVER}" != "3" ]; then
-    echo 1>&2 "PYTHON_VERSION must be either 2 or 3"
-    exit 2
-fi
-KFILE=lsst_kernel_py${PYVER}.json
-sed -e "s/{{PYVER}}/${PYVER}/g" lsst_kernel.json.template > ${KFILE}
-if [ "${BTYPE}" == "r" ]; then
-    echo "FROM lsstsqre/centos:7-stack-lsst_distrib-v${MAJ}_${MIN}" > Dockerfile
-    else
-	echo "FROM lsstsqre/stacktest:7-stack-lsst_distrib-w_${YEAR}_${WEEK}" > Dockerfile
-fi
-echo "USER root" >> Dockerfile
-cat Dockerfile.common.top >> Dockerfile
-echo "ENV   PYVER=${PYVER}" >> Dockerfile
-cat Dockerfile.common.bottom >> Dockerfile
-desc="JupyterLab demo: LSST Stack (Python ${PYVER})"
-echo "LABEL description=\"${desc}\" \\" >> Dockerfile
-echo "       name=\"lsstsqre/jld-lab\" \\" >> Dockerfile
-if [ "${BTYPE}" == "r" ]; then
-    echo "      version=\"r${MAJ}${MIN}\"" >> Dockerfile
-else
-    echo "       version=\"w${YEAR}${WEEK}\"" >> Dockerfile
-fi
-./bld_1
 
+set -e
+
+DRY_RUN=false
+PYVER=3
+KFILE=lsst_kernel_py${PYVER}.json
+
+usage() {
+    echo 1>&2 "Usage: $0 [-d] TAG"
+    exit 2
+}
+
+OPTIND=1
+while getopts dh: opt; do
+    case $opt in
+        d)
+            DRY_RUN=true
+            ;;
+        h)
+            usage
+            ;;
+    esac
+done
+shift "$((OPTIND-1))"
+
+TAG=$1
+VERSION=${TAG//_/}
+VERSION=${VERSION/#v/r}
+
+
+if [[ -z $TAG ]] || [[ $# -gt 1 ]]; then
+    usage
+fi
+
+sed -e "s/{{PYVER}}/${PYVER}/g" lsst_kernel.json.template > ${KFILE}
+
+sed -e "s|{{TAG}}|${TAG}|g; s|{{VERSION}}|${VERSION}|g; s|{{PYVER}}|${PYVER}|g"\
+    Dockerfile.template > Dockerfile
+
+if [[ $DRY_RUN != true ]]; then
+    ./bld_1
+fi

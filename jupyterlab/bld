@@ -6,7 +6,7 @@ function usage() {
     echo 1>&2 "           [-t TAG_PREFIX ] TAG"
     echo 1>&2 "  -d enables dry run (no Docker build or push)"
     echo 1>&2 "  default PYVER=3 (legal values: 2,3)"
-    echo 1>&2 "  default BASE_IMAGE='lsstsqre/stack_test'"
+    echo 1>&2 "  default BASE_IMAGE='lsstsqre/centos'"
     echo 1>&2 "  default IMAGE_NAME='lsstsqre/jld-lab'"
     echo 1>&2 "  default TAG_PREFIX='7-stack-lsst_distrib-'"
     echo 1>&2 "  typical TAG='w_2017_35'"
@@ -16,7 +16,7 @@ function usage() {
 OPTIND=1
 DRY_RUN=0
 PYVER=3
-BASE_IMAGE="lsstsqre/stacktest"
+BASE_IMAGE="lsstsqre/centos"
 IMAGE_NAME="lsstsqre/jld-lab"
 TAG_PREFIX="7-stack-lsst_distrib-"
 while getopts ':hdp:n:b:t:' opt; do

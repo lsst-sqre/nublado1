@@ -30,7 +30,8 @@ class ScanRepo(object):
     releases = 1
 
     def __init__(self, host='', path='/', owner='', name='',
-                 weeklies=4, releases=1, json=False,
+                 dailies=7, weeklies=4, releases=1,
+                 json=False,
                  insecure=False, sort_field="", debug=False):
         if host:
             self.host = host
@@ -40,6 +41,8 @@ class ScanRepo(object):
             self.owner = owner
         if name:
             self.name = name
+        if dailies:
+            self.dailies = dailies
         if weeklies:
             self.weeklies = weeklies
         if releases:
@@ -73,7 +76,7 @@ class ScanRepo(object):
             print(json.dumps(self.data, sort_keys=True, indent=4))
         else:
             cs = []
-            for k in ["weekly", "release"]:
+            for k in ["daily", "weekly", "release"]:
                 cs.extend(self.data[k])
             ldescs = []
             for c in cs:
@@ -82,10 +85,15 @@ class ScanRepo(object):
                     rmaj = tag[1:3]
                     rmin = tag[3:]
                     ld = "Release %s.%s" % (rmaj, rmin)
-                else:
+                elif tag[0] == "w":
                     year = tag[1:5]
                     week = tag[5:]
                     ld = "Weekly %s_%s" % (year, week)
+                elif tag[0] == "d":
+                    year = tag[1:5]
+                    month = tag[5:7]
+                    day = tag[7:]
+                    ld = "Daily %s_%s_%s" % (year, month, day)
                 ldescs.append(ld)
             ldstr = ",".join(ldescs)
             ls = [self.owner + "/" + self.name + ":" + x["name"] for x in cs]
@@ -132,6 +140,7 @@ class ScanRepo(object):
         sort_field = self.sort_field
         r_candidates = []
         w_candidates = []
+        d_candidates = []
         ws = 0
         rs = 1
         for res in results:
@@ -142,9 +151,13 @@ class ScanRepo(object):
                 r_candidates.append(res)
             if fc == "w":
                 w_candidates.append(res)
+            if fc == "d":
+                d_candidates.append(res)
         r_candidates.sort(key=lambda x: x[sort_field], reverse=True)
         w_candidates.sort(key=lambda x: x[sort_field], reverse=True)
+        d_candidates.sort(key=lambda x: x[sort_field], reverse=True)
         r = {}
+        r["daily"] = d_candidates[:self.dailies]
         r["weekly"] = w_candidates[:self.weeklies]
         r["release"] = r_candidates[:self.releases]
         for tp in r:
@@ -182,6 +195,9 @@ def parse_args():
     parser.add_argument("-n", "--name",
                         help="repository name [jld-lab]",
                         default="jld-lab")
+    parser.add_argument("-q", "--dailies", "--daily", "--quotidian", type=int,
+                        help="# of daily builds to keep [7]",
+                        default=4)
     parser.add_argument("-w", "--weeklies", "--weekly", type=int,
                         help="# of weekly builds to keep [4]",
                         default=4)
@@ -207,7 +223,8 @@ def main():
     args = parse_args()
     repo = ScanRepo(host=args.repo, path=args.path,
                     owner=args.owner, name=args.name,
-                    weeklies=args.weeklies, releases=args.releases,
+                    dailies=args.dailies, weeklies=args.weeklies,
+                    releases=args.releases,
                     json=args.json, insecure=args.insecure,
                     sort_field=args.sort, debug=args.debug)
     repo.scan()

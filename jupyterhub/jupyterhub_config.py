@@ -162,14 +162,14 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         if not gh_name:
             gh_name = gh_user.get("login")
         if gh_id:
-            spawner.environment['GITHUB_ID'] = str(gh_id)
+            spawner.environment['EXTERNAL_UID'] = str(gh_id)
         if gh_org:
             orglstr = ""
             for k in gh_org:
                 if orglstr:
                     orglstr += ","
                 orglstr += k + ":" + str(gh_org[k])
-            spawner.environment['GITHUB_ORGANIZATIONS'] = orglstr
+            spawner.environment['EXTERNAL_GROUPS'] = orglstr
         if gh_name:
             spawner.environment['GITHUB_NAME'] = gh_name
         if gh_token:

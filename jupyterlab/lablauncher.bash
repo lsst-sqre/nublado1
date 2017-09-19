@@ -10,36 +10,23 @@ function setup_user() {
 }
 
 function make_user() {
-    # If GITHUB_ID is not set, then we rely on sqrekubespawner/GHOWLAuth
-    #  to have named the pod correctly.  Failing that we just use the
-    #  standard system generated UID.
-    # We would like the pod named jupyter-<user>-<githubid>
+    # If EXTERNAL_UID is not set, we just use the standard system generated
+    #  UID.
     # If we can get a good value, the UID and GID will both be that.
+    # Reject implausibly small values.  Probably means we didn't get an
+    #  ID and so we get the (small) serial assigned by KubeSpawner
     local nuid=""
-    if [ -z "${GITHUB_ID}" ]; then
-	last=$(hostname | cut -d '-' -f 3)
-	case ${last} in
-	    ''|*[!0-9]*)
-		GITHUB_ID=""
-		;;
-	    *)
-		GITHUB_ID=${last}
-		;;
-	esac
+    if [ "${EXTERNAL_UID}" -lt 100 ]; then
+	EXTERNAL_UID=""
     fi
-    # Reject implausibly small values.  Probably means
-    #  regular kubespawner, and thus we got "1"
-    if [ "${GITHUB_ID}" -lt 10 ]; then
-	GITHUB_ID=""
-    fi
-    if [ -n "${GITHUB_ID}" ]; then
-	nuid="-u ${GITHUB_ID} -g ${U_NAME}"
+    if [ -n "${EXTERNAL_UID}" ]; then
+	nuid="-u ${EXTERNAL_UID} -g ${U_NAME}"
     fi
     add_groups
     local gentry=""
     local suppgrp="-G jupyter"
-    if [ -n "${GITHUB_ORGANIZATIONS}" ]; then
-	for gentry in $(echo ${GITHUB_ORGANIZATIONS} | tr "," "\n"); do
+    if [ -n "${EXTERNAL_GROUPS}" ]; then
+	for gentry in $(echo ${EXTERNAL_GROUPS} | tr "," "\n"); do
 	    gname=$(echo ${gentry} | cut -d ':' -f 1)
 	    if [ -z "${suppgrp}" ]; then
 		suppgrp="-G ${gname}"
@@ -58,12 +45,12 @@ function make_user() {
 }
 
 function add_groups() {
-    add_group ${U_NAME} ${GITHUB_ID}
+    add_group ${U_NAME} ${EXTERNAL_UID}
     local gentry=""
     local gname=""
     local gid=""
-    if [ -n "${GITHUB_ORGANIZATIONS}" ]; then
-        for gentry in $(echo ${GITHUB_ORGANIZATIONS} | tr "," "\n"); do
+    if [ -n "${EXTERNAL_GROUPS}" ]; then
+        for gentry in $(echo ${EXTERNAL_GROUPS} | tr "," "\n"); do
             gname=$(echo ${gentry} | cut -d ':' -f 1)
             gid=$(echo ${gentry} | cut -d ':' -f 2)
             add_group ${gname} ${gid}

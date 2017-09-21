@@ -47,16 +47,28 @@ spec:
                 secretKeyRef:
                   name: jld-hub
                   key: github_organization_whitelist
-            - name: GITHUB_CLIENT_ID
+            - name: CILOGON_HOST
+              value: 'test.cilogon.org'
+            - name: CILOGON_CLIENT_ID
               valueFrom:
                 secretKeyRef:
                   name: jld-hub
-                  key: github_client_id
-            - name: GITHUB_CLIENT_SECRET
+                  key: cilogon_client_id
+            - name: CILOGON_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: jld-hub
-                  key: github_secret
+                  key: cilogon_secret
+            #- name: GITHUB_CLIENT_ID
+            #  valueFrom:
+            #    secretKeyRef:
+            #      name: jld-hub
+            #      key: github_client_id
+            #- name: GITHUB_CLIENT_SECRET
+            #  valueFrom:
+            #    secretKeyRef:
+            #      name: jld-hub
+            #      key: github_secret
             - name: OAUTH_CALLBACK_URL
               valueFrom:
                 secretKeyRef:

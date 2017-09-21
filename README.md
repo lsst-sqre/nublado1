@@ -88,6 +88,10 @@ churn, and an IPAC Firefly server.
   to.  The `homepage URL` is simply the HTTPS endpoint of the DNS
   record, and the callback URL appends `/hub/oauth_callback` to that.
 
+* The `jupyterhub/configs` directory also contains a configuration to
+  use `cilogon.org` with the NCSA identity provider.  It can serve as a
+  template for using a different identity provider.
+
 ### Component Structure
 
 * Each Jupyter Lab Demo component has a `kubernetes` directory (except

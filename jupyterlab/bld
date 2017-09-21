@@ -29,7 +29,7 @@ while getopts ':hdp:n:b:t:' opt; do
 	    ;;
 	p)
 	    PYVER=${OPTARG}
-	    if [ "${PYVER}" -ne 2 ] || [ "${PYVER}" -ne 3 ]; then
+	    if [ "${PYVER}" -ne 2 ] && [ "${PYVER}" -ne 3 ]; then
 		usage
 	    fi
 	    ;;

@@ -30,7 +30,7 @@ class ScanRepo(object):
     releases = 1
 
     def __init__(self, host='', path='/', owner='', name='',
-                 dailies=7, weeklies=4, releases=1,
+                 dailies=3, weeklies=2, releases=1,
                  json=False,
                  insecure=False, sort_field="", debug=False):
         if host:

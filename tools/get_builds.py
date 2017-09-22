@@ -26,7 +26,8 @@ class ScanRepo(object):
     json = False
     insecure = False
     sort_field = "comp_ts"
-    weeklies = 4
+    dailies = 3
+    weeklies = 2
     releases = 1
 
     def __init__(self, host='', path='/', owner='', name='',
@@ -196,11 +197,11 @@ def parse_args():
                         help="repository name [jld-lab]",
                         default="jld-lab")
     parser.add_argument("-q", "--dailies", "--daily", "--quotidian", type=int,
-                        help="# of daily builds to keep [7]",
-                        default=4)
+                        help="# of daily builds to keep [3]",
+                        default=3)
     parser.add_argument("-w", "--weeklies", "--weekly", type=int,
-                        help="# of weekly builds to keep [4]",
-                        default=4)
+                        help="# of weekly builds to keep [2]",
+                        default=2)
     parser.add_argument("-b", "--releases", "--release", type=int,
                         help="# of release builds to keep [1]",
                         default=1)

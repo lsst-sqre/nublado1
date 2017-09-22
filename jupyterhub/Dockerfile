@@ -21,7 +21,7 @@ RUN  mkdir -p /usr/share/git && \
      whl=$(ls *.whl) && \
      pip3 install ${whl}
 RUN pip3 install \
-     https://github.com/lsst-sqre/oauthenticator/zipball/master \
+     https://github.com/jupyterhub/oauthenticator/zipball/master \
      https://github.com/jupyterhub/kubespawner/zipball/master
 RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix

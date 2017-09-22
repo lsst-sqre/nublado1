@@ -1,4 +1,5 @@
 #!/bin/bash
+cp ../tools/get_builds.py get_builds
 if [ -x ./get_builds ] && [ -z "${LAB_CONTAINER_NAMES}" ]; then
     ./get_builds -s name > ./jld-lab.env.sh
 fi

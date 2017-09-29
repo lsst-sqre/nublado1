@@ -92,6 +92,12 @@ churn, and an IPAC Firefly server.
   use `cilogon.org` with the NCSA identity provider.  It can serve as a
   template for using a different identity provider.
 
+* These instructions and templates generally assume Google Container
+  Engine.  If you are using a different Kubernetes provider, you will
+  need to adjust your processes to fit in some cases; for instance,
+  auto-provisioning a PersistentVolume when presented with an
+  unsatisfied PersistentVolumeClaim is a Google feature.
+
 ### Component Structure
 
 * Each Jupyter Lab Demo component has a `kubernetes` directory (except
@@ -199,8 +205,11 @@ underlying storage:
 
 `kubectl create -f jld-fileserver-physpvc.yml`
 
-This will automagically create a PersistentVolume to back it.  I, at
-least, found this very surprising.
+On Google Container Engine, this will automagically create a
+PersistentVolume to back it.  I, at least, found this very surprising.
+
+If you are not running under GKE you will probably need to create a
+PersistentVolume for the PersistentVolumeClaim to bind.
 
 #### NFS Service
 
@@ -224,6 +233,10 @@ disk.
 I created my own NFS Server image, basing it on the stuff found inside
 the gcr.io "volume-nfs" server.  You could probably just use Google's
 image and it'd be fine.
+
+If you are already in an environment where there is an available NFS
+server, then you can omit actually providing your own NFS implementation
+in this step and the next and simply point to the external NFS service.
 
 #### NFS Persistent Volume
 
@@ -250,6 +263,10 @@ replace the `name` field with something making it unique (such as the
 cluster-plus-namespace), and replace the `server` field with the IP
 address of the NFS service.  Then just create the resource with `kubectl
 create -f`.
+
+If your Kubernetes provider also provides an NFS server, you can skip
+the creation of the server and just point to the external service's IP
+address here.
 
 #### NFS Mount PersistentVolumeClaim
 
@@ -290,9 +307,11 @@ containers to use.
   It is only needed because our containers are on the order of 8GB each;
   thus the first user of any particular build on a given node would have
   to wait 10 to 15 minutes if we were not prepulling.  Even if you want
-  a image prepuller, you will probably want to create your own version
+  an image prepuller, you will probably want to create your own version
   of `get_builds.py` that finds the containers you want to use.
-
+  Replacing `imagepurger` would be wise as well, assuming you do not
+  have near-infinite storage on each node.
+    
 * `prepuller` is the location of this component.
 
 * The `prepuller-daemonset.yml` file can be used as an input to `kubectl
@@ -332,7 +351,7 @@ customization on your part.
 
   Then create the secrets from that file: `kubectl create -f <filename>`.
   
-* Set up your deployment environment.  
+* Set up your deployment environment.
 
   1. Set the environment variable
     `K8S_CONTEXT` to the context in which your deployment is running
@@ -392,6 +411,10 @@ installed it) as its backend target(s).
 * Retrieve the externally-visible IP address from the service.  `kubectl
   describe service jld-nginx | grep ^LoadBalancer | awk '{print $3}'`
   will work.  You may need to wait a little while before it shows up.
+  
+* If you already have an ingress controller you can just use the
+  `nginx-ingress.yml` ingress definition; if you do this you will need
+  to modify the JupyterHub configuration (set `c.JupyterHub.base_url`).
 
 ### JupyterLab
 

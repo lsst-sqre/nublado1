@@ -1,0 +1,5 @@
+#!/bin/sh
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=""
+RANDOM_DELAY=90 # So they don't all run at once.
+node_update -g /usr/bin/get_builds

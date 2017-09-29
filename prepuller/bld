@@ -1,3 +1,3 @@
 #!/bin/sh
-cp ../tools/get_builds.py .
+cp ../tools/get_builds.py ../tools/node_update .
 ./bld_1

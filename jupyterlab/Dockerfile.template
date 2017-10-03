@@ -73,7 +73,7 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \
-     git clone https://github.com/jupyterhub/jupyterlab-hub.git &&  \
+     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in hub savequit; do \
      	 cd jupyterlab-${i} && \

@@ -44,9 +44,10 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       pipenv \
       nbdime \
       pandoc
+# labext install is broken in Master right now.
 RUN   pip3 install  \
       https://github.com/jupyter/notebook/zipball/master \
-      https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/jupyterlab/jupyterlab/zipball/26f551fdbde16fb37c6480227d96843cc882f53c \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit

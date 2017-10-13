@@ -45,11 +45,13 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       nbdime \
       pandoc
 # Have to do install -e . to get schema files correctly installed.
-RUN  mkdir -p /usr/share/git && \
-     cd /usr/share/git && \
-     git clone https://github.com/jupyterlab/jupyterlab && \
-     cd jupyterlab && \
-     pip3 install -e . \
+#RUN  mkdir -p /usr/share/git && \
+#     cd /usr/share/git && \
+#     git clone https://github.com/jupyterlab/jupyterlab && \
+#     cd jupyterlab && \
+#     pip3 install -e . \
+RUN  pip3 install \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \      
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
@@ -77,9 +79,9 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \
-     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+     git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-     for i in hub savequit; do \
+     for i in savequit hub; do \
      	 cd jupyterlab-${i} && \
          npm install --unsafe-perm && \
          python3 /usr/bin/jupyter labextension link . && \
@@ -118,7 +120,7 @@ RUN  cd /usr/share/git && \
 RUN  /usr/bin/python3 /usr/bin/jupyter lab build
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
-     local04-pythonrc.sh local05-path.sh \
+     local04-pythonrc.sh local05-path.sh local06-loadlsst.sh\
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \
@@ -149,7 +151,7 @@ RUN  sed -i -e \
          mv /home/lsst /home/lsst_lcl ; \
      fi
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
-RUN  rm -rf /root/.eups
+RUN  rm -rf /root/.eups /usr/share/jupyter/kernels/python3
 ENV  LANG=C.UTF-8
 WORKDIR /tmp
 CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]

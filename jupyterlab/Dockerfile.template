@@ -11,10 +11,10 @@ RUN  rpm -ivh https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.e
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
       git \
       python-devel nodejs \
+      make zlib-devel perl-ExtUtils-MakeMaker gettext \
       pandoc \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
-      texlive-adjustbox \
-      make zlib-devel perl-ExtUtils-MakeMaker gettext
+      texlive-adjustbox
 # Newer git; install to /usr/local/bin
 RUN  V="2.9.5" && \
      D="git-${V}" && \
@@ -43,13 +43,20 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
       pipenv \
       nbdime \
-      pandoc
+      numpy \
+      scipy \
+      pandas \
+      astropy \
+      pypandoc
+RUN  yum -y install texlive texlive-collection-xetex texlive-ec \
+       texlive-upquote texlive-adjustbox
 # Have to do install -e . to get schema files correctly installed.
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      git clone https://github.com/jupyterlab/jupyterlab && \
      cd jupyterlab && \
-     pip3 install -e . \
+     pip3 install -e .
+RUN  pip3 install \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
@@ -59,7 +66,7 @@ RUN  python3 /usr/bin/nbdime config-git --enable --system
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       pip install --upgrade pip && \
       pip install ipykernel
-ENV   PYVER={{PYVER}}
+ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \
      if ! [ -d ${pdir} ]; then \
@@ -77,9 +84,9 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \
-     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+     git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-     for i in hub savequit; do \
+     for i in savequit hub; do \
      	 cd jupyterlab-${i} && \
          npm install --unsafe-perm && \
          python3 /usr/bin/jupyter labextension link . && \
@@ -116,6 +123,10 @@ RUN  cd /usr/share/git && \
      scons install force=True && \
      scons declare force=True     
 RUN  /usr/bin/python3 /usr/bin/jupyter lab build
+# Newer pandoc
+RUN /usr/bin/python3 -c \
+    'from pypandoc.pandoc_download import download_pandoc; \
+    download_pandoc(targetfolder="/usr/local/bin")'
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh \

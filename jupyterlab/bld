@@ -54,8 +54,6 @@ if [ -z "${TAG}" ] || [ $# -gt 1 ]; then
 fi
 VERSION=${TAG//_/}
 VERSION=${VERSION/#v/r}
-# Override
-VERSION=dev0
 KFILE=lsst_kernel_py${PYVER}.json
 sed -e "s|{{PYVER}}|${PYVER}|g" lsst_kernel.json.template > ${KFILE}
 sed -e "s|{{BASE_IMAGE}}|${BASE_IMAGE}|g" \

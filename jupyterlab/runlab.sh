@@ -11,10 +11,11 @@ if [ -n "${GITHUB_NAME}" ]; then
 fi
 sync
 cd ${HOME}
+hub_api="http://${JLD_HUB_SERVICE_HOST}:${JLD_HUB_SERVICE_PORT_API}/hub/api"
 #cmd="python3 /usr/bin/jupyter-singlelabuser \
 cmd="python3 /usr/bin/jupyter-labhub \
      --ip='*' --port=8888 --debug \
-     --hub-api-url=${JUPYTERHUB_API_URL} \
+     --hub-api-url=${hub_api} \
      --notebook-dir=${HOME}/notebooks"
 echo ${cmd}
 if [ -n "${DEBUG}" ]; then

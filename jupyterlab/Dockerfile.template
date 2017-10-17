@@ -50,13 +50,8 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       pypandoc
 RUN  yum -y install texlive texlive-collection-xetex texlive-ec \
        texlive-upquote texlive-adjustbox
-# Have to do install -e . to get schema files correctly installed.
-RUN  mkdir -p /usr/share/git && \
-     cd /usr/share/git && \
-     git clone https://github.com/jupyterlab/jupyterlab && \
-     cd jupyterlab && \
-     pip3 install -e .
 RUN  pip3 install \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
@@ -84,7 +79,7 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \
-     git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
+     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in savequit hub; do \
      	 cd jupyterlab-${i} && \

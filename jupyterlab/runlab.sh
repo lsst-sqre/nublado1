@@ -11,6 +11,12 @@ if [ -n "${GITHUB_NAME}" ]; then
 fi
 sync
 cd ${HOME}
+# Create standard dirs
+for i in notebooks DATA WORK; do
+    mkdir -p "${HOME}/${i}"
+done
+# Fetch/update magic notebook.
+. /opt/lsst/software/jupyterlab/refreshnb.sh
 hub_api="http://${JLD_HUB_SERVICE_HOST}:${JLD_HUB_SERVICE_PORT_API}/hub/api"
 #cmd="python3 /usr/bin/jupyter-singlelabuser \
 cmd="python3 /usr/bin/jupyter-labhub \

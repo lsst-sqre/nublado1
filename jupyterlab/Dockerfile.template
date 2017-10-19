@@ -138,7 +138,7 @@ COPY jupyter_notebook_config.json /usr/etc/jupyter
 COPY 20_jupytervars /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
 COPY lsst_kernel_py${PYVER}.json \
-      lsstlaunch.bash lablauncher.bash runlab.sh \
+      lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
       ${jl}/
 RUN  chgrp -R jupyter ${jl} && \
      chmod -R g+w ${jl}

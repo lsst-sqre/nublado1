@@ -80,11 +80,13 @@ RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+     git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+     mv jupyterlab_bokeh jupyterlab-bokeh && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-     for i in savequit hub; do \
+     for i in savequit bokeh hub; do \
      	 cd jupyterlab-${i} && \
+         python3 /usr/bin/jupyter labextension link . --no-build && \
          npm install --unsafe-perm && \
-         python3 /usr/bin/jupyter labextension link . && \
          npm run build && \
          cd .. ;\
      done

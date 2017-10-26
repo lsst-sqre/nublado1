@@ -241,9 +241,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             fs_gid=singleuser_fs_gid,
             run_privileged=self.singleuser_privileged,
             env=pod_env,
-            volumes=self._expand_all(self.volumes) + [hack_volume],
-            volume_mounts=self._expand_all(
-                self.volume_mounts) + [hack_volume_mount],
+            volumes=self._expand_all(self.volumes),
+            volume_mounts=self._expand_all(self.volume_mounts),
             working_dir=self.singleuser_working_dir,
             labels=labels,
             cpu_limit=self.cpu_limit,

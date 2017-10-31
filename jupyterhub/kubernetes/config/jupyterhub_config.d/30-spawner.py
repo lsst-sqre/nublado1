@@ -105,3 +105,6 @@ class LSSTSpawner(kubespawner.KubeSpawner):
            formdata['kernel_image']:
             options['kernel_image'] = formdata['kernel_image'][0]
         return options
+
+
+c.JupyterHub.spawner_class = LSSTSpawner

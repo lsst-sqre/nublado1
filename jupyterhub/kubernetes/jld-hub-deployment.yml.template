@@ -119,5 +119,5 @@ spec:
               path: jupyterhub_config.d/20-authenticator.py
             - key: 30-spawner.py
               path: jupyterhub_config.d/30-spawner.py
-            - key: 90-assembly.py
-              path: jupyterhub_config.d/90-assembly.py
+            - key: 40-environment.py
+              path: jupyterhub_config.d/40-environment.py

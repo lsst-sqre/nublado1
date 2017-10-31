@@ -30,3 +30,7 @@ for idx, img in enumerate(imagelist):
         imgdesc = img
     optform += " value=\"%s\">%s<br>\n" % (img, imgdesc)
 # Options form built.
+
+# Set options form
+if len(imagelist) > 1:
+    c.LSSTSpawner.options_form = optform

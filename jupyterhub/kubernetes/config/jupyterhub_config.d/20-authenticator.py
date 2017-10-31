@@ -103,9 +103,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
             spawner.singleuser_image_spec = imgspec
         else:
             spawner.singleuser_image_spec = imagelist[0]
-            # Referenced from 10-options_form.py
-            spawner.options_form = optform
-
+            # options form already set in 10-options_form.py
         # Add extra configuration from auth_state
         if not self.enable_auth_state:
             return
@@ -182,3 +180,6 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
                     if "primary" in entry and entry["primary"]:
                         return entry["email"]
         return None
+
+# From 20-authenticator.py
+c.JupyterHub.authenticator_class = LSSTAuth

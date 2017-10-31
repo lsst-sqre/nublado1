@@ -45,9 +45,8 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       scipy \
       pandas \
       astropy \
-      pypandoc
-RUN  yum -y install texlive texlive-collection-xetex texlive-ec \
-       texlive-upquote texlive-adjustbox
+      pypandoc \
+      bokeh
 RUN  pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
@@ -57,8 +56,18 @@ RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
 RUN  python3 /usr/bin/nbdime config-git --enable --system
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
-      pip install --upgrade pip && \
-      pip install ipykernel
+     pip install --upgrade pip \
+        setuptools \
+        virtualenvwrapper \
+        ipykernel \
+        pipenv \
+        nbdime \
+        numpy \
+        scipy \
+        pandas \
+        astropy \
+        pypandoc \
+        bokeh
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \

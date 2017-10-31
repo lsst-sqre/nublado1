@@ -33,7 +33,6 @@ spec:
               value: {{LAB_CONTAINER_DESCS}}
             - name: LAB_SELECTOR_TITLE
               value: 'LSST Stack Selector'
-            # Set these if you want to change them.
             - name: LAB_MEM_LIMIT
               value: '2G'
             - name: LAB_CPU_LIMIT
@@ -42,6 +41,8 @@ spec:
               value: '128M'
             - name: LAB_CPU_GUARANTEE
               value: '0.25'
+            - name: JUPYTERLAB_CONFIG_DIR
+              value: '/opt/lsst/software/jupyterhub/config'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:
@@ -103,7 +104,20 @@ spec:
           configMap:
             name: jld-hub-config
             #  Create with `kubectl create configmap jld-hub-config \
-            #   --from-file=config/jld-hub-cfg.py`
+            #   --from-file=config/jupyterhub_config.py \
+            #   --from-file=config/jupyterhub_config.d`
+            #  It is sort of annoying that you still have to specify
+            #   each file in the directory.
             items:
-            - key: jld-hub-cfg.py
+            - key: jupyterhub_config.py
               path: jupyterhub_config.py
+            - key: 00-preamble.py
+              path: jupyterhub_config.d/00-preamble.py
+            - key: 10-options_form.py
+              path: jupyterhub_config.d/10-options_form.py
+            - key: 20-authenticator.py
+              path: jupyterhub_config.d/20-authenticator.py
+            - key: 30-spawner.py
+              path: jupyterhub_config.d/30-spawner.py
+            - key: 90-assembly.py
+              path: jupyterhub_config.d/90-assembly.py

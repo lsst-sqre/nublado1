@@ -1,6 +1,5 @@
 FROM {{BASE_IMAGE}}:{{TAG_PREFIX}}{{TAG}}
 USER root
-# && chgrp -R jupyter /opt/lsst && chmod -R g+w /opt/lsst
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade

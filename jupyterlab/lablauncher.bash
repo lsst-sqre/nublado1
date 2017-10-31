@@ -24,10 +24,13 @@ function make_user() {
     fi
     add_groups
     local gentry=""
-    local suppgrp="-G jupyter"
+    local suppgrp=""
     if [ -n "${EXTERNAL_GROUPS}" ]; then
 	for gentry in $(echo ${EXTERNAL_GROUPS} | tr "," "\n"); do
 	    gname=$(echo ${gentry} | cut -d ':' -f 1)
+	    if [ -z "${gname}"]; then
+		continue
+	    fi
 	    if [ -z "${suppgrp}" ]; then
 		suppgrp="-G ${gname}"
 	    else

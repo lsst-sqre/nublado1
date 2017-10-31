@@ -1,7 +1,5 @@
 FROM {{BASE_IMAGE}}:{{TAG_PREFIX}}{{TAG}}
 USER root
-RUN  groupadd -g 768 jupyter && chgrp -R jupyter /opt/lsst && \
-      chmod -R g+w /opt/lsst
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade
@@ -120,10 +118,6 @@ RUN  cd /usr/share/git && \
      scons install force=True && \
      scons declare force=True     
 RUN  /usr/bin/python3 /usr/bin/jupyter lab build
-# Newer pandoc
-RUN /usr/bin/python3 -c \
-    'from pypandoc.pandoc_download import download_pandoc; \
-    download_pandoc(targetfolder="/usr/local/bin")'
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh \
@@ -142,8 +136,6 @@ COPY pythonrc /etc/skel/.pythonrc
 COPY lsst_kernel_py${PYVER}.json \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
       ${jl}/
-RUN  chgrp -R jupyter ${jl} && \
-     chmod -R g+w ${jl}
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \
       's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \
@@ -154,8 +146,7 @@ RUN  sed -i -e \
      if [ -d /home/lsst ]; then \
          mv /home/lsst /home/lsst_lcl ; \
      fi
-RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
-RUN  rm -rf /root/.eups
+RUN  groupadd -g 768 jupyter
 ENV  LANG=C.UTF-8
 WORKDIR /tmp
 CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]

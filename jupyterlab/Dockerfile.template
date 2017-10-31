@@ -58,8 +58,8 @@ RUN  python3 /usr/bin/nbdime config-git --enable --system
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install --upgrade pip \
         setuptools \
-	virtualenvwrapper \
-	ipykernel \
+        virtualenvwrapper \
+        ipykernel \
         pipenv \
         nbdime \
         numpy \

@@ -181,5 +181,4 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
                         return entry["email"]
         return None
 
-# From 20-authenticator.py
 c.JupyterHub.authenticator_class = LSSTAuth

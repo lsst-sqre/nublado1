@@ -46,6 +46,7 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       pandas \
       astropy \
       pypandoc \
+      ipywidgets \
       bokeh
 RUN  pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
@@ -67,6 +68,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         pandas \
         astropy \
         pypandoc \
+	ipywidgets \
         bokeh
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
@@ -83,6 +85,13 @@ RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
       --sys-prefix
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
+RUN  python3 /usr/bin/jupyter nbextension enable --py widgetsnbextension \
+      --sys-prefix
+RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
+RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      /usr/bin/jupyter nbextension enable --py widgetsnbextension --sys-prefix
+RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      npm install -g webpack && \

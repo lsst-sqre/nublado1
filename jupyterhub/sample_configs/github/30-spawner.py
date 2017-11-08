@@ -46,6 +46,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         pod_name = self.pod_name
         image_spec = self.singleuser_image_spec
         image_name = image_spec
+#        if user_options in self:
+#            self.log.info(user_options
         if self.user_options:
             if self.user_options.get('kernel_image'):
                 image_spec = self.user_options.get('kernel_image')

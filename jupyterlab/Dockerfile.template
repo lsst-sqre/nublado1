@@ -10,7 +10,7 @@ RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
       git \
       python-devel nodejs \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      pandoc \
+      python34-tkinter pandoc \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
       texlive-adjustbox
 # Newer git; install to /usr/local/bin
@@ -47,6 +47,7 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       astropy \
       pypandoc \
       ipywidgets \
+      matplotlib \
       bokeh
 RUN  pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
@@ -56,6 +57,7 @@ RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
 RUN  python3 /usr/bin/nbdime config-git --enable --system
+# scipy/pandas/numpy/astropy/matplotlib all already there
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install --upgrade pip \
         setuptools \
@@ -63,12 +65,8 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         ipykernel \
         pipenv \
         nbdime \
-        numpy \
-        scipy \
-        pandas \
-        astropy \
         pypandoc \
-	ipywidgets \
+        ipywidgets \
         bokeh
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \

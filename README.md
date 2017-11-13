@@ -27,7 +27,10 @@ churn, and an IPAC Firefly server.
 
 ## Running
 
-* Log in with GitHub OAuth2.
+* Log in with GitHub OAuth2.  You must be a member of one of the
+  organizations listed in the GitHub Organization Whitelist, and your
+  membership in that organization must be `public` rather than
+  `private`.
 
 ### Using the LSST Stack
 
@@ -337,7 +340,8 @@ customization on your part.
      OAuth2 Application you registered with GitHub at the beginning.
   2. `github_organization_whitelist` is a comma-separated list of the
      names of the GitHub organizations whose members will be allowed to
-     log in.
+     log in.  Currently, membership in the organization must be `public`
+     rather than `private` if the whitelist is to work.
   3. `session_db_url`.  If you don't know this or are happy with the
      stock sqlite3 implementation, use the URL
      `sqlite:////home/jupyter/jupyterhub.sqlite`; any RDBMS supported by

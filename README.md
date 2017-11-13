@@ -88,9 +88,9 @@ churn, and an IPAC Firefly server.
   to.  The `homepage URL` is simply the HTTPS endpoint of the DNS
   record, and the callback URL appends `/hub/oauth_callback` to that.
 
-* The `jupyterhub/configs` directory also contains a configuration to
-  use `cilogon.org` with the NCSA identity provider.  It can serve as a
-  template for using a different identity provider.
+* The `jupyterhub/sample_configs` directory also contains a
+  configuration to use `cilogon.org` with the NCSA identity provider.
+  It can serve as a template for using a different identity provider.
 
 * These instructions and templates generally assume Google Container
   Engine.  If you are using a different Kubernetes provider, you will
@@ -358,37 +358,48 @@ customization on your part.
     (`kubectl config current-context` will give you that information).
 	
   2. If you changed the namespace, put the current namespace in the
-     environment variable `K8S_NAMESPACE`.  If you have a list of
-     kernels and corresponding descriptions, you should set
-     `LAB_CONTAINER_NAMES` and `LAB_CONTAINER_DESCS`.  Both of those are
-     comma-separated strings; the first contains a list of JupyterLab
-     images, and the second the corresponding descriptions.  If you
-     leave them unset, the
-     script [`tools/get_builds.py`](tools/get_builds.py) will attempt to
-     build a list at deployment time; `get_builds --help` will give you
-     usage information if you wish to run it manually.
+     environment variable `K8S_NAMESPACE`.
+	 
+  3. If you have a repository containing a container image with multiple
+     tags you wish to present as container options, you should set
+     `LAB_SELECTOR_TITLE` to the title of the spawner options form,
+     `LAB_REPO_HOST` to the hostname of the Docker container repository,
+     `LAB_OWNER` to the name of the repository owner, and
+     `LAB_REPO_NAME` to the name of the image.  The container name will
+     then be `LAB_REPO_HOST`/`LAB_OWNER`/`LAB_REPO_NAME`.  If you only
+     have a single image, set `LAB_IMAGE` to that container name.  It
+     will default to `lsstsqre/jld-lab:latest` (with `hub.docker.com` as
+     the implied repository host).
 
-* Edit `jupyterhub_config.py` if you want to.
-  - The first section just sets up the deployment image menu from
-    `LAB_CONTAINER_NAMES` and `LAB_CONTAINER_DESCS`
-  - We subclass GitHubLoginHandler to request additional scope on the
-    token received from GitHub.  `public_repo` allows read and write
-    access to the user's public repository.  `read:org` allows
-    enumeration of the user's organizations, both public and private.
-    `user:email` allows enumeration of the user's email addresses (and
-    identification of the primary email).  We use these for user
-    provisioning in the Lab container.
-  - We subclass GitHubOAuthenticator to set container properties from
-    our environment and, crucially, from additional properties (GitHub
-    organization membership and email address) we can access from the
-    token-with-additional-scope.
-  - We subclass KubeSpawner to do additional launch-time setup, largely
-    around changing the pod name to incorporate the username.
+* Edit the configuration in `jupyterhub_config/jupyterhub_config.d` if
+  you want to.
+  - In the default configuration, the GitHub authenticator (from
+    `sample_configs`) is used.
+  - The files in the configuration directory are sourced in lexical sort
+    order; typically they are named with a two-digit priority as a
+    prefix.  Lower numbers are loaded first.
+  - The preamble and spawner are common across CILogon and GitHub, but
+    the authenticator and environment differ.
+  - In the GitHub authenticator, we subclass GitHubLoginHandler to
+    request additional scope on the token received from GitHub.
+    `public_repo` allows read and write access to the user's public
+    repository.  `read:org` allows enumeration of the user's
+    organizations, both public and private.  `user:email` allows
+    enumeration of the user's email addresses (and identification of the
+    primary email).  We use these for user provisioning in the Lab
+    container.
+  - In the GitHub authenticator, we subclass GitHubOAuthenticator to set
+    container properties from our environment and, crucially, from
+    additional properties (GitHub organization membership and email
+    address) we can access from the token-with-additional-scope.
+  - In the common spawner class, we subclass KubeSpawner to build a
+    dynamic list of kernels (current as of user login time) and then do
+    additional launch-time setup, largely around changing the pod name
+    to incorporate the username.
 
-* Deploy the file using the `redeploy` script, which will both create
-  the `ConfigMap` resource from `jupyterhub_config.py` and generate the
-  deployment from the container names and descriptions, as well as
-  deploying into the specified context and namespace.
+* Deploy the file using the `redeploy` script, which will create
+  the `ConfigMap` resource from the JupyterHub configuration, and then
+  deploy the Hub into the specified context and namespace.
   
 ### Nginx
 
@@ -422,13 +433,17 @@ JupyterLab is launched from the Hub.
 
 * Each user gets a new pod, with a home directory on shared storage.
 
-* GitHub is the authentication source: the username is the GitHub user
-  name, the UID is the GitHub ID number, and the groups are created
+* With GitHub as the authentication source, the username is the GitHub
+  user name, the UID is the GitHub ID number, and the groups are created
   with GIDs from the GitHub organizations the user is a member of, and
   their IDs.
 
 * Git will be preconfigured with a token that allows authenticated
   HTTPS pushes, and with the user's name and primary email.
+  
+* The CILogon authenticator will eventually have similar features, but
+  those have not yet been fully developed.
+
 
 ### Enable DNS
 
@@ -439,7 +454,7 @@ JupyterLab is launched from the Hub.
 
 * Using a web browser, go to the DNS name you registered.  You should be
   prompted to authenticate with GitHub, to choose an image from the menu
-  (if that's how you set up `jupyterhub_config.py`), and then you should
+  (if that's how you set up your JupyterHub config), and then you should
   be redirected to your lab pod.
 
 ## Building

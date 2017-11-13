@@ -2,9 +2,11 @@
 This authenticator uses GitHub organization membership to make authentication
 and authorization decisions.
 """
+import datetime
 import json
 import os
 import oauthenticator
+import urllib
 from oauthenticator.common import next_page_from_links
 from tornado import gen
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
@@ -93,17 +95,6 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         # We are running the Lab at the far end, not the old Notebook
         spawner.default_url = '/lab'
         spawner.singleuser_image_pull_policy = 'Always'
-        # Let us set the images from the environment.
-        # Get (possibly list of) image(s)
-        imgspec = os.getenv("LAB_CONTAINER_NAMES")
-        if not imgspec:
-            imgspec = "lsstsqre/jld-lab:latest"
-        imagelist = imgspec.split(',')
-        if len(imagelist) < 2:
-            spawner.singleuser_image_spec = imgspec
-        else:
-            spawner.singleuser_image_spec = imagelist[0]
-            # options form already set in 10-options_form.py
         # Add extra configuration from auth_state
         if not self.enable_auth_state:
             return

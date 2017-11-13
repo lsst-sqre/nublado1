@@ -18,7 +18,7 @@ class ScanRepo(object):
        https://github.com/shangteus/py-dockerhub/blob/master/dockerhub.py"""
 
     host = ''
-    path = '/'
+    path = ''
     owner = ''
     name = ''
     data = {}
@@ -30,7 +30,7 @@ class ScanRepo(object):
     weeklies = 2
     releases = 1
 
-    def __init__(self, host='', path='/', owner='', name='',
+    def __init__(self, host='', path='', owner='', name='',
                  dailies=3, weeklies=2, releases=1,
                  json=False,
                  insecure=False, sort_field="", debug=False):
@@ -58,6 +58,9 @@ class ScanRepo(object):
             self.sort_field = sort_field
         if debug:
             self.debug = debug
+        if not self.path:
+            self.path = "/v2/repositories/" + self.owner + "/" + \
+                self.name + "/tags"
         self.url = protocol + "://" + self.host + self.path
 
     def __enter__(self):
@@ -71,33 +74,38 @@ class ScanRepo(object):
         if self._session:
             self._session.close()
 
+    def extract_image_info(self):
+        """Build image name list and image description list"""
+        cs = []
+        for k in ["daily", "weekly", "release"]:
+            cs.extend(self.data[k])
+        ldescs = []
+        for c in cs:
+            tag = c["name"].split(":")[-1]
+            if tag[0] == "r":
+                rmaj = tag[1:3]
+                rmin = tag[3:]
+                ld = "Release %s.%s" % (rmaj, rmin)
+            elif tag[0] == "w":
+                year = tag[1:5]
+                week = tag[5:]
+                ld = "Weekly %s_%s" % (year, week)
+            elif tag[0] == "d":
+                year = tag[1:5]
+                month = tag[5:7]
+                day = tag[7:]
+                ld = "Daily %s_%s_%s" % (year, month, day)
+            ldescs.append(ld)
+        ls = [self.owner + "/" + self.name + ":" + x["name"] for x in cs]
+        return ls, ldescs
+
     def report(self):
         """Print the tag data"""
         if self.json:
             print(json.dumps(self.data, sort_keys=True, indent=4))
         else:
-            cs = []
-            for k in ["daily", "weekly", "release"]:
-                cs.extend(self.data[k])
-            ldescs = []
-            for c in cs:
-                tag = c["name"].split(":")[-1]
-                if tag[0] == "r":
-                    rmaj = tag[1:3]
-                    rmin = tag[3:]
-                    ld = "Release %s.%s" % (rmaj, rmin)
-                elif tag[0] == "w":
-                    year = tag[1:5]
-                    week = tag[5:]
-                    ld = "Weekly %s_%s" % (year, week)
-                elif tag[0] == "d":
-                    year = tag[1:5]
-                    month = tag[5:7]
-                    day = tag[7:]
-                    ld = "Daily %s_%s_%s" % (year, month, day)
-                ldescs.append(ld)
+            ls, ldescs = self.extract_image_info()
             ldstr = ",".join(ldescs)
-            ls = [self.owner + "/" + self.name + ":" + x["name"] for x in cs]
             lstr = ",".join(ls)
             print("# Environment variables for Jupyter Lab containers")
             print("LAB_CONTAINER_NAMES=\'%s\'" % lstr)
@@ -123,13 +131,16 @@ class ScanRepo(object):
 
     def scan(self):
         url = self.url
-        debug = self.debug
         results = []
         page = 1
         while True:
             resp_bytes = self._get_url(page=page)
             resp_text = resp_bytes.decode("utf-8")
-            j = json.loads(resp_text)
+            try:
+                j = json.loads(resp_text)
+            except ValueError:
+                raise ValueError("Could not decode '%s' -> '%s' as JSON" %
+                                 (url, str(resp_text)))
             results.extend(j["results"])
             if "next" not in j or not j["next"]:
                 break
@@ -142,8 +153,6 @@ class ScanRepo(object):
         r_candidates = []
         w_candidates = []
         d_candidates = []
-        ws = 0
-        rs = 1
         for res in results:
             vname = res["name"]
             fc = vname[0]

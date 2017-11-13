@@ -27,12 +27,11 @@ spec:
           env:
             - name: LOGLEVEL
               value: INFO
-            - name: LAB_CONTAINER_NAMES
-              value: {{LAB_CONTAINER_NAMES}}
-            - name: LAB_CONTAINER_DESCS
-              value: {{LAB_CONTAINER_DESCS}}
             - name: LAB_SELECTOR_TITLE
               value: 'LSST Stack Selector'
+            # Set if you do not want to scan a repository for images.
+            # - name: LAB_IMAGE
+            #   value: 'lsstsqre/jld-lab:latest'
             - name: LAB_MEM_LIMIT
               value: '2G'
             - name: LAB_CPU_LIMIT
@@ -113,11 +112,9 @@ spec:
               path: jupyterhub_config.py
             - key: 00-preamble.py
               path: jupyterhub_config.d/00-preamble.py
-            - key: 10-options_form.py
-              path: jupyterhub_config.d/10-options_form.py
-            - key: 20-authenticator.py
-              path: jupyterhub_config.d/20-authenticator.py
-            - key: 30-spawner.py
-              path: jupyterhub_config.d/30-spawner.py
-            - key: 40-environment.py
-              path: jupyterhub_config.d/40-environment.py
+            - key: 10-authenticator.py
+              path: jupyterhub_config.d/10-authenticator.py
+            - key: 20-spawner.py
+              path: jupyterhub_config.d/20-spawner.py
+            - key: 30-environment.py
+              path: jupyterhub_config.d/30-environment.py

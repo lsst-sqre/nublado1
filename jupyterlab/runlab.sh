@@ -17,6 +17,13 @@ for i in notebooks DATA WORK; do
 done
 # Fetch/update magic notebook.
 . /opt/lsst/software/jupyterlab/refreshnb.sh
+# Run idle culler.
+if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
+       [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
+    nohup python3 /opt/lsst/software/jupyterlab/cull_idle_servers.py \
+	  --timeout ${JUPYTERLAB_IDLE_TIMEOUT} > /tmp/culler.output \
+	  2>&1 &
+fi
 hub_api="http://${JLD_HUB_SERVICE_HOST}:${JLD_HUB_SERVICE_PORT_API}/hub/api"
 #cmd="python3 /usr/bin/jupyter-singlelabuser \
 cmd="python3 /usr/bin/jupyter-labhub \

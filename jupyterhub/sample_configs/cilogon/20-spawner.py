@@ -105,6 +105,9 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         self.log.info("Replacing pod name from options form: %s" %
                       pod_name)
         pod_env = self.get_env()
+        idle_timeout = int(os.getenv('LAB_IDLE_TIMEOUT') or 43200)
+        if idle_timeout > 0 and 'JUPYTERLAB_IDLE_TIMEOUT' not in pod_env:
+            pod_env['JUPYTERLAB_IDLE_TIMEOUT'] = idle_timeout
         return make_pod(
             name=self.pod_name,
             image_spec=self.singleuser_image_spec,

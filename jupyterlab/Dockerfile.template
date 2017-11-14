@@ -143,6 +143,8 @@ RUN  cd /etc/profile.d && \
          ln $i $(basename $i .sh).csh ;\
      done
 RUN  mkdir -p /etc/skel/notebooks
+RUN  cd ${jl} && \
+     wget https://raw.githubusercontent.com/jupyterhub/jupyterhub/master/examples/cull-idle/cull_idle_servers.py
 COPY lsst_kernel_py${PYVER}.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
 COPY motd /etc/motd

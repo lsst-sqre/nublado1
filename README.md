@@ -139,6 +139,31 @@ One easy way to set this up is using Google cloud.
 **  Set the env variable export K8S_CONTEXT=`kubectl config current-context`
 ** Deploy the hub using the script in the jupyterhub directory `cd jupyterhub ; redeploy`
 
+**  Copy the tls templates `cp nginx/kubernetes/tls-secrets.template.yml .`
+     agian base 64 encode - the pem and key need to match the cert of the server name you created earlier .. SOMENAME.com or get lsst.codes from Adam.
+     kubectl create -f tls-secrets.template.yml 
+** Create nginx  `kubectl create -f nginx/kubernetes/nginx-service.yml`
+
+** Create deployment configuration for the server named earlier, 
+  ` cp nginx/kubernetes/nginx-deployment.template.yml .`
+ edit the file replce the HOSTNAME with the name of the DNS entry you set oup above.
+  `kubectl create -f nginx-deployment.template.yml ` 
+
+** now we need to update the DNS record we created earlier to prive the ip 
+  get ip `kubectl describe service jld-nginx | grep ^LoadBalancer | awk '{print $3}'`
+
+
+** check what you got running 
+`kubectl get pods
+NAME                              READY     STATUS              RESTARTS   AGE
+jld-fileserver-4212601246-jpbnb   0/1       Pending             0          21h
+jld-hub-1235718405-9mgs9          0/1       ImageInspectError   0          15h
+jld-keepalive-3908458960-3t05m    0/1       ContainerCreating   0          10h
+jld-nginx-280908332-rk3z6         1/1       Running             0          16m
+prepuller-63cpg                   1/1       Running             1          21h
+prepuller-vhx1f                   1/1       Running             0          21h
+'
+   
 
 ### Component Structure
 
@@ -458,13 +483,13 @@ installed it) as its backend target(s).
 
 * Create the service: `kubectl create -f nginx-service.yml`.
 
-* Create a deployment configuration from the template.  `HOSTNAME` must
+* Create a deployment configuration from the nginx-deployment-template.  `HOSTNAME` must
   be set to the DNS entry you created at the beginning of the
   installation.  Create the deployment.
 
 * Retrieve the externally-visible IP address from the service.  `kubectl
   describe service jld-nginx | grep ^LoadBalancer | awk '{print $3}'`
-  will work.  You may need to wait a little while before it shows up.
+  will work.  You may need to wait a little while before it shows up. Update the DNS record you created earlier with the IP of the service.
   
 * If you already have an ingress controller you can just use the
   `nginx-ingress.yml` ingress definition; if you do this you will need

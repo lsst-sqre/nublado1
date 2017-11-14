@@ -29,9 +29,20 @@ spec:
               value: INFO
             - name: LAB_SELECTOR_TITLE
               value: 'LSST Stack Selector'
+            # Set to customize what repo and what images to scan.
+            # - name: LAB_OWNER
+            #   value: 'lsstsqre'
+            # - name: LAB_REPO_NAME
+            #   value: 'jld-lab'
+            # - name: LAB_REPO_HOST
+            #   vakye: 'hub.docker.com'
             # Set if you do not want to scan a repository for images.
             # - name: LAB_IMAGE
             #   value: 'lsstsqre/jld-lab:latest'
+            # Set if you want something other than 12 hours.  Setting to
+            # zero or a negative value disables.
+            #  - name: LAB_IDLE_TIMEOUT
+            #    value: '43200'
             - name: LAB_MEM_LIMIT
               value: '2G'
             - name: LAB_CPU_LIMIT

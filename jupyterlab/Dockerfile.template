@@ -143,15 +143,13 @@ RUN  cd /etc/profile.d && \
          ln $i $(basename $i .sh).csh ;\
      done
 RUN  mkdir -p /etc/skel/notebooks
-RUN  cd ${jl} && \
-     wget https://raw.githubusercontent.com/jupyterhub/jupyterhub/master/examples/cull-idle/cull_idle_servers.py
 COPY lsst_kernel_py${PYVER}.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 COPY 20_jupytervars /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
-COPY lsst_kernel_py${PYVER}.json \
+COPY lsst_kernel_py${PYVER}.json selfculler.py \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
       ${jl}/
 # "lsst" is a real GitHub organization.

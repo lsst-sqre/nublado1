@@ -30,7 +30,9 @@ churn, and an IPAC Firefly server.
 * Log in with GitHub OAuth2.  You must be a member of one of the
   organizations listed in the GitHub Organization Whitelist, and your
   membership in that organization must be `public` rather than
-  `private`.
+  `private`. To do this go to the organisation `lsst or `lsst-sqre`
+   find your name and there is a drop down which allows you to switch
+   public/private . 
 
 ### Using the LSST Stack
 
@@ -100,6 +102,43 @@ churn, and an IPAC Firefly server.
   need to adjust your processes to fit in some cases; for instance,
   auto-provisioning a PersistentVolume when presented with an
   unsatisfied PersistentVolumeClaim is a Google feature.
+
+### Getting started using Google Cloud
+You need to create a github application - this is under developer tools on the github settings page. Set this up with 
+  * A url which is SOMENAME.com or such - you need to set a DNS entry up for this (or get Adam to do it for you) initially have it point to 127.0.0.1
+  * You will need the secrets etc from this creation later .
+
+One easy way to set this up is using Google cloud. 
+* You can create/activate your cloud account at cloud.google.com.
+* Install the Google Cloud API/SDK https://cloud.google.com/sdk/. Unpack this to some location you are happy for it to live in.
+* Enable kube control  using: ` gcloud components install kubectl`
+* You need to connect this to your Google account using : `gcloud init`
+  this will also allow you to create a new project e.g. myname-jupyterdemo.
+* You should enable the The Container Engine API in the Google Cloud console (search in the apis menu) as well as enabling billing for kubernetes(left menu).
+* Now start a cluster 2 nodes with 2 cpus ok to start: `gcloud container clusters create wom-jupyter-cluster --num-nodes=2 --machine-type=n1-standard-2 --zone=us-central1-a
+`
+* Now we can deploy the components mentioned below e.g. 
+** kubectl create -f fileserver/kubernetes/jld-fileserver-deployment.yml 
+** kubectl create -f fileserver/kubernetes/jld-fileserver-storageclass.yml
+** kubectl create -f fileserver/kubernetes/jld-fileserver-physpvc.yml
+** kubectl create -f fileserver/kubernetes/jld-fileserver-service.yml
+** cp fileserver/kubernetes/jld-fileserver-pv.template.yml  jld-fileserver-pv.yml  
+   Edit the file replace the FIXME with a name like YOURNAME on the top of the file.
+   Get the IP address of the cluster using `kubectl cluster-info` and put it in the FIXME a the end of the file.
+   Then create the service with `kubectl create -f jld-fileserver-pv.yml` 
+** kubectl create -f fileserver/kubernetes/jld-fileserver-pvc.yml
+ 
+** kubectl create -f fs-keepalive/kubernetes/jld-keepalive-deployment.yml
+** kubectl create -f prepuller/kubernetes/prepuller-daemonset.yml 
+** kubectl create -f jupyterhub/kubernetes/jld-hub-service.yml 
+** kubectl create -f jupyterhub/kubernetes/jld-hub-physpvc.yml 
+** cp jupyterhub/kubernetes/jld-hub-secrets.template.yml .  
+   Edit the file to fill in the missing information .. including the secret from above - note base64 encode ...  
+   kubectl create -f jld-hub-secrets.template.yml 
+
+**  Set the env variable export K8S_CONTEXT=`kubectl config current-context`
+** Deploy the hub using the script in the jupyterhub directory `cd jupyterhub ; redeploy`
+
 
 ### Component Structure
 

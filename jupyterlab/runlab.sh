@@ -1,4 +1,5 @@
 #!/bin/sh
+# Set to turn on debugging
 #export DEBUG=1
 if [ -n "${DEBUG}" ]; then
     set -x
@@ -12,24 +13,31 @@ fi
 sync
 cd ${HOME}
 # Create standard dirs
-for i in notebooks DATA WORK; do
+for i in notebooks DATA WORK idleculler; do
     mkdir -p "${HOME}/${i}"
 done
 # Fetch/update magic notebook.
 . /opt/lsst/software/jupyterlab/refreshnb.sh
-hub_api="http://${JLD_HUB_SERVICE_HOST}:${JLD_HUB_SERVICE_PORT_API}/hub/api"
-#cmd="python3 /usr/bin/jupyter-singlelabuser \
+# Run idle culler.
+if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
+       [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
+    touch ${HOME}/idleculler/culler.output && \
+	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
+              ${HOME}/idleculler/culler.output 2>&1 &
+fi
 cmd="python3 /usr/bin/jupyter-labhub \
      --ip='*' --port=8888 --debug \
-     --hub-api-url=${hub_api} \
+     --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}/notebooks"
 echo ${cmd}
 if [ -n "${DEBUG}" ]; then
+    # Spin while waiting for interactive container use.
     while : ; do
         d=$(date)
         echo "${d}: sleeping."
         sleep 60
     done
-else    
+else
+    # Start Lab
     exec ${cmd}
 fi

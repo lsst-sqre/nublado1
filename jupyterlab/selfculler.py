@@ -26,7 +26,8 @@ def cull_me(url, api_token, username, timeout_i):
     body = resp.read()
     user = json.loads(body.decode('utf8', 'replace'))
     now = datetime.datetime.utcnow()
-    print("Running culler at [%s]" % str(now))
+    print("Running culler for %s with %d second timeout at %s" %
+          (username, timeout_i, str(now)))
     cull_limit = now - datetime.timedelta(seconds=timeout_i)
     # shutdown server
     if user['server']:
@@ -49,7 +50,7 @@ def cull_me(url, api_token, username, timeout_i):
 if __name__ == '__main__':
     url = os.getenv('JUPYTERHUB_API_URL') or "http://localhost:8081/hub/api"
     username = os.getenv('JUPYTERHUB_USER') or pwd.getpwuid(os.getuid())[0]
-    timeout = os.getenv('JUPYTERLAB_IDLE_TIMEOUT')
+    timeout = os.getenv('JUPYTERLAB_IDLE_TIMEOUT') or "600"
     try:
         timeout_i = int(timeout)
     except (ValueError, TypeError) as e:
@@ -61,6 +62,7 @@ if __name__ == '__main__':
     if delay > 600:
         delay = 600
     api_token = os.environ['JUPYTERHUB_API_TOKEN']
+    print("===Starting idle culler===")
     while True:
         cull_me(url, api_token, username, timeout_i)
         time.sleep(delay)

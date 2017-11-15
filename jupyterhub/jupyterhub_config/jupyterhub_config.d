@@ -1,1 +1,1 @@
-../sample_configs/cilogon
+../sample_configs/github

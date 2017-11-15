@@ -8,27 +8,13 @@ import oauthenticator
 from tornado import gen
 
 
-class LSSTLoginHandler(oauthenticator.CILogonLoginHandler):
-    """Request additional scope on CILogon token.
-
-       Set skin to LSST.
-
-       Use NCSA as identity provider.
-    """
-    scope = ['openid', 'email', 'profile', 'org.cilogon.userinfo']
-    skin = "LSST"
-    idp = "https://idp.ncsa.illinois.edu/idp/shibboleth"
-
-
-# Enable the authenticator to spawn with additional information acquired
-# with token with larger-than-default scope.
 class LSSTAuth(oauthenticator.CILogonOAuthenticator):
     """Authenticator to use our custom environment settings.
     """
     enable_auth_state = True
     _state = None
     _default_domain = "ncsa.illinois.edu"
-    login_handler = LSSTLoginHandler
+    login_handler = oauthenticator.CILogonLoginHandler
 
     @gen.coroutine
     def authenticate(self, handler, data=None):
@@ -127,3 +113,7 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
 
 
 c.JupyterHub.authenticator_class = LSSTAuth
+# Set scope, skin, and provider
+c.LSSTAuth.scope = ['openid', 'email', 'profile', 'org.cilogon.userinfo']
+c.LSSTAuth.skin = "LSST"
+c.LSSTAuth.idp = "https://idp.ncsa.illinois.edu/idp/shibboleth"

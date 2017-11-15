@@ -29,14 +29,6 @@ def _api_headers(access_token):
             }
 
 
-# Request additional scope on GitHub token to auto-provision magic in the
-# user container.
-class LSSTLoginHandler(oauthenticator.GitHubLoginHandler):
-    """Request additional scope on GitHub token.
-    """
-    scope = ['public_repo', 'read:org', 'user:email']
-
-
 # Enable the authenticator to spawn with additional information acquired
 # with token with larger-than-default scope.
 class LSSTAuth(oauthenticator.GitHubOAuthenticator):
@@ -46,7 +38,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
 
     _state = None
 
-    login_handler = LSSTLoginHandler
+    login_handler = oauthenticator.GitHubLoginHandler
 
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
@@ -173,3 +165,4 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         return None
 
 c.JupyterHub.authenticator_class = LSSTAuth
+c.LSSTAuth.scope = [u'public_repo', u'read:org', u'user:email']

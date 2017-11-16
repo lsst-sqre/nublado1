@@ -28,9 +28,10 @@ churn, and an IPAC Firefly server.
 ## Running
 
 * Log in with GitHub OAuth2.  You must be a member of one of the
-  organizations listed in the GitHub Organization Whitelist, and your
-  membership in that organization must be `public` rather than
-  `private`.
+  organizations listed in the GitHub Organization Whitelist, and either
+  your membership in that organization must be `public` rather than
+  `private`, or `read:org` must be among the scopes granted by the
+  OAuth token.
 
 ### Using the LSST Stack
 
@@ -53,6 +54,9 @@ churn, and an IPAC Firefly server.
   with the kubernetes deployment files inside it, so it will probably be
   convenient to `cd` inside it.
 
+* You will need `kubectl` installed in order to run the Kubernetes
+  commands throughout these instructions.
+
 * You need to start with a cluster to which you have administrative
   access.  This is created out-of-band at this point, using whatever
   tools your Kubernetes administrative interface gives you.  Use
@@ -66,7 +70,8 @@ churn, and an IPAC Firefly server.
 
 * You will need to expose your Jupyter Lab instance to the public
   internet, and GitHub's egress IPs must be able to reach it.  This is
-  necessary for the GitHub OAuth2 callback to work.
+  necessary for the GitHub OAuth2 callback (or indeed any OAuth
+  callback) to work.
 
 * You will need a public DNS record, accessible from wherever you are
   going to allow users to connect.  It must point to the IP address that
@@ -84,16 +89,19 @@ churn, and an IPAC Firefly server.
   self-signed certificate.
 
 * You will need to create a GitHub application, either on your personal
-  account or in an organization you administer.  Given that you're
-  installing a cluster that uses GitHub organization membership to
-  determine authentication decisions, you probably want to create the
-  application within the primary organization you want to grant access
-  to.  The `homepage URL` is simply the HTTPS endpoint of the DNS
-  record, and the callback URL appends `/hub/oauth_callback` to that.
+  account or in an organization you administer.  If you use the setup
+  given here, then you're installing a cluster that uses GitHub
+  organization membership to determine authentication decisions, and
+  therefore you probably want to create the application within the
+  primary organization you want to grant access to.  The `homepage URL`
+  is simply the HTTPS endpoint of the DNS record, and the callback URL
+  appends `/hub/oauth_callback` to that.
 
 * The `jupyterhub/sample_configs` directory also contains a
   configuration to use `cilogon.org` with the NCSA identity provider.
-  It can serve as a template for using a different identity provider.
+  If you want to use that as-is you can link the configuration directory
+  to it rather than to the GitHub sample config.  It can serve as a
+  model for using a different identity provider.
 
 * These instructions and templates generally assume Google Container
   Engine.  If you are using a different Kubernetes provider, you will
@@ -121,6 +129,11 @@ churn, and an IPAC Firefly server.
   `<component>-secrets.yml` files.  The incantation to create a secret
   is `echo -n <secret> | base64 -i -`.  The `-n` is necessary to prevent
   a newline from being encoded at the end.
+
+* For secrets created from files (e.g. TLS certificates), the
+  incantation is `base64 <secret_filename> | tr -d '\n'` to emit the
+  base64 representation of the file as a single string without
+  linebreaks.
 
 ### Logging [optional]
 
@@ -199,7 +212,7 @@ SSD volumes:
 `kubectl create -f jld-fileserver-storageclass.yml`
 
 (the `pd-ssd` type parameter is what does that for you; this may be
-Google Container Engine-specific)
+Google Kubernetes Engine-specific)
 
 #### Physical Storage PersistentVolumeClaim
 
@@ -208,7 +221,7 @@ underlying storage:
 
 `kubectl create -f jld-fileserver-physpvc.yml`
 
-On Google Container Engine, this will automagically create a
+On Google Kubernetes Engine, this will automagically create a
 PersistentVolume to back it.  I, at least, found this very surprising.
 
 If you are not running under GKE you will probably need to create a
@@ -249,12 +262,14 @@ Here comes the first really maddening thing: PersistentVolumes are not
 namespaced.
 
 And here's the second one: the NFS server defined here has to be an IP
-address, not a name.
+address, not a name.  (This is actually a consequence of the Kubernetes
+internal DNS being namespaced and PersistentVolumes not being
+namespaced, but it's not obvious.)
 
 And here's the third one: you need to specify local locking in the PV
 options or else the notebook will simply get stuck in disk wait when it
 runs.  This does mean that you really shouldn't run two pods as the same
-user at the same time, certainly not pointing to the same notebook.
+user at the same time, certainly not with the same notebook open.
 
 The first two things combine to make it tough to do a truly automated
 deployment of a new Jupyterlab Demo instance, because you have to create
@@ -265,7 +280,7 @@ Copy the template (`jld-fileserver-pv.template.yml`) to a working file,
 replace the `name` field with something making it unique (such as the
 cluster-plus-namespace), and replace the `server` field with the IP
 address of the NFS service.  Then just create the resource with `kubectl
-create -f`.
+create -f` against your working file.
 
 If your Kubernetes provider also provides an NFS server, you can skip
 the creation of the server and just point to the external service's IP
@@ -340,8 +355,9 @@ customization on your part.
      OAuth2 Application you registered with GitHub at the beginning.
   2. `github_organization_whitelist` is a comma-separated list of the
      names of the GitHub organizations whose members will be allowed to
-     log in.  Currently, membership in the organization must be `public`
-     rather than `private` if the whitelist is to work.
+     log in.  Either membership in the organization must be public, or
+     the scopes requested for the OAuth2 token must include `read:org`
+     in order for users to be able to log in based on the whitelist.
   3. `session_db_url`.  If you don't know this or are happy with the
      stock sqlite3 implementation, use the URL
      `sqlite:////home/jupyter/jupyterhub.sqlite`; any RDBMS supported by
@@ -351,11 +367,14 @@ customization on your part.
      secret, and the reason for that is that I can simply implement key
      rotation by, every month or so, dropping the first key, moving the
      second key to the first position, and generating a new key for the
-     second position.
+     second position.  The command `"r="openssl rand -hex 32"; echo
+     "$(${r});$(${r})"` will generate a pair in this form for you.
 
-  Then create the secrets from that file: `kubectl create -f <filename>`.
+  Once you have done that, create the secrets from the file: `kubectl
+  create -f <filename>`.
   
-* Set up your deployment environment.
+* Set up your deployment environment by editing the environment
+  variables in `jld-hub-deployment.yml`.
 
   1. Set the environment variable
     `K8S_CONTEXT` to the context in which your deployment is running
@@ -384,22 +403,19 @@ customization on your part.
     prefix.  Lower numbers are loaded first.
   - The preamble and spawner are common across CILogon and GitHub, but
     the authenticator and environment differ.
-  - In the GitHub authenticator, we subclass GitHubLoginHandler to
-    request additional scope on the token received from GitHub.
-    `public_repo` allows read and write access to the user's public
-    repository.  `read:org` allows enumeration of the user's
-    organizations, both public and private.  `user:email` allows
-    enumeration of the user's email addresses (and identification of the
-    primary email).  We use these for user provisioning in the Lab
-    container.
   - In the GitHub authenticator, we subclass GitHubOAuthenticator to set
     container properties from our environment and, crucially, from
     additional properties (GitHub organization membership and email
-    address) we can access from the token-with-additional-scope.
-  - In the common spawner class, we subclass KubeSpawner to build a
-    dynamic list of kernels (current as of user login time) and then do
-    additional launch-time setup, largely around changing the pod name
-    to incorporate the username.
+    address) we can access from the token-with-additional-scope.  The
+    extended scope is configured at the bottom, as a configuration
+    setting on our authenticator class.
+  - If you're using CILogon, the setup is quite similar; scope, the
+    authenticator skin, and the identity provider to use are all set as
+    configurable properties of the authenticator class.
+  - In the spawner class (identical between GitHub and CILogon), we
+    subclass KubeSpawner to build a dynamic list of kernels (current as
+    of user login time) and then do additional launch-time setup,
+    largely around changing the pod name to incorporate the username.
 
 * Deploy the file using the `redeploy` script, which will create
   the `ConfigMap` resource from the JupyterHub configuration, and then
@@ -426,6 +442,10 @@ installed it) as its backend target(s).
 * Retrieve the externally-visible IP address from the service.  `kubectl
   describe service jld-nginx | grep ^LoadBalancer | awk '{print $3}'`
   will work.  You may need to wait a little while before it shows up.
+
+* Update the DNS record with the newly-determined externally-visible
+  address.  This is another piece that will be challenging to script
+  because of the wide variety of APIs to public DNS providers.
   
 * If you already have an ingress controller you can just use the
   `nginx-ingress.yml` ingress definition; if you do this you will need
@@ -448,18 +468,13 @@ JupyterLab is launched from the Hub.
 * The CILogon authenticator will eventually have similar features, but
   those have not yet been fully developed.
 
-
-### Enable DNS
-
-* Update the DNS record you created to point at the externally-visible
-  IP address you just determined.
-
 ## Using the Service
 
-* Using a web browser, go to the DNS name you registered.  You should be
-  prompted to authenticate with GitHub, to choose an image from the menu
-  (if that's how you set up your JupyterHub config), and then you should
-  be redirected to your lab pod.
+* Using a web browser, go to the DNS name you registered and updated
+  with the external endpoint.  You should be prompted to authenticate
+  with GitHub, to choose an image from the menu (if that's how you set
+  up your JupyterHub config), and then you should be redirected to your
+  lab pod after selection.
 
 ## Building
 

@@ -58,18 +58,19 @@ spec:
                 secretKeyRef:
                   name: jld-hub
                   key: github_organization_whitelist
-            - name: CILOGON_HOST
-              value: 'test.cilogon.org'
-            - name: CILOGON_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: jld-hub
-                  key: cilogon_client_id
-            - name: CILOGON_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: jld-hub
-                  key: cilogon_secret
+            # You want these if you're using CILogon rather than GitHub
+            # - name: CILOGON_HOST
+            #   value: 'test.cilogon.org'
+            # - name: CILOGON_CLIENT_ID
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: jld-hub
+            #       key: cilogon_client_id
+            # - name: CILOGON_CLIENT_SECRET
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: jld-hub
+            #      key: cilogon_secret
             - name: GITHUB_CLIENT_ID
               valueFrom:
                 secretKeyRef:

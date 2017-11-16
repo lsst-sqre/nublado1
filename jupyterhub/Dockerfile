@@ -16,6 +16,8 @@ RUN  mkdir -p /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterhub.git && \
      cd jupyterhub && \
      git rev-parse HEAD > /root/jupyterhub.commit && \
+     npm install && \
+     ./bower-lite $(pwd) && \
      python3 setup.py bdist_wheel && \
      cd dist && \
      whl=$(ls *.whl) && \
@@ -33,5 +35,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.4.2"
+	     version="0.4.3"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

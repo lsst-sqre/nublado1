@@ -2,8 +2,8 @@
 This is the JupyterHub configuration directory that LSST DM-SQuaRE uses.
 
 Different subconfiguration files in this directory do different things.
-The major components are the options form, the spawner, the authenticator,
- and the JupyterHub environment.
+The major components are the authenticator, the spawner, and the
+JupyterHub environment.
 
 These files are mapped into the JupyterHub configuration as a ConfigMap.
 Feel free to edit them to suit your needs.

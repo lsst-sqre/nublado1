@@ -14,9 +14,9 @@ spec:
           image: "lsstsqre/logstash-rabbitmq-shovel"
           env:
             - name: RABBITMQ_TARGET_HOST
-              value: 'FIXME'
+              value: '{{RABBITMQ_TARGET_HOST}}'
             - name: RABBITMQ_TARGET_VHOST
-              value: 'FIXME'
+              value: '{{RABBITMQ_TARGET_VHOST}}'
             - name: RABBITMQ_PAN_PASSWORD
               valueFrom:
                 secretKeyRef:

@@ -3,7 +3,7 @@ kind: PersistentVolume
 metadata:
   # PersistentVolumes are not namespaced, so you need to have an
   #  identifier in the name
-  name: jld-fileserver-home-{{FIXME}}
+  name: jld-fileserver-home-{{CLUSTER_IDENTIFIER}}
   # Needed (but dangerous) to keep the notebook from freezing.
   annotations:
     volume.beta.kubernetes.io/mount-options: "local_lock=all"
@@ -19,5 +19,5 @@ spec:
     #server: jld-fileserver
     # This currently needs to be an IP, so you have to create the
     # service, get the service cluster IP, and use that.
-    server: {{FIXME}}
+    server: {{NFS_SERVER_IP_ADDRESS}}
     path: "/exports/home"

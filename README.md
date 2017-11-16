@@ -120,8 +120,9 @@ churn, and an IPAC Firefly server.
   cluster.
 
 * Anywhere there is a template file (denoted with `.template.yml` as the
-  end of the filename), it should have the template variables (usually
-  denoted with `FIXME`) substituted with a value before use.
+  end of the filename), it should have the template variables (denoted
+  with double curly brackets, e.g. `{{HOSTNAME}}`) substituted with a
+  value before use.
 
 ### Creating secrets
 
@@ -147,11 +148,12 @@ churn, and an IPAC Firefly server.
   logs via RabbitMQ to a remote ELK stack.
 
 * Start with `logstashrmq`.  Copy the `logstashrmq-secrets.template.yml`
-  file, and paste the base64 encoding of your rabbitmq password in place
-  of `FIXME`, then `kubectl create -f logstashrmq-secrets.yml` (assuming
-  that's what you named your secrets file).  This is going to be a
-  frequently-repeated pattern for updating secrets (and occasionally
-  other deployment files) from templates.
+  file, and paste the base64 encoding of your rabbitmq password into
+  the appropriate field (in place of `{{RABBITMQ_PAN_PASSWORD}}`, then
+  `kubectl create -f logstashrmq-secrets.yml` (assuming that's what you
+  named your secrets file).  This is going to be a frequently-repeated
+  pattern for updating secrets (and occasionally other deployment files)
+  from templates.
 
 * Create the service next with `kubectl create -f
   logstashrmq-service.yml`.  Kubernetes services simply provide fixed
@@ -160,7 +162,7 @@ churn, and an IPAC Firefly server.
   implementation without your other components having to care.
   
 * Copy the `logstashrmq-deployment.template.yml` file, replace the
-  `FIXME` fields with your RabbitMQ target host and Vhost (top-level
+  template fields with your RabbitMQ target host and Vhost (top-level
   exchange), and create the service with `kubectl -f
   logstashrmq-deployment.yml`.
 
@@ -313,7 +315,8 @@ containers to use.
 
 * Create secrets from the template by copying
   `firefly-secrets.template.yml` to a working file, and then
-  base64-encode and adding an admin password in place of `FIXME`.
+  base64-encode and adding an admin password in place of
+  `{{FIREFLY_ADMIN_PASSWORD}}`.
 
 * Create the service and then the deployment with `kubectl create -f`
   against the appropriate YAML files..  Firefly will automatically be

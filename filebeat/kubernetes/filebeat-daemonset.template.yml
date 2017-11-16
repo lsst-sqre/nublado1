@@ -16,7 +16,7 @@ spec:
             - name: DEBUG
               value: 'true'
             - name: SHIPPER_NAME
-              value: 'FIXME'
+              value: '{{SHIPPER_NAME}}'
             - name: LOGSTASH_HOST
               value: logstashrmq
             - name: LOGSTASH_PORT

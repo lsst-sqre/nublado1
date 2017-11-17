@@ -35,7 +35,7 @@ spec:
             # - name: LAB_REPO_NAME
             #   value: 'jld-lab'
             # - name: LAB_REPO_HOST
-            #   vakye: 'hub.docker.com'
+            #   value: 'hub.docker.com'
             # Set if you do not want to scan a repository for images.
             # - name: LAB_IMAGE
             #   value: 'lsstsqre/jld-lab:latest'

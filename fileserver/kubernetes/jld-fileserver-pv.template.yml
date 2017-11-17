@@ -10,7 +10,7 @@ metadata:
 spec:
   capacity:
     # Must be a little smaller than the actual PV.
-    storage: 490Gi
+    storage: 19Gi
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain

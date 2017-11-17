@@ -10,7 +10,7 @@ metadata:
 spec:
   capacity:
     # Must be a little smaller than the actual PV.
-    storage: 19Gi
+    storage: {{SHARED_VOLUME_SIZE}}
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
@@ -18,6 +18,6 @@ spec:
   nfs:
     #server: jld-fileserver
     # This currently needs to be an IP, so you have to create the
-    # service, get the service cluster IP, and use that.
+    # service, get the fileserver service IP, and use that.
     server: {{NFS_SERVER_IP_ADDRESS}}
     path: "/exports/home"

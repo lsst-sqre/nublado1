@@ -7,6 +7,6 @@ spec:
     - "ReadWriteOnce"
   resources:
     requests:
-      storage: 20Gi
+      storage: {{PHYSICAL_SHARED_VOLUME_SIZE}}
   storageClassName: fast
 

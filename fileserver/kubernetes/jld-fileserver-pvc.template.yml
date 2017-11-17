@@ -7,5 +7,5 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 19Gi
+      storage: {{SHARED_VOLUME_SIZE}}
   storageClassName: fast

@@ -219,7 +219,11 @@ Google Kubernetes Engine-specific)
 #### Physical Storage PersistentVolumeClaim
 
 Next, create a PersistentVolumeClaim (*not* a PersistentVolume!) for the
-underlying storage:
+underlying storage.  Copy the template file
+`jld-fileserver-physpvc.template.yml` to a working file.  Substitute the
+disk size in the `storage` field (GKE has a default quota of 500GB);
+the size depends on how much local storage you expect your users to
+require.
 
 `kubectl create -f jld-fileserver-physpvc.yml`
 
@@ -281,7 +285,9 @@ definition.
 Copy the template (`jld-fileserver-pv.template.yml`) to a working file,
 replace the `name` field with something making it unique (such as the
 cluster-plus-namespace), and replace the `server` field with the IP
-address of the NFS service.  Then just create the resource with `kubectl
+address of the NFS service.  Replace the `storage` field with a value a
+little bit smaller than the physical volume size (empirically, 95% seems
+to work well).  Then just create the resource with `kubectl
 create -f` against your working file.
 
 If your Kubernetes provider also provides an NFS server, you can skip
@@ -290,8 +296,11 @@ address here.
 
 #### NFS Mount PersistentVolumeClaim
 
-From here on it's smooth sailing.  Create a PersistentVolumeClaim
-referring to the PersistentVolume just created:
+From here on it's smooth sailing.  Create a working file from
+`jld-fileserver-physpvc.template.yml`, substitute the `storage` field
+with the value you used for the PersistentVolume immediately prior, and
+then Create a PersistentVolumeClaim referring to the PersistentVolume
+just created:
 
 `kubectl create -f jld-fileserver-pvc.yml`
 

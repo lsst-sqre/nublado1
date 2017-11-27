@@ -50,7 +50,7 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       matplotlib \
       bokeh
 RUN  pip3 install \
-      https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/jupyterlab/jupyterlab/zipball/v0.29.2 \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \

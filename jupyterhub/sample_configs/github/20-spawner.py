@@ -36,7 +36,9 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
-        optform = "<label for=\"%s\">%s</label></br>\n" % (title, title)
+        optform = "<label for=\"%s\">%s</label><br>\n" % (title, title)
+        nowstr = datetime.datetime.utcnow().isoformat()
+        optform += "Menu created at %s<br>\n" % nowstr
         for idx, img in enumerate(lnames):
             optform += "      "
             optform += "<input type=\"radio\" name=\"kernel_image\""

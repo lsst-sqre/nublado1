@@ -42,6 +42,8 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
 
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
+        # Rebuild options form
+        spawner._options_form_default()
         # First pulls can be really slow for the LSST stack containers,
         #  so let's give it a big timeout
         spawner.http_timeout = 60 * 15
@@ -91,6 +93,7 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         if not self.enable_auth_state:
             return
         auth_state = yield user.get_auth_state()
+        self.log.info("Auth state: %s" % str(auth_state))
         gh_user = auth_state.get("github_user")
         gh_token = auth_state.get("access_token")
         if gh_user:

@@ -46,20 +46,19 @@ import os
 import os.path
 import shutil
 import subprocess
-import string
 import tempfile
 import time
 import yaml
 from contextlib import contextmanager
 from jinja2 import Template
 
-JUPYTERLAB_REPO_URL = "https://github.com/lsst-sqre/jupyterlabdemo.git"
 EXECUTABLES = ["gcloud", "kubectl", "aws"]
 DEFAULT_GKE_ZONE = "us-central1-a"
 DEFAULT_GKE_MACHINE_TYPE = "n1-standard-2"
 DEFAULT_GKE_NODE_COUNT = 2
 DEFAULT_VOLUME_SIZE_GB = 20
 ENVIRONMENT_NAMESPACE = "JLD_"
+ME = os.path.realpath(__file__)
 REQUIRED_PARAMETER_NAMES = ["kubernetes_cluster_name",
                             "hostname"]
 REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
@@ -90,7 +89,6 @@ class JupyterLabDeployment(object):
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
                   "firefly", "prepuller", "jupyterhub", "nginx"]
     params = None
-    repo_url = None
     yamlfile = None
     original_context = None
     enable_firefly = False
@@ -99,15 +97,21 @@ class JupyterLabDeployment(object):
     existing_cluster = False
     b64_cache = {}
     executables = {}
+    srcdir = None
 
     def __init__(self, yamlfile=None, params=None, directory=None,
                  disable_prepuller=False, existing_cluster=False,
-                 existing_namespace=False, config_only=False):
+                 existing_namespace=False, config_only=False,
+                 temporary=False):
         self._check_executables(EXECUTABLES)
         self.yamlfile = yamlfile
         self.existing_cluster = existing_cluster
         self.existing_namespace = existing_namespace
+        self.temporary = temporary
         self.directory = directory
+        if self.directory:
+            self.directory = os.path.realpath(self.directory)
+            self.temporary = False
         self.config_only = config_only
         self.params = params
         if disable_prepuller:
@@ -199,7 +203,7 @@ class JupyterLabDeployment(object):
         if capture_stderr:
             stderr = subprocess.PIPE
         if not directory:
-            directory = self.directory
+            directory = self.directory or os.getcwd()
         with _wd(directory):
             exe = args[0]
             fqexe = self.executables.get(exe)
@@ -285,19 +289,24 @@ class JupyterLabDeployment(object):
             if self._empty_param('dhparam_bits'):
                 self.params['dhparam_bits'] = 2048
 
-    def _get_repo(self):
-        if not self.repo_url:
-            self.repo_url = JUPYTERLAB_REPO_URL
-        self._run(["git", "clone", self.repo_url])
+    def _check_sourcedir(self):
+        topdir = os.path.realpath(
+            os.path.join(ME, "..", "..", "..", ".."))
+        for c in self.components:
+            cp = os.path.join(topdir, c)
+            if not os.path.isdir(cp):
+                raise RuntimeError("Directory for component '%s' not " +
+                                   "found at %s." % (c, cp))
+        self.srcdir = topdir
 
     def _copy_deployment_files(self):
+        self._check_sourcedir()
         d = self.directory
+        t = self.srcdir
         os.mkdir(os.path.join(d, "deployment"))
-        repo = (self.repo_url.split('/')[-1])[:-4]
         for c in self.components:
-            shutil.copytree(os.path.join(d, repo, c, "kubernetes"),
+            shutil.copytree(os.path.join(t, c, "kubernetes"),
                             os.path.join(d, "deployment", c))
-        shutil.rmtree(os.path.join(d, repo))
 
     def _substitute_templates(self):
         with _wd(os.path.join(self.directory, "deployment")):
@@ -833,34 +842,33 @@ class JupyterLabDeployment(object):
 
     def _create_deployment(self):
         d = self.directory
-        if d:
-            if not os.path.isdir(d):
-                os.makedirs(d)
-                self.directory = d
-            if not os.path.isdir(os.path.join(d, "deployment")):
-                self._generate_config()
-            if not self.config_only:
-                self._create_resources()
-                return
-        else:
-            with tempfile.TemporaryDirectory() as d:
-                self.directory = d
-                self._generate_config()
-                self._create_resources()
-            self.directory = None
         hn = self.params['hostname']
-        if self.config_only:
-            cfgtext = "Configuration for %s generated" % hn
-            if self.directory:
-                cfgtext += " in %s" % self.directory
-            cfgtext += "."
+        if not d:
+            if self.temporary:
+                with tempfile.TemporaryDirectory() as d:
+                    self.directory = d
+                    self._generate_config()
+                    self._create_resources()
+                self.directory = None
+                return
+            else:
+                d = os.path.join(os.getcwd(), "configurations", hn)
+                self.directory = d
+        d = self.directory
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        if not os.path.isdir(os.path.join(d, "deployment")):
+            self._generate_config()
+            cfgtext = "Configuration for %s generated in %s." % (hn, d)
             logging.info(cfgtext)
-        else:
-            logging.info("Deployment of %s complete." % hn)
+        if self.config_only:
+            return
+        self._create_resources()
+        logging.info("Deployment of %s complete." % hn)
 
     def _generate_config(self):
         with _wd(self.directory):
-            self._get_repo()
+            self._check_sourcedir()
             self._copy_deployment_files()
             self._substitute_templates()
             self._rename_fileserver_template()
@@ -910,13 +918,14 @@ def get_cli_options():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("-c", "--create-config", "--create-configuration",
                         help=("Create configuration only.  Do not deploy." +
-                              "  Requires --directory."), action='store_true')
+                              " Incompatible with -t."), action='store_true')
     parser.add_argument("-d", "--directory",
-                        help=("Use specified directory and leave " +
-                              "configuration files in place.  If " +
+                        help=("Use specified directory.  If " +
                               "directory already contains configuration " +
-                              "files, use them instead of cloning " +
-                              "repository and resubstituting."),
+                              "files, use them instead of resubstituting. " +
+                              "Defaults to " +
+                              "./configurations/[FQDN-of-deployment]. " +
+                              "Incompatible with -t."),
                         default=None)
     parser.add_argument("-f", "--file", "--input-file",
                         help=("YAML file specifying demo parameters.  " +
@@ -924,6 +933,10 @@ def get_cli_options():
                               "present, used instead of environment or " +
                               "prompt."),
                         default=None)
+    parser.add_argument("-t", "--temporary",
+                        help="Write config to temporary directory and " +
+                        "remove after deployment.  Incompatible with -d.",
+                        action="store_true")
     parser.add_argument("-u", "--undeploy", "--destroy", "--remove",
                         help="Undeploy JupyterLab Demo cluster.",
                         action='store_true')
@@ -1084,13 +1097,15 @@ def standalone_deploy(options):
     e_d = options.directory
     c_c = options.create_config
     p_p = options.params
+    t_t = options.temporary
     deployment = JupyterLabDeployment(yamlfile=y_f,
                                       disable_prepuller=d_p,
                                       existing_cluster=e_c,
                                       existing_namespace=e_n,
                                       directory=e_d,
                                       config_only=c_c,
-                                      params=p_p
+                                      params=p_p,
+                                      temporary=t_t
                                       )
     deployment.deploy()
 
@@ -1111,7 +1126,7 @@ def standalone_undeploy(options):
 
 
 def standalone():
-    logging.basicConfig(format='%(levelname)s %(asctime)s |%(message)s',
+    logging.basicConfig(format='%(levelname)s %(asctime)s | %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
                         level=logging.DEBUG)
     try:

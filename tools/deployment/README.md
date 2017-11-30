@@ -69,15 +69,14 @@ Here are the steps you need to perform:
     option on the `pip3` command below.
 
 6. Change to a working directory you like and clone this repository
-   (`git clone https://github.com/lsst-sqre/jld-deploy`).
+   (`git clone https://github.com/lsst-sqre/sqre-jupyterlabdemo`).
    
-7. `cd jld-deploy`.  Then (making sure you are inside the activated
-   virtualenv) `pip3 install -e .`.  If you chose to not use virtualenv,
-   `pip3 install --user -e .`.
+7. `cd sqre/jupyterlabdemo/tools/deployment`.  Then (making sure you are
+   inside the activated virtualenv) `pip3 install -e .`.  If you chose
+   to not use virtualenv, `pip3 install --user -e .`.
    
 8. `cp deploy.yml mydeploy.yml`.  Edit `mydeploy.yml`.  The following
    settings are required:
-    - `kubernetes_cluster_name`: choose one that doesn't exist yet.
 	- `hostname`: the FQDN from earlier.
 	- `tls_cert`, `tls_key`, and `tls_root_chain`.  These correspond to
       the TLS PEM files you got earlier: specify the (local) path to
@@ -91,9 +90,15 @@ Here are the steps you need to perform:
    You can also specify these as environment variables.  The rule for
    creation is that the environment variable name is `JLD_` prepended to
    the uppercase representation of the setting name, so you'd need, for
-   instance, `JLD_KUBERNETES_CLUSTER_NAME`.  If you run the deployment
+   instance, `JLD_HOSTNAME`.  If you run the deployment
    program without either specifying a file or supplying required
-   parameters in the environment, you will be prompted for those parameters.
+   parameters in the environment, you will be prompted for those
+   parameters.
+   
+   The default `kubernetes_cluster_name` is the DNS FQDN with dots
+   replaced by dashes.  The default `kubernetes_cluster_namespace` is
+   `default`.  These can be changed in the deployment YAML or through
+   environment variables.
 
    Feel free to customize other settings.  You particularly may want to
    change the volume size, and I strongly recommend precreating your

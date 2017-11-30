@@ -7,7 +7,7 @@ RUN  yum -y  upgrade
 #  is released.
 RUN  rpm -ivh https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
-      git \
+      git sudo \
       python-devel nodejs \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       python34-tkinter pandoc \

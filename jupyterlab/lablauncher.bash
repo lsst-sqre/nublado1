@@ -28,7 +28,7 @@ function make_user() {
     if [ -n "${EXTERNAL_GROUPS}" ]; then
 	for gentry in $(echo ${EXTERNAL_GROUPS} | tr "," "\n"); do
 	    gname=$(echo ${gentry} | cut -d ':' -f 1)
-	    if [ -z "${gname}"]; then
+	    if [ -z "${gname}" ]; then
 		continue
 	    fi
 	    if [ -z "${suppgrp}" ]; then

@@ -46,16 +46,20 @@ import os
 import os.path
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import yaml
 from contextlib import contextmanager
 from jinja2 import Template
 
+if sys.version_info < (3, 5):
+    raise RuntimeError("Python >= 3.5 is required.")
+
 EXECUTABLES = ["gcloud", "kubectl", "aws"]
 DEFAULT_GKE_ZONE = "us-central1-a"
 DEFAULT_GKE_MACHINE_TYPE = "n1-standard-2"
-DEFAULT_GKE_NODE_COUNT = 2
+DEFAULT_GKE_NODE_COUNT = 3
 DEFAULT_VOLUME_SIZE_GB = 20
 ENVIRONMENT_NAMESPACE = "JLD_"
 ME = os.path.realpath(__file__)
@@ -84,7 +88,8 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
 
 
 class JupyterLabDeployment(object):
-    """JupyterLab Deployment object"""
+    """JupyterLab Deployment object.
+    """
     directory = None
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
                   "firefly", "prepuller", "jupyterhub", "nginx"]
@@ -148,6 +153,8 @@ class JupyterLabDeployment(object):
         self.params["zoneid"] = self._get_aws_zone_id()
 
     def _get_aws_zone_id(self):
+        """Grab the zone ID from the domain determined from the hostname.
+        """
         hostname = self.params["hostname"]
         domain = '.'.join(hostname.split('.')[1:])
         try:
@@ -169,6 +176,8 @@ class JupyterLabDeployment(object):
                                                                 str(e)))
 
     def _check_executables(self, proglist):
+        """Resolve executables we run via subprocess.
+        """
         for p in proglist:
             rc = _which(p)
             if not rc:
@@ -176,6 +185,8 @@ class JupyterLabDeployment(object):
             self.executables[p] = rc
 
     def _set_params(self):
+        """Load parameters from YAML file.
+        """
         if not self.params:
             with open(self.yamlfile, 'r') as f:
                 self.params = yaml.load(f)
@@ -184,11 +195,15 @@ class JupyterLabDeployment(object):
                     logging.warn("Unknown parameter '%s'!" % p)
 
     def _empty_param(self, key):
+        """False only if key exists and has truthy value.
+        """
         if key not in self.params or not self.params[key]:
             return True
         return False
 
     def _any_empty(self, keylist):
+        """True if any empty params in list.
+        """
         for key in keylist:
             if self._empty_param(key):
                 return True
@@ -196,6 +211,9 @@ class JupyterLabDeployment(object):
 
     def _run(self, args, directory=None, capture=False,
              capture_stderr=False, check=True):
+        """Convenience wrapper around subprocess.run.  Requires Python 3.5
+        for that reason.
+        """
         stdout = None
         stderr = None
         if capture:
@@ -215,6 +233,8 @@ class JupyterLabDeployment(object):
             return rc
 
     def _get_cluster_info(self):
+        """Get cluster name and namespace.
+        """
         if self._empty_param('kubernetes_cluster_name'):
             if not self._empty_param('hostname'):
                 hname = self.params["hostname"]
@@ -232,6 +252,9 @@ class JupyterLabDeployment(object):
             self.params["gke_zone"] = DEFAULT_GKE_ZONE
 
     def _validate_deployment_params(self):
+        """Verify that we have what we need, and get sane defaults for things
+        that can be defaulted.
+        """
         self._get_cluster_info()
         if self._any_empty(REQUIRED_PARAMETER_NAMES):
             raise ValueError("All parameters '%s' must be specified!" %
@@ -248,6 +271,8 @@ class JupyterLabDeployment(object):
         return
 
     def _normalize_params(self):
+        """Some parameters are calculated.  Do that.
+        """
         sz = int(self.params['volume_size_gigabytes'])
         self.params['volume_size'] = str(sz) + "Gi"
         if sz > 1:
@@ -263,6 +288,10 @@ class JupyterLabDeployment(object):
         self._check_optional()
 
     def _check_optional(self):
+        """Look for optional variables and decide whether we are setting
+        up logging and firefly based on those.  Also decide if we need to
+        create dhparam.pem and if so how large it needs to be.
+        """
         # We give all of these empty string values to make the
         #  templating logic easier.
         if self._empty_param('firefly_admin_password'):
@@ -290,6 +319,9 @@ class JupyterLabDeployment(object):
                 self.params['dhparam_bits'] = 2048
 
     def _check_sourcedir(self):
+        """Look for the deployment files elsewhere in the repository we
+        presumably checked this deployment module out from.
+        """
         topdir = os.path.realpath(
             os.path.join(ME, "..", "..", "..", ".."))
         for c in self.components:
@@ -300,6 +332,8 @@ class JupyterLabDeployment(object):
         self.srcdir = topdir
 
     def _copy_deployment_files(self):
+        """Copy all the kubernetes files to set up a template environment.
+        """
         self._check_sourcedir()
         d = self.directory
         t = self.srcdir
@@ -309,6 +343,8 @@ class JupyterLabDeployment(object):
                             os.path.join(d, "deployment", c))
 
     def _substitute_templates(self):
+        """Walk through template files and make substitutions.
+        """
         with _wd(os.path.join(self.directory, "deployment")):
             self._generate_dhparams()
             self._generate_crypto_key()
@@ -324,14 +360,20 @@ class JupyterLabDeployment(object):
                     self._substitute_file(t)
 
     def _generate_crypto_key(self):
+        """Get a pair of keys to make rotation easier.
+        """
         ck = os.urandom(16).hex() + ";" + os.urandom(16).hex()
         self.params['crypto_key'] = ck
 
     def _logcmd(self, cmd):
+        """Convenience function to display actual subprocess command run.
+        """
         cmdstr = " ".join(cmd)
         logging.info("About to run '%s'" % cmdstr)
 
     def _generate_dhparams(self):
+        """If we don't have a param file, make one.  If we do, read it.
+        """
         if self._empty_param('tls_dhparam'):
             bits = self.params['dhparam_bits']
             with _wd(self.directory):
@@ -372,6 +414,8 @@ class JupyterLabDeployment(object):
         return self.b64_cache[cp]
 
     def _substitute_file(self, templatefile):
+        """Write a non-template version with variables substituted.
+        """
         destfile = templatefile[:-13] + ".yml"
         with open(templatefile, 'r') as rf:
             templatetext = rf.read()
@@ -382,11 +426,11 @@ class JupyterLabDeployment(object):
         os.remove(templatefile)
 
     def _substitute(self, tpl):
-        """This is the important part.  We just substitute all the values,
-        although only a few will be present in any particular input file.
+        """Use jinja2 to substitute all the deployment values, although only
+        a few will be present in any particular input file.
         """
         p = self.params
-        # We do not know NFS_SERVER_IP_ADDRESS so leave it a template.
+        # We do not yet know NFS_SERVER_IP_ADDRESS so leave it a template.
         return tpl.render(CLUSTERNAME=p['kubernetes_cluster_name'],
                           GITHUB_CLIENT_ID=self.encode_value(
                               'github_client_id'),
@@ -425,8 +469,9 @@ class JupyterLabDeployment(object):
                           )
 
     def _rename_fileserver_template(self):
-        # We did not finish substituting the fileserver, because
-        #  we need the service address.
+        """We did not finish substituting the fileserver, because
+        we need the service address.
+        """
         directory = os.path.join(self.directory, "deployment",
                                  "fileserver")
         fnbase = "jld-fileserver-pv"
@@ -435,6 +480,9 @@ class JupyterLabDeployment(object):
         os.rename(src, tgt)
 
     def _save_deployment_yml(self):
+        """Either save the input file we used, or synthesize one from our
+        params.
+        """
         tfmt = '%Y-%m-%d-%H-%M-%S-%f-UTC'
         datestr = datetime.datetime.utcnow().strftime(tfmt)
         outf = os.path.join(self.directory, "deploy.%s.yml" % datestr)
@@ -450,6 +498,9 @@ class JupyterLabDeployment(object):
                 f.write(ymlstr)
 
     def _clean_param_copy(self):
+        """By the time we deploy, we have a bunch of calculated params.
+        Get rid of those so we have a clean input file for the next deployment.
+        """
         cleancopy = {}
         pathvars = ['tls_cert', 'tls_key', 'tls_root_chain',
                     'beats_cert', 'beats_key', 'beats_ca']
@@ -484,6 +535,8 @@ class JupyterLabDeployment(object):
             self._create_dns_record()
 
     def _create_gke_cluster(self):
+        """Create cluster and namespace if required.
+        """
         mtype = self.params['gke_machine_type']
         nodes = self.params['gke_node_count']
         name = self.params['kubernetes_cluster_name']
@@ -497,9 +550,21 @@ class JupyterLabDeployment(object):
                               name])
         self._switch_to_context(name)
         if namespace != "default" and not self.existing_namespace:
-            self._run(["kubectl", "create", "namespace", namespace])
+            # This sometimes fails immediately after cluster creation,
+            #  so run it under _waitfor()
+            self._waitfor(self._create_namespace, delay=1, tries=15)
+
+    def _create_namespace(self):
+        rc = self._run(["kubectl", "create", "namespace",
+                        self.params['kubernetes_cluster_namespace']],
+                       check=False)
+        if rc.returncode == 0:
+            return True
+        return False
 
     def _destroy_gke_cluster(self):
+        """Destroy cluster and namespace if required.
+        """
         name = self.params['kubernetes_cluster_name']
         namespace = self.params['kubernetes_cluster_namespace']
         if namespace != "default" and not self.existing_namespace:
@@ -509,7 +574,10 @@ class JupyterLabDeployment(object):
                 context = rc.stdout.decode('utf-8').strip()
                 self._run(["kubectl", "config", "set-context", context,
                            "--namespace", "default"])
-            self._run(["kubectl", "delete", "namespace", namespace])
+            # If we are destroying the cluster, we don't really care
+            #  whether this succeeds.
+            self._run(["kubectl", "delete", "namespace", namespace],
+                      check=self.existing_cluster)
         if not self.existing_cluster:
             self._run_gcloud(["-q", "container", "clusters", "delete", name])
 
@@ -548,6 +616,10 @@ class JupyterLabDeployment(object):
             self._run_kubectl_create(os.path.join(directory, c))
 
     def _substitute_fileserver_ip(self, ip, ns):
+        """Once we have the (internal) IP of the fileserver service, we
+        can substitute it into the deployment template, but that requires the
+        service to have been created first.
+        """
         directory = os.path.join(self.directory, "deployment", "fileserver")
         with open(os.path.join(directory,
                                "jld-fileserver-pv.template.yml"), "r") as fr:
@@ -559,6 +631,9 @@ class JupyterLabDeployment(object):
                 fw.write(out)
 
     def _waitfor(self, callback, delay=10, tries=10):
+        """Convenience method to loop-and-delay until the callback function
+        returns something truthy.
+        """
         i = 0
         while True:
             i = i + 1
@@ -573,6 +648,8 @@ class JupyterLabDeployment(object):
                     (tries, delay))
 
     def _get_fileserver_ip(self):
+        """Get IP of fileserver service from YAML output.
+        """
         rc = self._run(["kubectl", "get", "svc", "jld-fileserver",
                         "--namespace=%s" %
                         self.params['kubernetes_cluster_namespace'],
@@ -586,6 +663,8 @@ class JupyterLabDeployment(object):
         return None
 
     def _get_external_ip(self):
+        """Get external IP of nginx service from YAML output.
+        """
         rc = self._run(["kubectl", "get", "svc", "jld-nginx",
                         "--namespace=%s" %
                         self.params['kubernetes_cluster_namespace'],
@@ -604,6 +683,8 @@ class JupyterLabDeployment(object):
         return None
 
     def _get_pods_for_name(self, depname):
+        """Determine the pod names for a given deployment.
+        """
         logging.info("Getting pod names for '%s'." % depname)
         retval = []
         rc = self._run(["kubectl", "get", "pods", "-o", "yaml"], capture=True)
@@ -628,6 +709,10 @@ class JupyterLabDeployment(object):
                                          "fileserver")
 
     def _destroy_pods_with_callback(self, callback, poddesc, tries=60):
+        """Wait for pods to exit; if they don't within the specified
+        time, either explode or continue, depending on whether we want to
+        keep the cluster around.
+        """
         logging.info("Waiting for %s pods to exit." % poddesc)
         try:
             self._waitfor(callback=callback, tries=tries)
@@ -665,6 +750,9 @@ class JupyterLabDeployment(object):
         return self._check_pods_gone("jld-fileserver")
 
     def _check_pods_gone(self, name):
+        """Used as a callback for _waitfor(); return True only when all
+        the pods for a deployment are gone.
+        """
         pods = self._get_pods_for_name(name)
         if pods:
             return None
@@ -726,6 +814,8 @@ class JupyterLabDeployment(object):
         self._change_dns_record("create")
 
     def _change_dns_record(self, action):
+        """Create changeset record and then submit it to AWS.
+        """
         zoneid = self.params["zoneid"]
         record = {
             "Comment": "JupyterLab Demo %s/%s" % (
@@ -740,14 +830,18 @@ class JupyterLabDeployment(object):
             record["Changes"] = self._generate_delete_dns()
         else:
             raise RuntimeError("DNS action must be 'create' or 'delete'")
-        changeset = os.path.join(self.directory, "rr-changeset.txt")
-        with open(changeset, "w") as f:
-            json.dump(record, f)
-        self._run(["aws", "route53", "change-resource-record-sets",
-                   "--hosted-zone-id", zoneid, "--change-batch",
-                   "file://%s" % changeset, "--output", "json"])
+        with tempfile.TemporaryDirectory() as d:
+            # We don't care about keeping the changeset request around
+            changeset = os.path.join(d, "rr-changeset.txt")
+            with open(changeset, "w") as f:
+                json.dump(record, f)
+            self._run(["aws", "route53", "change-resource-record-sets",
+                       "--hosted-zone-id", zoneid, "--change-batch",
+                       "file://%s" % changeset, "--output", "json"])
 
     def _generate_upsert_dns(self):
+        """Create changeset for DNS create-or-update request.
+        """
         ip = self._waitfor(callback=self._get_external_ip, tries=30)
         return [
             {
@@ -766,6 +860,8 @@ class JupyterLabDeployment(object):
         ]
 
     def _generate_delete_dns(self):
+        """Create changeset for DNS deletion request.
+        """
         host = self.params["hostname"]
         answer = dns.resolver.query(host, 'A')
         response = answer.rrset.to_text().split()
@@ -807,20 +903,28 @@ class JupyterLabDeployment(object):
             self._destroy_gke_cluster()
 
     def _run_gcloud(self, args):
+        """Convenience method for running gcloud in the right zone.
+        """
         newargs = ["gcloud"] + args + ["--zone=%s" % self.params["gke_zone"]]
         self._run(newargs)
 
     def _run_kubectl_create(self, filename):
+        """Convenience method to create a kubernetes resource from a file.
+        """
         self._run(['kubectl', 'create', '-f', filename, "--namespace=%s" %
                    self.params["kubernetes_cluster_namespace"]])
 
     def _run_kubectl_delete(self, component):
+        """Convenience method to delete a kubernetes resource.
+        """
         self._run(['kubectl', 'delete'] + component +
                   ["--namespace=%s" % (
                       self.params["kubernetes_cluster_namespace"])],
                   check=False)
 
     def _switch_to_context(self, name):
+        """Save current context, if set, and change to a new one.
+        """
         context = None
         rc = self._run(["kubectl", "config", "get-contexts"], capture=True)
         if rc.stdout:
@@ -841,6 +945,9 @@ class JupyterLabDeployment(object):
                    "--namespace", self.params['kubernetes_cluster_namespace']])
 
     def _create_deployment(self):
+        """Use params to determine whether to deploy or just configure, and
+        whether to keep the directory around or not.
+        """
         d = self.directory
         hn = self.params['hostname']
         if not d:
@@ -867,6 +974,8 @@ class JupyterLabDeployment(object):
         logging.info("Deployment of %s complete." % hn)
 
     def _generate_config(self):
+        """Generate deployment configuration and write it out.
+        """
         with _wd(self.directory):
             self._check_sourcedir()
             self._copy_deployment_files()
@@ -898,61 +1007,65 @@ class JupyterLabDeployment(object):
 
 
 def get_cli_options():
-    """Parse command-line arguments"""
+    """Parse command-line arguments."""
     desc = "Deploy or destroy the JupyterLab Demo environment. "
-    desc += ("Parameters required in order to be able to destroy the " +
-             "JupyterLab Demo are: %s. " % REQUIRED_PARAMETER_NAMES +
-             "In order to deploy the cluster, the " +
-             "required set is: %s. " % REQUIRED_DEPLOYMENT_PARAMETER_NAMES +
-             "These may be set in the YAML file specified with the " +
-             "'--file' argument, or passed in in the environment (for each " +
-             "name, the corresponding environment variable is 'JLD_' " +
-             "prepended to the parameter name in uppercase). If no file " +
-             "is specified and a required value is still missing, the " +
-             "value will be prompted for on standard input. ")
+    desc += ("Parameters may be set from\neither the YAML file specified " +
+             "with the -f option, or from an environment\nvariable.  The " +
+             "form of the environment variable is JLD_ prepended to the\n" +
+             "parameter name.\n\n")
+    desc += ("The 'hostname' parameter is always required, for both " +
+             "deployment and\ndestruction.  It must be the FQDN of the " +
+             "external endpoint.\n\n")
+    desc += ("Although the 'kubernetes_cluster_name' parameter must be " +
+             "known, it will\ndefault to the hostname with dots replaced " +
+             "by dashes.\n\n")
+    desc += ("For deployment, the following set of parameters is " +
+             "required:\n%s.\n\n" % REQUIRED_DEPLOYMENT_PARAMETER_NAMES)
     desc += ("All deployment parameters may be set from the environment, " +
-             "not just required ones. The complete set of recognized " +
-             "parameters is: %s. " % PARAMETER_NAMES)
-    desc += ("Therefore the set of allowable environment variables is: " +
-             "%s." % ["JLD_" + x.upper() for x in PARAMETER_NAMES])
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("-c", "--create-config", "--create-configuration",
-                        help=("Create configuration only.  Do not deploy." +
-                              " Incompatible with -t."), action='store_true')
-    parser.add_argument("-d", "--directory",
-                        help=("Use specified directory.  If " +
-                              "directory already contains configuration " +
-                              "files, use them instead of resubstituting. " +
-                              "Defaults to " +
-                              "./configurations/[FQDN-of-deployment]. " +
-                              "Incompatible with -t."),
-                        default=None)
-    parser.add_argument("-f", "--file", "--input-file",
-                        help=("YAML file specifying demo parameters.  " +
-                              "Respected for undeployment as well.  If " +
-                              "present, used instead of environment or " +
-                              "prompt."),
-                        default=None)
-    parser.add_argument("-t", "--temporary",
-                        help="Write config to temporary directory and " +
-                        "remove after deployment.  Incompatible with -d.",
-                        action="store_true")
-    parser.add_argument("-u", "--undeploy", "--destroy", "--remove",
-                        help="Undeploy JupyterLab Demo cluster.",
-                        action='store_true')
-    parser.add_argument("--disable-prepuller", "--no-prepuller",
-                        help="Do not deploy prepuller",
-                        action='store_true')
-    parser.add_argument(
+             "not just\nrequired ones. The complete set of recognized " +
+             "parameters is:\n%s.\n\n" % PARAMETER_NAMES)
+    desc += ("Therefore the set of allowable environment variables is:\n" +
+             "%s.\n\n" % ["JLD_" + x.upper() for x in PARAMETER_NAMES])
+    hf = argparse.RawDescriptionHelpFormatter
+    pr = argparse.ArgumentParser(description=desc,
+                                 formatter_class=hf)
+    pr.add_argument("-c", "--create-config", "--create-configuration",
+                    help=("Create configuration only.  Do not deploy." +
+                          " Incompatible with -t."), action='store_true')
+    pr.add_argument("-d", "--directory",
+                    help=("Use specified directory.  If " +
+                          "directory already contains configuration " +
+                          "files, use them instead of resubstituting. " +
+                          "Defaults to " +
+                          "./configurations/[FQDN-of-deployment]. " +
+                          "Incompatible with -t."),
+                    default=None)
+    pr.add_argument("-f", "--file", "--input-file",
+                    help=("YAML file specifying demo parameters.  " +
+                          "Respected for undeployment as well.  If " +
+                          "present, used instead of environment or " +
+                          "prompt."),
+                    default=None)
+    pr.add_argument("-t", "--temporary",
+                    help="Write config to temporary directory and " +
+                    "remove after deployment.  Incompatible with -d.",
+                    action="store_true")
+    pr.add_argument("-u", "--undeploy", "--destroy", "--remove",
+                    help="Undeploy JupyterLab Demo cluster.",
+                    action='store_true')
+    pr.add_argument("--disable-prepuller", "--no-prepuller",
+                    help="Do not deploy prepuller",
+                    action='store_true')
+    pr.add_argument(
         "--existing-cluster", help=("Do not create/destroy cluster.  " +
                                     "Respected for undeployment as well."),
         action='store_true')
-    parser.add_argument(
+    pr.add_argument(
         "--existing-namespace", help=("Do not create/destroy namespace.  " +
                                       "Respected for undeployment as well." +
                                       "  Requires --existing-cluster."),
         action='store_true')
-    result = parser.parse_args()
+    result = pr.parse_args()
     dtype = "deploy"
     if "undeploy" in result and result.undeploy:
         dtype = "undeploy"
@@ -974,6 +1087,9 @@ def get_cli_options():
 
 
 def get_options_from_environment(dtype="deploy"):
+    """Use environment variables to set deployment/removal parameters
+    when there is no YAML file.
+    """
     retval = {}
     for n in PARAMETER_NAMES:
         e = os.getenv(ENVIRONMENT_NAMESPACE + n.upper())
@@ -988,6 +1104,10 @@ def get_options_from_environment(dtype="deploy"):
 
 
 def _set_certs_from_dir(d, beats=False):
+    """The common use case will be to specify a single directory that all
+    your TLS certificates live in.  This is easier than specifying each
+    file individually.
+    """
     retval = {}
     retval["tls_cert"] = os.path.join(d, "cert.pem")
     retval["tls_key"] = os.path.join(d, "key.pem")
@@ -1005,6 +1125,9 @@ def _set_certs_from_dir(d, beats=False):
 
 
 def _canonicalize_result_params(params):
+    """Manage environment (string) to actual data structure (int or list)
+    conversion.
+    """
     wlname = "github_organization_whitelist"
     if not _empty(params, wlname):
         params[wlname] = params[wlname].split(',')
@@ -1015,6 +1138,13 @@ def _canonicalize_result_params(params):
 
 
 def get_options_from_user(dtype="deploy", params={}):
+    """If we do not have a YAML file, and we are missing environment variables
+    for required configuration, then ask the user for them on stdin.
+
+    Anything not required is defaulted, so, for instance, if you want to set
+    the cluster namespace, you need to set JLD_KUBERNETES_CLUSTER_NAMESPACE in
+    the environment.
+    """
     prompts = {"kubernetes_cluster_name": "Kubernetes Cluster Name",
                "hostname": "JupyterLab Demo hostname (FQDN)",
                "github_client_id": "GitHub OAuth Client ID",
@@ -1039,6 +1169,8 @@ def get_options_from_user(dtype="deploy", params={}):
 
 
 def _get_values_from_prompt(params, namelist, prompts={}):
+    """Convenience function to read from stdin.
+    """
     for n in namelist:
         if _empty(params, n):
             line = ""
@@ -1047,10 +1179,6 @@ def _get_values_from_prompt(params, namelist, prompts={}):
                 line = input(pr + ": ")
             params[n] = line
     return params
-
-
-def params_complete(inputdict):
-    return False
 
 
 @contextmanager
@@ -1064,15 +1192,20 @@ def _wd(newdir):
 
 
 def _empty(input_dict, k):
+    """Empty unless key exists and its value is truthy.
+    """
     if k in input_dict and input_dict[k]:
         return False
     return True
 
 
 def _which(program):
-    """https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+    """Resolve a program that's in $PATH:
+    https://stackoverflow.com/questions/377017
     """
     def is_exe(fpath):
+        """Test existence and executability.
+        """
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
     fpath, fname = os.path.split(program)
     if fpath:
@@ -1126,9 +1259,12 @@ def standalone_undeploy(options):
 
 
 def standalone():
+    """Entrypoint for running class as an executable.
+    """
     logging.basicConfig(format='%(levelname)s %(asctime)s | %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
                         level=logging.DEBUG)
+    # Not having readline is OK.
     try:
         import readline  # NoQA
     except ImportError:

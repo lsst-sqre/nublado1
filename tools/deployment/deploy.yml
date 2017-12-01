@@ -14,7 +14,7 @@ hostname: '{{FQDN}}'
 
 ### GKE parameters
 # zone: 'us-central-1a'
-# node_count: 2
+# node_count: 3
 # machine_type: 'n1-standard-2'
 
 ### Nginx TLS termination (required)
@@ -30,7 +30,7 @@ tls_root_chain: '/path/to/chain.pem'
 
 ### Fileserver specification
 # This obviously depends on your use case.  Must be an integer at least
-# 2, and GKE caps default volume size at 500.  If you have no idea, go
+# 1, and GKE caps default volume size at 500.  If you have no idea, go
 # with 20 (the default)
 # volume_size_gigabytes: 20
 

@@ -47,7 +47,8 @@ setup(
         'Jinja2>=2.0.0,<3.0.0',
         'dnspython>=1.0.0,<2.0.0'
     ],
-    tests_require=['pytest', 'pytest-env'],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'deploy-jupyterlabdemo = jld_deploy:standalone'

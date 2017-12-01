@@ -3,9 +3,6 @@ USER root
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade
-# Manual http-parser installation needed for newer nodejs, until CentOS 7.4
-#  is released.
-RUN  rpm -ivh https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
       git sudo \
       python-devel nodejs \
@@ -13,18 +10,11 @@ RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
       python34-tkinter pandoc \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
       texlive-adjustbox
-# Newer git; install to /usr/local/bin
-RUN  V="2.9.5" && \
-     D="git-${V}" && \
-     FN="${D}.tar.gz" && \
-     mkdir -p /usr/local/src && \
-     cd /usr/local/src && \
-     curl -L https://www.kernel.org/pub/software/scm/git/${FN} -o ${FN} && \
-     tar xvfz ${FN} && \
-     cd ${D} && \
-     ./configure --without-tcltk && \
-     make && \
-     make install
+# Newer git; install from SCL
+RUN  yum -y install centos-release-scl && \
+     yum-config-manager --enable rhel-server-rhscl-7-rpms && \
+     yum -y install rh-git29 && \
+     scl enable rh-git29 bash
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -140,7 +130,7 @@ RUN  groupadd -g 768 jupyter && \
      chmod -R g+w /usr/share/git
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
-     local04-pythonrc.sh local05-path.sh \
+     local04-pythonrc.sh local05-path.sh local06-scl.sh\
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \

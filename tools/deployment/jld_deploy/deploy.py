@@ -1021,6 +1021,18 @@ def get_cli_options():
              "by dashes.\n\n")
     desc += ("For deployment, the following set of parameters is " +
              "required:\n%s.\n\n" % REQUIRED_DEPLOYMENT_PARAMETER_NAMES)
+    desc += ("The 'github_organization_whitelist' parameter is a list in " +
+             "the YAML file;\nas the environment variable " +
+             "JLD_GITHUB_ORGANIZATION_WHITELIST it must be a\n" +
+             "comma-separated list of GitHub organization names.\n\n")
+    desc += ("The TLS information can be set by defining " +
+             "JLD_CERTIFICATE_DIRECTORY and then\nputting 'cert.pem', " +
+             "'key.pem', and 'chain.pem' in it.  If you put\n" +
+             "'dhparam.pem' there as well, it will be used rather than " +
+             "generated.\nAdditionally, if you are using the " +
+             "logging components, if you put\n'beats_cert.pem', " +
+             "'beats_ca.pem', and 'beats_key.pem' in the same directory,\n" +
+             "they will be used as well.\n\n")
     desc += ("All deployment parameters may be set from the environment, " +
              "not just\nrequired ones. The complete set of recognized " +
              "parameters is:\n%s.\n\n" % PARAMETER_NAMES)

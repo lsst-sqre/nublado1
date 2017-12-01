@@ -74,6 +74,7 @@ REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
     "tls_root_chain"
 ]
 PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
+    "tls_dhparam",
     "kubernetes_cluster_namespace",
     "gke_zone",
     "gke_node_count",
@@ -190,7 +191,7 @@ class JupyterLabDeployment(object):
         if not self.params:
             with open(self.yamlfile, 'r') as f:
                 self.params = yaml.load(f)
-            for p in params:
+            for p in self.params:
                 if p not in PARAMETER_NAMES:
                     logging.warn("Unknown parameter '%s'!" % p)
 
@@ -242,8 +243,9 @@ class JupyterLabDeployment(object):
                 logging.warn("Using default derived cluster name '%s'" %
                              cname)
                 self.params["kubernetes_cluster_name"] = cname
-            raise ValueError("'kubernetes_cluster_name' must be set, " +
-                             "either explicitly or from 'hostname'.")
+            else:
+                raise ValueError("'kubernetes_cluster_name' must be set, " +
+                                 "either explicitly or from 'hostname'.")
         if self._empty_param('kubernetes_cluster_namespace'):
             logging.info("Using default cluster namespace 'default'.")
             self.params["kubernetes_cluster_namespace"] = 'default'
@@ -280,6 +282,9 @@ class JupyterLabDeployment(object):
         else:
             nfs_sz = "950Mi"
         self.params['nfs_volume_size'] = nfs_sz
+        logging.info("Volume size: %s / NFS volume size: %s" %
+                     (self.params['volume_size'],
+                      self.params['nfs_volume_size']))
         self.params[
             'github_callback_url'] = ("https://%s/hub/oauth_callback" %
                                       self.params['hostname'])
@@ -1241,8 +1246,10 @@ def standalone_deploy(options):
     e_n = options.existing_namespace
     e_d = options.directory
     c_c = options.create_config
-    p_p = options.params
     t_t = options.temporary
+    p_p = None
+    if "params" in options:
+        p_p = options.params
     deployment = JupyterLabDeployment(yamlfile=y_f,
                                       disable_prepuller=d_p,
                                       existing_cluster=e_c,
@@ -1261,7 +1268,9 @@ def standalone_undeploy(options):
     y_f = options.file
     e_c = options.existing_cluster
     e_n = options.existing_namespace
-    p_p = options.params
+    p_p = None
+    if "params" in options:
+        p_p = options.params
     deployment = JupyterLabDeployment(yamlfile=y_f,
                                       existing_cluster=e_c,
                                       existing_namespace=e_n,

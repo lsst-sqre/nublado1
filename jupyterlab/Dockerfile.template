@@ -40,7 +40,7 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       matplotlib \
       bokeh
 RUN  pip3 install \
-      https://github.com/jupyterlab/jupyterlab/zipball/v0.29.2 \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
@@ -79,19 +79,19 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter nbextension enable --py widgetsnbextension --sys-prefix
-RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
+#RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
-     npm install -g webpack && \
-     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+     jlpm global add webpack && \
+     git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
      mv jupyterlab_bokeh jupyterlab-bokeh && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      for i in savequit bokeh hub; do \
      	 cd jupyterlab-${i} && \
          python3 /usr/bin/jupyter labextension link . --no-build && \
-         npm install --unsafe-perm && \
-         npm run build && \
+         jlpm install --unsafe-perm && \
+         jlpm run build && \
          cd .. ;\
      done
 ENV  jl=/opt/lsst/software/jupyterlab

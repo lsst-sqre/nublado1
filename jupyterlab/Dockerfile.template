@@ -83,7 +83,7 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      jlpm global add webpack && \
-     git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
+     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
      mv jupyterlab_bokeh jupyterlab-bokeh && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \

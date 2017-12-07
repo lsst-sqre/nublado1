@@ -97,8 +97,8 @@ Here are the steps you need to perform:
    
    The default `kubernetes_cluster_name` is the DNS FQDN with dots
    replaced by dashes.  The default `kubernetes_cluster_namespace` is
-   `default`.  These can be changed in the deployment YAML or through
-   environment variables.
+   the first component of the hostname.  These can be changed in the
+   deployment YAML or through environment variables.
 
    Feel free to customize other settings.  You particularly may want to
    change the volume size, and I strongly recommend precreating your

@@ -247,8 +247,10 @@ class JupyterLabDeployment(object):
                 raise ValueError("'kubernetes_cluster_name' must be set, " +
                                  "either explicitly or from 'hostname'.")
         if self._empty_param('kubernetes_cluster_namespace'):
-            logging.info("Using default cluster namespace 'default'.")
-            self.params["kubernetes_cluster_namespace"] = 'default'
+            hname = self.params["hostname"]
+            nspace = hname.split('.')[0]
+            logging.info("Using default cluster namespace '%s'." % nspace)
+            self.params["kubernetes_cluster_namespace"] = nspace
         if self._empty_param('gke_zone'):
             logging.info("Using default gke_zone '%s'." % DEFAULT_GKE_ZONE)
             self.params["gke_zone"] = DEFAULT_GKE_ZONE

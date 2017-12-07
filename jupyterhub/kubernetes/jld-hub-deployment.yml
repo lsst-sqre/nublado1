@@ -44,13 +44,13 @@ spec:
             #  - name: LAB_IDLE_TIMEOUT
             #    value: '43200'
             - name: LAB_MEM_LIMIT
-              value: '2G'
+              value: '3G'
             - name: LAB_CPU_LIMIT
-              value: '1.0'
+              value: '2.0'
             - name: LAB_MEM_GUARANTEE
-              value: '128M'
+              value: '512M'
             - name: LAB_CPU_GUARANTEE
-              value: '0.25'
+              value: '0.5'
             - name: JUPYTERLAB_CONFIG_DIR
               value: '/opt/lsst/software/jupyterhub/config'
             - name: GITHUB_ORGANIZATION_WHITELIST
@@ -59,18 +59,18 @@ spec:
                   name: jld-hub
                   key: github_organization_whitelist
             # You want these if you're using CILogon rather than GitHub
-            - name: CILOGON_HOST
-              value: 'test.cilogon.org'
-            #- name: CILOGON_CLIENT_ID
+            # - name: CILOGON_HOST
+            #   value: 'test.cilogon.org'
+            #  - name: CILOGON_CLIENT_ID
             #  valueFrom:
             #    secretKeyRef:
             #      name: jld-hub
             #      key: cilogon_client_id
-            #- name: CILOGON_CLIENT_SECRET
-            #  valueFrom:
-            #    secretKeyRef:
-            #     name: jld-hub
-            #     key: cilogon_secret
+            # - name: CILOGON_CLIENT_SECRET
+            #   valueFrom:
+            #     secretKeyRef:
+            #      name: jld-hub
+            #      key: cilogon_secret
             - name: GITHUB_CLIENT_ID
               valueFrom:
                 secretKeyRef:

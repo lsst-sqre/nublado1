@@ -13,8 +13,7 @@ RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
 # Newer git; install from SCL
 RUN  yum -y install centos-release-scl && \
      yum-config-manager --enable rhel-server-rhscl-7-rpms && \
-     yum -y install rh-git29 && \
-     scl enable rh-git29 bash
+     yum -y install rh-git29 devtoolset-6
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -121,6 +120,7 @@ RUN  cd /usr/share/git && \
        display_firefly.table && \
      cd .. && \
      setup afw && \
+     source scl_source enable devtoolset-6 && \
      scons install force=True && \
      scons declare force=True     
 RUN  /usr/bin/python3 /usr/bin/jupyter lab build

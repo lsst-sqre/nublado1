@@ -78,7 +78,7 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter nbextension enable --py widgetsnbextension --sys-prefix
-#RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
+RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      jlpm global add webpack && \

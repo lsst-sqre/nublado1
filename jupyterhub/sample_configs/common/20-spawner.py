@@ -49,6 +49,10 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         optform += "Menu updated at %s<br>\n" % nowstr
         return optform
 
+    @property
+    def options_form(self):
+        return self._options_form_default()
+
     @gen.coroutine
     def get_pod_manifest(self):
         """

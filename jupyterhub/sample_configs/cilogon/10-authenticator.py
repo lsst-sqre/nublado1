@@ -6,6 +6,22 @@ import json
 import os
 import oauthenticator
 from tornado import gen
+from jupyterhub.handlers.pages import SpawnHandler
+
+# Monkeypatch SpawnHandler
+
+
+def _render_refreshed_form(self, message=''):
+    user = self.get_current_user()
+    optform = user.spawner._options_form_default()
+    return self.render_template('spawn.html',
+                                user=user,
+                                spawner_options_form=optform,
+                                error_message=message,
+                                url=self.request.uri,
+                                )
+
+SpawnHandler._render_form = _render_refreshed_form
 
 
 class LSSTAuth(oauthenticator.CILogonOAuthenticator):

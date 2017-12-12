@@ -37,12 +37,16 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         if not lnames or len(lnames) < 2:
             return ""
         optform = "<label for=\"%s\">%s</label><br>\n" % (title, title)
-        nowstr = datetime.datetime.utcnow().isoformat()
-        optform += "Menu created at %s<br>\n" % nowstr
+        now = datetime.datetime.utcnow()
+        nowstr = now.ctime()
+        if not now.tzinfo:
+            # If we don't have tzinfo, assume it's in UTC"
+            nowstr += " UTC"
         for idx, img in enumerate(lnames):
             optform += "      "
             optform += "<input type=\"radio\" name=\"kernel_image\""
             optform += " value=\"%s\">%s<br>\n" % (img, ldescs[idx])
+        optform += "Menu updated at %s<br>\n" % nowstr
         return optform
 
     @gen.coroutine

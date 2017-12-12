@@ -39,9 +39,6 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
 
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
-        # Rebuild options form
-        # Doesn't actually have the desired effect.
-        spawner.options_form = spawner._options_form_default()
         # First pulls can be really slow for the LSST stack containers,
         #  so let's give it a big timeout
         spawner.http_timeout = 60 * 15

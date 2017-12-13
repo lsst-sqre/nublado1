@@ -39,7 +39,7 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       matplotlib \
       bokeh
 RUN  pip3 install \
-      https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/lsst-sqre/jupyterlab/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
@@ -134,9 +134,11 @@ COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \
-         ln $i $(basename $i .sh).csh ;\
+         ln ${i} $(basename ${i} .sh).csh ;\
      done
-RUN  mkdir -p /etc/skel/notebooks
+RUN  for i in notebooks WORK DATA idleculler ; do \
+        mkdir -p /etc/skel/${i} ; \
+     done	
 COPY lsst_kernel_py${PYVER}.json \
        /usr/local/share/jupyter/kernels/lsst_stack/kernel.json
 COPY motd /etc/motd

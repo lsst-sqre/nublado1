@@ -4,6 +4,10 @@
 if [ -n "${DEBUG}" ]; then
     set -x
 fi
+# Rebuild Lab
+/usr/bin/python3 /usr/bin/jupyter lab clean
+/usr/bin/python3 /usr/bin/jupyter lab build
+# Set GitHub configuration
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"
 fi

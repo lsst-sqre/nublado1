@@ -7,7 +7,6 @@ if ! [ -d ${HOMEDIR} ]; then
 fi
 if ! [ -f ${HOMEDIR}/jupyterhub.sqlite ]; then
     touch ${HOMEDIR}/jupyterhub.sqlite
-    jupyterhub upgrade-db
 fi
 chmod 0600 ${HOMEDIR}/jupyterhub.sqlite
 chown -R ${USER}:${GROUP} ${HOMEDIR}

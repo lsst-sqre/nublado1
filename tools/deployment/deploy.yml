@@ -6,6 +6,11 @@
 # callback
 hostname: '{{FQDN}}'
 
+### OAuth Provider
+# oauth_provider: '{{OAUTH_PROVIDER}}'
+#  oauth_provider must be one of 'github' or 'cilogon'.
+#  It defaults to 'github'.
+
 ### Kubernetes cluster details 
 # kubernetes_cluster_name: '{{K8S_CLUSTER_NAME}}'
 #  cluster name defaults to hostname with dots changed to dashes.
@@ -35,8 +40,10 @@ tls_root_chain: '/path/to/chain.pem'
 # volume_size_gigabytes: 20
 
 ### GitHub OAuth application data (required)
-github_client_id: '{{GITHUB_CLIENT_ID}}'
-github_client_secret: '{{GITHUB_CLIENT_SECRET}}'
+oauth_client_id: '{{OAUTH_CLIENT_ID}}'
+oauth_secret: '{{OAUTH_SECRET}}'
+
+### If oauth_type is 'github', 'github_organization_whitelist' is required.
 github_organization_whitelist:
   - '{{GITHUB_ORG_1}}'
   - '{{GITHUB_ORG_2}}'

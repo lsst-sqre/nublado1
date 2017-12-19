@@ -86,8 +86,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         labels.update(self._expand_all(self.singleuser_extra_labels))
 
         pod_name = self.pod_name
-        image_spec = self.singleuser_image_spec or os.getenv("LAB_IMAGE") \
-            or "lsstsqre/jld-lab:latest"
+        image_spec = (self.singleuser_image_spec or os.getenv("LAB_IMAGE")
+                      or "lsstsqre/jld-lab:latest")
         image_name = image_spec
         if self.user_options:
             if self.user_options.get('kernel_image'):
@@ -118,6 +118,10 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         idle_timeout = int(os.getenv('LAB_IDLE_TIMEOUT') or 43200)
         if idle_timeout > 0 and 'JUPYTERLAB_IDLE_TIMEOUT' not in pod_env:
             pod_env['JUPYTERLAB_IDLE_TIMEOUT'] = str(idle_timeout)
+        oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
+        endstr = "/hub/oauth_callback"
+        if oauth_callback and oauth_callback.endswith(endstr):
+            pod_env['EXTERNAL_URL'] = oauth_callback[:-len(endstr)]
         return make_pod(
             name=self.pod_name,
             image_spec=self.singleuser_image_spec,
@@ -145,8 +149,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
 
     def options_from_form(self, formdata=None):
         options = {}
-        if formdata and 'kernel_image' in formdata and \
-           formdata['kernel_image']:
+        if (formdata and 'kernel_image' in formdata and
+                formdata['kernel_image']):
             options['kernel_image'] = formdata['kernel_image'][0]
         return options
 
@@ -199,8 +203,8 @@ class ScanRepo(object):
         if debug:
             self.debug = debug
         if not self.path:
-            self.path = "/v2/repositories/" + self.owner + "/" + \
-                self.name + "/tags"
+            self.path = ("/v2/repositories/" + self.owner + "/" +
+                         self.name + "/tags")
         self.url = protocol + "://" + self.host + self.path
 
     def __enter__(self):

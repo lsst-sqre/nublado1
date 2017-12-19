@@ -5,8 +5,8 @@ import os
 
 # Set up auth environment
 c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-c.LSSTAuth.client_id = os.environ['GITHUB_CLIENT_ID']
-c.LSSTAuth.client_secret = os.environ['GITHUB_CLIENT_SECRET']
+c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
+c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 c.LSSTAuth.github_organization_whitelist = set(
     (os.environ['GITHUB_ORGANIZATION_WHITELIST'].split(",")))
 

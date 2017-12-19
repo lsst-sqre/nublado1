@@ -12,9 +12,12 @@ at the moment, assumes the following:
 4) At least your external endpoint TLS certs are already generated and
     exist on the local filesystem.  If you need certificates for ELK
     stack communication, those must also be present on the local filesystem.
-5) You are using GitHub OAuth for your authentication, and you have
-    created an OAuth application Client ID, Client Secret, and a client
-    callback that is 'https://fqdn.of.jupyterlab.demo/hub/oauth_callback'
+5) You are using GitHub or CILogon OAuth for your authentication, and you
+    have created an OAuth application Client ID, Client Secret, and a client
+    callback that is 'https://fqdn.of.jupyterlab.demo/hub/oauth_callback'.
+    If you are using GitHub as your OAuth2 provider, you must also specify
+    a list of GitHub organizations, to at least one of which any authenticated
+    user must belong.
 6) Either all of this information has been encoded in a YAML file that you
     reference with the -f switch during deployment, or it's in a series of
     environment variables starting with "JLD_", or you enter it at a
@@ -66,14 +69,15 @@ ME = os.path.realpath(__file__)
 REQUIRED_PARAMETER_NAMES = ["kubernetes_cluster_name",
                             "hostname"]
 REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
-    "github_client_id",
-    "github_client_secret",
-    "github_organization_whitelist",
+    "oauth_client_id",
+    "oauth_secret",
     "tls_cert",
     "tls_key",
-    "tls_root_chain"
+    "tls_root_chain",
+    "github_organization_whitelist"
 ]
 PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
+    "oauth_provider",
     "tls_dhparam",
     "kubernetes_cluster_namespace",
     "gke_zone",
@@ -110,7 +114,8 @@ class JupyterLabDeployment(object):
                  existing_namespace=False, config_only=False,
                  temporary=False):
         self._check_executables(EXECUTABLES)
-        self.yamlfile = yamlfile
+        if yamlfile:
+            self.yamlfile = os.path.realpath(yamlfile)
         self.existing_cluster = existing_cluster
         self.existing_namespace = existing_namespace
         self.temporary = temporary
@@ -272,6 +277,12 @@ class JupyterLabDeployment(object):
             self.params['gke_machine_type'] = DEFAULT_GKE_MACHINE_TYPE
         if self._empty_param('gke_node_count'):
             self.params['gke_node_count'] = DEFAULT_GKE_NODE_COUNT
+        if self._empty_param('oauth_provider'):
+            self.params['oauth_provider'] = "github"
+        if self.params['oauth_provider'] != "github":
+            if self._empty_param('github_organization_whitelist'):
+                # Not really required if we aren't using github.
+                self.params['github_organization_whitelist'] = "dummy"
         return
 
     def _normalize_params(self):
@@ -288,8 +299,8 @@ class JupyterLabDeployment(object):
                      (self.params['volume_size'],
                       self.params['nfs_volume_size']))
         self.params[
-            'github_callback_url'] = ("https://%s/hub/oauth_callback" %
-                                      self.params['hostname'])
+            'oauth_callback_url'] = ("https://%s/hub/oauth_callback" %
+                                     self.params['hostname'])
         self.params["github_organization_whitelist"] = ','.join(
             self.params["github_organization_whitelist"])
         self._check_optional()
@@ -348,6 +359,17 @@ class JupyterLabDeployment(object):
         for c in self.components:
             shutil.copytree(os.path.join(t, c, "kubernetes"),
                             os.path.join(d, "deployment", c))
+        self._copy_oauth_provider()
+
+    def _copy_oauth_provider(self):
+        configdir = os.path.join(self.srcdir, "jupyterhub", "sample_configs",
+                                 self.params['oauth_provider'])
+        targetdir = os.path.join(self.directory, "deployment",
+                                 "jupyterhub", "config",
+                                 "jupyterhub_config.d")
+        logging.info("Copying config %s to %s." % (configdir, targetdir))
+        shutil.rmtree(targetdir)
+        shutil.copytree(configdir, targetdir)
 
     def _substitute_templates(self):
         """Walk through template files and make substitutions.
@@ -430,6 +452,7 @@ class JupyterLabDeployment(object):
             out = self._substitute(tpl)
             with open(destfile, 'w') as wf:
                 wf.write(out)
+        logging.info("Substituted %s -> %s." % (templatefile, destfile))
         os.remove(templatefile)
 
     def _substitute(self, tpl):
@@ -439,14 +462,14 @@ class JupyterLabDeployment(object):
         p = self.params
         # We do not yet know NFS_SERVER_IP_ADDRESS so leave it a template.
         return tpl.render(CLUSTERNAME=p['kubernetes_cluster_name'],
-                          GITHUB_CLIENT_ID=self.encode_value(
-                              'github_client_id'),
-                          GITHUB_OAUTH_CALLBACK_URL=self.encode_value(
-                              'github_callback_url'),
+                          OAUTH_CLIENT_ID=self.encode_value(
+                              'oauth_client_id'),
+                          OAUTH_SECRET=self.encode_value(
+                              'oauth_secret'),
+                          OAUTH_CALLBACK_URL=self.encode_value(
+                              'oauth_callback_url'),
                           GITHUB_ORGANIZATION_WHITELIST=self.encode_value(
                               'github_organization_whitelist'),
-                          GITHUB_SECRET=self.encode_value(
-                              'github_client_secret'),
                           SESSION_DB_URL=self.encode_value(
                               'session_db_url'),
                           JUPYTERHUB_CRYPTO_KEY=self.encode_value(
@@ -1026,12 +1049,10 @@ def get_cli_options():
     desc += ("Although the 'kubernetes_cluster_name' parameter must be " +
              "known, it will\ndefault to the hostname with dots replaced " +
              "by dashes.\n\n")
+    desc += ("The 'oauth_provider' must be 'github' or 'cilogon'.  It " +
+             "defaults to 'github'.\n\n")
     desc += ("For deployment, the following set of parameters is " +
              "required:\n%s.\n\n" % REQUIRED_DEPLOYMENT_PARAMETER_NAMES)
-    desc += ("The 'github_organization_whitelist' parameter is a list in " +
-             "the YAML file;\nas the environment variable " +
-             "JLD_GITHUB_ORGANIZATION_WHITELIST it must be a\n" +
-             "comma-separated list of GitHub organization names.\n\n")
     desc += ("The TLS information can be set by defining " +
              "JLD_CERTIFICATE_DIRECTORY and then\nputting 'cert.pem', " +
              "'key.pem', and 'chain.pem' in it.  If you put\n" +
@@ -1040,6 +1061,12 @@ def get_cli_options():
              "logging components, if you put\n'beats_cert.pem', " +
              "'beats_ca.pem', and 'beats_key.pem' in the same directory,\n" +
              "they will be used as well.\n\n")
+    desc += ("The 'github_organization_whitelist' parameter is a list in " +
+             "the YAML file;\nas the environment variable " +
+             "JLD_GITHUB_ORGANIZATION_WHITELIST it must be a\n" +
+             "comma-separated list of GitHub organization names.  If the " +
+             "'oauth_provider' parameter is not 'github', this is set " +
+             "to 'dummy' and subsequently ignored.\n\n")
     desc += ("All deployment parameters may be set from the environment, " +
              "not just\nrequired ones. The complete set of recognized " +
              "parameters is:\n%s.\n\n" % PARAMETER_NAMES)
@@ -1166,8 +1193,8 @@ def get_options_from_user(dtype="deploy", params={}):
     """
     prompts = {"kubernetes_cluster_name": "Kubernetes Cluster Name",
                "hostname": "JupyterLab Demo hostname (FQDN)",
-               "github_client_id": "GitHub OAuth Client ID",
-               "github_client_secret": "GitHub OAuth Client Secret",
+               "oauth_client_id": "GitHub OAuth Client ID",
+               "oauth_client_secret": "OAuth Client Secret",
                "github_organization_whitelist": "GitHub Organization Whitelist"
                }
     params.update(_get_values_from_prompt(params, ['hostname'], prompts))

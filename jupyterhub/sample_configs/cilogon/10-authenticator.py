@@ -1,6 +1,6 @@
 """
-This authenticator uses GitHub organization membership to make authentication
-and authorization decisions.
+This authenticator uses CILogon and the NCSA identity provider to make
+authentication and authorization decisions.
 """
 import json
 import os

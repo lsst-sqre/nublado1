@@ -5,8 +5,8 @@ import os
 
 # Set up auth environment
 c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-c.LSSTAuth.client_id = os.environ['CILOGON_CLIENT_ID']
-c.LSSTAuth.client_secret = os.environ['CILOGON_CLIENT_SECRET']
+c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
+c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 
 # Listen to all interfaces
 c.JupyterHub.ip = '0.0.0.0'

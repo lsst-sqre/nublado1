@@ -88,7 +88,6 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         if not self.enable_auth_state:
             return
         auth_state = yield user.get_auth_state()
-        self.log.info("Auth state: %s" % str(auth_state))
         gh_user = auth_state.get("github_user")
         gh_token = auth_state.get("access_token")
         if gh_user:

@@ -39,7 +39,8 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       matplotlib \
       bokeh
 RUN  pip3 install \
-      https://github.com/jupyterlab/jupyterlab/zipball/v0.30.6 \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
@@ -122,8 +123,19 @@ RUN  cd /usr/share/git && \
      setup afw && \
      source scl_source enable devtoolset-6 && \
      scons install force=True && \
-     scons declare force=True     
-RUN  /usr/bin/python3 /usr/bin/jupyter lab build
+     scons declare force=True
+RUN  for i in clean build; do \
+         /usr/bin/python3 /usr/bin/jupyter lab ${i} ; \
+     done
+# Temporary fix for theme problems 2017-12-20
+RUN  cd /usr/share/jupyter/lab/themes/@jupyterlab && \
+     for i in light dark; do \
+         cd "theme-${i}-extension" ; \
+         mkdir -p lab/api ; \
+         cd lab/api ; \
+         ln -s ../../../../../themes ; \
+	 cd ../../.. ; \
+     done
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
      chgrp -R jupyter /usr/share/git && \
@@ -134,7 +146,7 @@ COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \
-         ln ${i} $(basename ${i} .sh).csh ;\
+         ln ${i} $(basename ${i} .sh).csh ; \
      done
 RUN  for i in notebooks WORK DATA idleculler ; do \
         mkdir -p /etc/skel/${i} ; \

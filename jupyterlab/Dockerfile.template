@@ -40,6 +40,7 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       bokeh
 RUN  pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
@@ -125,6 +126,15 @@ RUN  cd /usr/share/git && \
      scons declare force=True
 RUN  for i in clean build; do \
          /usr/bin/python3 /usr/bin/jupyter lab ${i} ; \
+     done
+# Temporary fix for theme problems 2017-12-20
+RUN  cd /usr/share/jupyter/lab/themes/@jupyterlab && \
+     for i in light dark; do \
+         cd "theme-${i}-extension" ; \
+         mkdir -p lab/api ; \
+         cd lab/api ; \
+         ln -s ../../../../../themes ; \
+	 cd ../../.. ; \
      done
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \

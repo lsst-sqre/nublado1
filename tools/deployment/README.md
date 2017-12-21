@@ -81,7 +81,7 @@ Here are the steps you need to perform:
 	- `tls_cert`, `tls_key`, and `tls_root_chain`.  These correspond to
       the TLS PEM files you got earlier: specify the (local) path to
       them.
-	- `github_client_id` and `github_client_secret` from the OAuth
+	- `oauth_client_id` and `oauth_secret` from the OAuth
       application you created earlier.
 	- `github_organization_whitelist`: each list entry is a GitHub
       organization name that, if the person logging in is a member of,

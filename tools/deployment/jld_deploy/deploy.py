@@ -1194,7 +1194,7 @@ def get_options_from_user(dtype="deploy", params={}):
     prompts = {"kubernetes_cluster_name": "Kubernetes Cluster Name",
                "hostname": "JupyterLab Demo hostname (FQDN)",
                "oauth_client_id": "GitHub OAuth Client ID",
-               "oauth_client_secret": "OAuth Client Secret",
+               "oauth_secret": "OAuth Secret",
                "github_organization_whitelist": "GitHub Organization Whitelist"
                }
     params.update(_get_values_from_prompt(params, ['hostname'], prompts))

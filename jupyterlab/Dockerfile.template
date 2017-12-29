@@ -82,20 +82,15 @@ RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       /usr/bin/jupyter nbextension enable --py widgetsnbextension --sys-prefix
 RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
-#      for i in savequit hub bokeh; do \
-# Hub and Bokeh extensions still need updating.
 RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      jlpm global add webpack && \
-     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-     git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+     git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
+     git clone https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
      mv jupyterlab_bokeh jupyterlab-bokeh && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-     for i in savequit; do \
-     	 cd jupyterlab-${i} && \
-	 if [ "${i}" == "savequit" ]; then \
-             git checkout tickets/DM-12814 ; \
-         fi && \
+     for i in hub savequit bokeh; do \
+         cd jupyterlab-${i} && \
          python3 /usr/bin/jupyter labextension link . --no-build && \
          jlpm install --unsafe-perm && \
          jlpm run build && \

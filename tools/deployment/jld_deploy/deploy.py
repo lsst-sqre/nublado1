@@ -63,6 +63,7 @@ EXECUTABLES = ["gcloud", "kubectl", "aws"]
 DEFAULT_GKE_ZONE = "us-central1-a"
 DEFAULT_GKE_MACHINE_TYPE = "n1-standard-2"
 DEFAULT_GKE_NODE_COUNT = 3
+DEFAULT_GKE_LOCAL_VOLUME_SIZE_GB = 200
 DEFAULT_VOLUME_SIZE_GB = 20
 ENVIRONMENT_NAMESPACE = "JLD_"
 ME = os.path.realpath(__file__)
@@ -83,6 +84,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "gke_zone",
     "gke_node_count",
     "gke_machine_type",
+    "gke_local_volume_size_gigabytes",
     "volume_size_gigabytes",
     "session_db_url",
     "shipper_name",
@@ -277,6 +279,9 @@ class JupyterLabDeployment(object):
             self.params['gke_machine_type'] = DEFAULT_GKE_MACHINE_TYPE
         if self._empty_param('gke_node_count'):
             self.params['gke_node_count'] = DEFAULT_GKE_NODE_COUNT
+        if self._empty_param('gke_local_volume_size_gigabytes'):
+            self.params['gke_local_volume_size_gigabytes'] = \
+                DEFAULT_GKE_LOCAL_VOLUME_SIZE_GB
         if self._empty_param('oauth_provider'):
             self.params['oauth_provider'] = "github"
         if self.params['oauth_provider'] != "github":
@@ -569,12 +574,14 @@ class JupyterLabDeployment(object):
         """
         mtype = self.params['gke_machine_type']
         nodes = self.params['gke_node_count']
+        dsize = self.params['gke_local_volume_size_gigabytes']
         name = self.params['kubernetes_cluster_name']
         namespace = self.params['kubernetes_cluster_namespace']
         if not self.existing_cluster:
             self._run_gcloud(["container", "clusters", "create", name,
                               "--num-nodes=%d" % nodes,
-                              "--machine-type=%s" % mtype
+                              "--machine-type=%s" % mtype,
+                              "--disk-size=%s" % dsize
                               ])
             self._run_gcloud(["container", "clusters", "get-credentials",
                               name])
@@ -1177,7 +1184,8 @@ def _canonicalize_result_params(params):
     wlname = "github_organization_whitelist"
     if not _empty(params, wlname):
         params[wlname] = params[wlname].split(',')
-    for intval in ["gke_node_count", "volume_size_gigabytes"]:
+    for intval in ["gke_node_count", "volume_size_gigabytes",
+                   "gke_default_volume_size_gigabytes"]:
         if not _empty(params, intval):
             params[intval] = int(params[intval])
     return params

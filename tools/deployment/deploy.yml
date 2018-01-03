@@ -21,6 +21,7 @@ hostname: '{{FQDN}}'
 # zone: 'us-central-1a'
 # node_count: 3
 # machine_type: 'n1-standard-2'
+# default_local_volume_size_gigabytes: 200
 
 ### Nginx TLS termination (required)
 tls_cert: '/path/to/cert.pem'

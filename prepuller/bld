@@ -1,3 +1,4 @@
 #!/bin/sh
 cp ../tools/get_builds.py ../tools/node_update .
+./rebuild_yaml
 ./bld_1

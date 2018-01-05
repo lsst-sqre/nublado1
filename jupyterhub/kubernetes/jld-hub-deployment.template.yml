@@ -28,24 +28,24 @@ spec:
             - name: LOGLEVEL
               value: INFO
             - name: LAB_SELECTOR_TITLE
-              value: 'LSST Stack Selector'
+              value: '{{LAB_SELECTOR_TITLE}}'
             # Set to non-empty value to enable debugging.
-            # - name: DEBUG
-            #   value: 'TRUE'
+            - name: DEBUG
+              value: '{{DEBUG}}'
             # Set to customize what repo and what images to scan.
-            # - name: LAB_OWNER
-            #   value: 'lsstsqre'
-            # - name: LAB_REPO_NAME
-            #   value: 'jld-lab'
-            # - name: LAB_REPO_HOST
-            #   value: 'hub.docker.com'
+            - name: LAB_REPO_OWNER
+              value: '{{LAB_REPO_OWNER}}'
+            - name: LAB_REPO_NAME
+              value: '{{LAB_REPO_NAME}}'
+            - name: LAB_REPO_HOST
+              value: '{{LAB_REPO_HOST}}'
             # Set if you do not want to scan a repository for images.
-            # - name: LAB_IMAGE
-            #   value: 'lsstsqre/jld-lab:latest'
+            - name: LAB_IMAGE
+              value: '{{LAB_IMAGE}}'
             # Set if you want something other than 12 hours.  Setting to
             # zero or a negative value disables.
-            #  - name: LAB_IDLE_TIMEOUT
-            #    value: '43200'
+            - name: LAB_IDLE_TIMEOUT
+              value: '{{LAB_IDLE_TIMEOUT}}'
             - name: LAB_MEM_LIMIT
               value: '3G'
             - name: LAB_CPU_LIMIT

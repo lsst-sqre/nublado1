@@ -52,6 +52,22 @@ github_organization_whitelist:
 ### Session storage location.  Any SQLAlchemy URL will work.
 # session_db_url: 'sqlite:////home/jupyter/jupyterhub.sqlite'
 
+### Parameters for which image or set of images is presented by the Hub
+#  and used by prepuller
+# For a single image, use lab_image.
+# lab_image: 'lsstsqre/jld-lab:latest'
+# To scan a repo, specify some or all of a host/owner/repo combo
+#  and the tags will be parsed at login time
+# The values shown are the defaults.
+# lab_host: 'hub.docker.com'
+# lab_owner: 'lsstsqre'
+# lab_repo: 'jld-lab'
+
+### Idle timeout for reaping user containers
+# should be a string, and should be number of seconds.  Default is 12
+# hours.
+# lab_idle_timeout: '43200'
+
 ### Optional for ELK logging
 # beats_cert: '/path/to/beats_cert.pem'
 # beats_ca: '/path/to/beats_ca.pem'
@@ -64,3 +80,5 @@ github_organization_whitelist:
 ### Optional for firefly
 # firefly_admin_password: 'firefly'
 
+### Gets you more verbose Hub logging
+# debug: 'true'

@@ -12,4 +12,4 @@ RUN  chmod 0755 /usr/bin/get_builds /usr/bin/node_update \
 CMD [ "/usr/sbin/crond", "-n", "-x",  "sch,proc" ]
 LABEL      description="jupyterlab demo: imageprepuller" \
              name="lsstsqre/prepuller" \
-             version="0.0.3"
+             version="0.0.4"

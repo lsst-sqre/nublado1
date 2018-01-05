@@ -91,7 +91,14 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "rabbitmq_pan_password",
     "rabbitmq_target_host",
     "rabbitmq_target_vhost",
-    "firefly_admin_password"]
+    "firefly_admin_password",
+    "lab_image",
+    "lab_repo_owner",
+    "lab_repo_name",
+    "lab_repo_host",
+    "lab_selector_title",
+    "lab_idle_timeout",
+    "debug"]
 
 
 class JupyterLabDeployment(object):
@@ -288,6 +295,20 @@ class JupyterLabDeployment(object):
             if self._empty_param('github_organization_whitelist'):
                 # Not really required if we aren't using github.
                 self.params['github_organization_whitelist'] = "dummy"
+        if self._empty_param('debug'):
+            self.params['debug'] = ""  # Empty is correct
+        if self._empty_param('lab_image'):
+            self.params['lab_image'] = ''  # Use owner/name/host instead
+        if self._empty_param('lab_repo_host'):
+            self.params['lab_repo_host'] = "hub.docker.com"
+        if self._empty_param('lab_repo_owner'):
+            self.params['lab_repo_owner'] = 'lsstsqre'
+        if self._empty_param('lab_repo_name'):
+            self.params['lab_repo_name'] = "jld-lab"
+        if self._empty_param('lab_selector_title'):
+            self.params['lab_selector_title'] = "LSST Stack Selector"
+        if self._empty_param('lab_idle_timeout'):
+            self.params['lab_idle_timeout'] = "43200"  # string, not int
         return
 
     def _normalize_params(self):
@@ -500,6 +521,13 @@ class JupyterLabDeployment(object):
                               'rabbitmq_pan_password'),
                           RABBITMQ_TARGET_HOST=p['rabbitmq_target_host'],
                           RABBITMQ_TARGET_VHOST=p['rabbitmq_target_vhost'],
+                          DEBUG=p['debug'],
+                          LAB_IMAGE=p['lab_image'],
+                          LAB_REPO_HOST=p['lab_repo_host'],
+                          LAB_REPO_OWNER=p['lab_repo_owner'],
+                          LAB_REPO_NAME=p['lab_repo_name'],
+                          LAB_SELECTOR_TITLE=p['lab_selector_title'],
+                          LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
 

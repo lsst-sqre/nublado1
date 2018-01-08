@@ -40,15 +40,13 @@ if [ ${changed} -ne 0 ]; then
 		--namespace ${K8S_NAMESPACE} || exit 2
     fi
 fi
-if [ -z "${DEPYAML}" ]; then
-    DEPYAML="kubernetes/jld-hub-deployment.yml"
-fi
+./rebuild_yaml
 kubectl delete configmap jld-hub-config
 kubectl create configmap jld-hub-config \
 	--from-file=kubernetes/config/jupyterhub_config.py \
 	--from-file=kubernetes/config/jupyterhub_config.d
 kubectl delete deployment jld-hub
-kubectl create -f ${DEPYAML}
+kubectl create -f kubernetes/jld-hub-deployment.yml
 if [ ${changed} -ne 0 ]; then
     # Restore old context info if needed
     if [ ${ccontext} -ne 0 ]; then

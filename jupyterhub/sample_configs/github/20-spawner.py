@@ -19,7 +19,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
     def _options_form_default(self):
         # Make options form by scanning container repository
         title = os.getenv("LAB_SELECTOR_TITLE") or "Container Image Selector"
-        owner = os.getenv("LAB_OWNER") or "lsstsqre"
+        owner = os.getenv("LAB_REPO_OWNER") or "lsstsqre"
         repo = os.getenv("LAB_REPO_NAME") or "jld-lab"
         host = os.getenv("LAB_REPO_HOST") or "hub.docker.com"
         scanner = ScanRepo(host=host,

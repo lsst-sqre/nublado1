@@ -100,6 +100,15 @@ Here are the steps you need to perform:
    the first component of the hostname.  These can be changed in the
    deployment YAML or through environment variables.
 
+   If `external_fileserver_ip` is set, that IP address will be used;
+   this (at least currently) must be an NFSv4 fileserver which will
+   allow a client to both create new directories on the remote volume
+   (mounted in the Lab container as `/home`) and change their
+   ownership.  If this parameter is not set, a fileserver container (and
+   backing storage) and a keepalive container will be created and
+   used.  You may want to change the volume size from its default of
+   20Gb with the parameter `volume_size_gigabytes`.
+
    Feel free to customize other settings.  You particularly may want to
    change the volume size, and I strongly recommend precreating your
    `dhparam.pem` file with `openssl dhparam 2048 > dhparam.pem` in the
@@ -107,7 +116,7 @@ Here are the steps you need to perform:
    the deployment YAML.  All deployment settings can also be represented
    in the environment, but optional settings will not be
    prompted--instead, defaults will be used.
-   
+
 9. Run `deploy-jupyterlabdemo -f /path/to/mydeploy.yml` .
 
 10. After installation completes, browse to the FQDN you created.

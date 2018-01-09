@@ -39,6 +39,8 @@ tls_root_chain: '/path/to/chain.pem'
 # 1, and GKE caps default volume size at 500.  If you have no idea, go
 # with 20 (the default)
 # volume_size_gigabytes: 20
+# Or you can just specify an external fileserver, if you have one:
+# external_fileserver_ip: '192.168.10.22'
 
 ### GitHub OAuth application data (required)
 oauth_client_id: '{{OAUTH_CLIENT_ID}}'

@@ -91,6 +91,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "rabbitmq_pan_password",
     "rabbitmq_target_host",
     "rabbitmq_target_vhost",
+    "external_fileserver_ip",
     "firefly_admin_password",
     "lab_image",
     "lab_repo_owner",
@@ -589,8 +590,13 @@ class JupyterLabDeployment(object):
             self._create_gke_cluster()
             if self.enable_logging:
                 self._create_logging_components()
-            self._create_fileserver()
-            self._create_fs_keepalive()
+            if _empty(self.params, "external_fileserver_ip"):
+                self._create_fileserver()
+                self._create_fs_keepalive()
+            else:
+                ip = self.params['external_filesystem_ip']
+                ns = self.params['kubernetes_cluster_namespace']
+                self._substitute_fileserver_ip(ip, ns)
             if self.enable_prepuller:
                 self._create_prepuller()
             self._create_jupyterhub()

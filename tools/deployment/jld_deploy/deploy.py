@@ -594,7 +594,7 @@ class JupyterLabDeployment(object):
                 self._create_fileserver()
                 self._create_fs_keepalive()
             else:
-                ip = self.params['external_filesystem_ip']
+                ip = self.params['external_fileserver_ip']
                 ns = self.params['kubernetes_cluster_namespace']
                 self._substitute_fileserver_ip(ip, ns)
             if self.enable_prepuller:

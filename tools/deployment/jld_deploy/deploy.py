@@ -1299,7 +1299,9 @@ def _canonicalize_result_params(params):
     """
     wlname = "github_organization_whitelist"
     if not _empty(params, wlname):
-        params[wlname] = params[wlname].split(',')
+        ghowl = params[wlname]
+        if type(ghowl) is str:
+            params[wlname] = ghowl.split(',')
     for intval in ["gke_node_count", "volume_size_gigabytes",
                    "gke_default_volume_size_gigabytes"]:
         if not _empty(params, intval):

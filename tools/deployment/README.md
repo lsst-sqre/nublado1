@@ -84,8 +84,8 @@ and GitHub organization whitelist).
 
 ### YAML document-based / Environment-based deployment
 
-8a. `cp example-deployment.yml mydeploy.yml`.  Edit `mydeploy.yml`.
-    The following settings are required:
+8. (alternate) `cp example-deployment.yml mydeploy.yml`.  Edit
+    `mydeploy.yml`. The following settings are required:
     - `hostname`: the FQDN from earlier.
     - `tls_cert`, `tls_key`, and `tls_root_chain`.  These correspond to
       the TLS PEM files you got earlier: specify the (local) path to
@@ -126,7 +126,7 @@ and GitHub organization whitelist).
    in the environment, but optional settings will not be
    prompted--instead, defaults will be used.
 
-8b. Run `deploy-jupyterlabdemo -f /path/to/mydeploy.yml` .
+   Finally, run `deploy-jupyterlabdemo -f /path/to/mydeploy.yml` .
 
 ### Usage and teardown
 

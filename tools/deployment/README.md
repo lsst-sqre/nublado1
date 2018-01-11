@@ -55,7 +55,8 @@ Here are the steps you need to perform:
    step is not strictly necessary but will keep you from cluttering up
    your system python with the modules required for deployment.
    
-   Python 3 is necessary: this deployment will not work with Python 2.
+   Python 3.5 or later is necessary: this deployment will not work with
+   Python 2 or Python 3.0-3.4.
 
     - I like to use `virtualenv-wrapper` and `mkvirtualenv`; if you're
    doing that, `mkvirtualenv -p $(which python3)` (you will need to have
@@ -74,16 +75,24 @@ Here are the steps you need to perform:
 7. `cd sqre/jupyterlabdemo/tools/deployment`.  Then (making sure you are
    inside the activated virtualenv) `pip3 install -e .`.  If you chose
    to not use virtualenv, `pip3 install --user -e .`.
-   
-8. `cp deploy.yml mydeploy.yml`.  Edit `mydeploy.yml`.  The following
-   settings are required:
-	- `hostname`: the FQDN from earlier.
-	- `tls_cert`, `tls_key`, and `tls_root_chain`.  These correspond to
+
+### Interactive deployment
+
+8. Run `deploy-jupyterlabdemo`.  Answer the questions asked by the
+deployment script (FQDN, certificate directory, OAuth client and secret,
+and GitHub organization whitelist).
+
+### YAML document-based / Environment-based deployment
+
+8a. `cp example-deployment.yml mydeploy.yml`.  Edit `mydeploy.yml`.
+    The following settings are required:
+    - `hostname`: the FQDN from earlier.
+    - `tls_cert`, `tls_key`, and `tls_root_chain`.  These correspond to
       the TLS PEM files you got earlier: specify the (local) path to
       them.
-	- `oauth_client_id` and `oauth_secret` from the OAuth
+    - `oauth_client_id` and `oauth_secret` from the OAuth
       application you created earlier.
-	- `github_organization_whitelist`: each list entry is a GitHub
+    - `github_organization_whitelist`: each list entry is a GitHub
       organization name that, if the person logging in is a member of,
       login will be allowed to succeed.
 	  
@@ -93,7 +102,7 @@ Here are the steps you need to perform:
    instance, `JLD_HOSTNAME`.  If you run the deployment
    program without either specifying a file or supplying required
    parameters in the environment, you will be prompted for those
-   parameters.
+   parameters as in the interactive deployment.
    
    The default `kubernetes_cluster_name` is the DNS FQDN with dots
    replaced by dashes.  The default `kubernetes_cluster_namespace` is
@@ -117,12 +126,16 @@ Here are the steps you need to perform:
    in the environment, but optional settings will not be
    prompted--instead, defaults will be used.
 
-9. Run `deploy-jupyterlabdemo -f /path/to/mydeploy.yml` .
+8b. Run `deploy-jupyterlabdemo -f /path/to/mydeploy.yml` .
 
-10. After installation completes, browse to the FQDN you created.
+### Usage and teardown
 
-11. When you're done and ready to tear down the cluster, run
-    `deploy-jupyterlabdemo -f /path/to/mydeploy.yml -u` .
+9. After installation completes, browse to the FQDN you created.
+
+10. When you're done and ready to tear down the cluster, run
+    `deploy-jupyterlabdemo -f /path/to/mydeploy.yml -u` if you deployed
+    with a YAML file, or just `deploy-jupyterlabdemo -u` and answer the
+	FQDN question if `JLD_HOSTNAME` is not set.
 
 ## Running a custom configuration
 

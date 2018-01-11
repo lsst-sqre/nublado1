@@ -118,6 +118,8 @@ class JupyterLabDeployment(object):
     b64_cache = {}
     executables = {}
     srcdir = None
+    disklist = []
+    _activedisk = None
 
     def __init__(self, yamlfile=None, params=None, directory=None,
                  disable_prepuller=False, existing_cluster=False,
@@ -569,18 +571,17 @@ class JupyterLabDeployment(object):
         pathvars = ['tls_cert', 'tls_key', 'tls_root_chain',
                     'beats_cert', 'beats_key', 'beats_ca']
         fullpathvars = set()
+        ignore = ['oauth_callback_url', 'crypto_key', 'dhparams',
+                  'nfs_volume_size', 'volume_size']
         for p in pathvars:
             v = self.params.get(p)
             if v:
                 fullpathvars.add(v)
+        ignore += fullpathvars
         for k, v in self.params.items():
             if not v:
                 continue
-            if k == 'dhparams':
-                continue
-            if k == 'nfs_volume_size' or k == 'volume_size':
-                continue
-            if k in fullpathvars:
+            if k in ignore:
                 continue
             cleancopy[k] = v
         return cleancopy
@@ -632,6 +633,49 @@ class JupyterLabDeployment(object):
         if rc.returncode == 0:
             return True
         return False
+
+    def _destroy_gke_disks(self):
+        """Destroy disks."""
+        for disk in self.disklist:
+            logging.info("Destroying disk '%s'." % disk)
+            removable = self._check_disk_removability(disk)
+            if removable:
+                self._run_gcloud(["compute", "disks", "delete", disk, "-q"],
+                                 check=False)
+            else:
+                logging.warn("Disk '%s' is not removable." % disk)
+
+    def _check_disk_removability(self, disk):
+        if not disk:
+            logging.warn("No active disk to check removability.")
+            return False
+        self._activedisk = disk
+        try:
+            self._waitfor(self._disk_released)
+        except RuntimeError as e:
+            logging.error(str(e))
+            return False
+        return True
+
+    def _disk_released(self):
+        disk = self._activedisk
+        rc = self._run_gcloud(
+            ["compute", "disks", "describe", disk, "-q"],
+            capture=True, check=False)
+        if rc.returncode:
+            logging.warn("Disk '%s' indescribable.  Assuming removable.")
+            return True
+        struct = yaml.load(rc.stdout.decode('utf-8'))
+        if "users" in struct:
+            ulist = struct["users"]
+            if ulist and len(ulist) > 0:
+                user = ulist[0].split('/')[-1]
+                logging.info("Disk '%s' in use by '%s'." % (disk, user))
+                logging.info("Attempting to detach it.")
+                self._run_gcloud(["compute", "instances", "detach-disk", user,
+                                  "--disk=%s" % disk], check=False)
+                return False
+        return True
 
     def _destroy_gke_cluster(self):
         """Destroy cluster and namespace if required.
@@ -766,15 +810,45 @@ class JupyterLabDeployment(object):
                 retval.append(name)
         return retval
 
+    def _get_pv_and_disk_from_pvc(self, pvc):
+        """Given a PVC name, get the PV and disk it's bound to.
+        """
+        logging.info("Getting PV and disk names for PVC '%s'." % pvc)
+        pv = None
+        disk = None
+        rc = self._run(["kubectl", "get", "pvc", "-o", "yaml", pvc],
+                       capture=True, check=False)
+        if rc.returncode != 0:
+            return pv
+        struct = yaml.load(rc.stdout.decode('utf-8'))
+        if "spec" in struct and "volumeName" in struct["spec"]:
+            pv = struct["spec"]["volumeName"]
+        if pv:
+            logging.info("Getting disk name for PV '%s'." % pv)
+            rc = self._run(["kubectl", "get", "pv", "-o", "yaml", pv],
+                           capture=True, check=False)
+            if rc.returncode != 0:
+                return pv
+            struct = yaml.load(rc.stdout.decode('utf-8'))
+            if ("spec" in struct and "gcePersistentDisk" in struct["spec"]
+                    and "pdName" in struct["spec"]["gcePersistentDisk"]):
+                disk = struct["spec"]["gcePersistentDisk"]["pdName"]
+                self.disklist.append(disk)
+        return pv
+
     def _destroy_fileserver(self):
         logging.info("Destroying fileserver.")
         ns = self.params["kubernetes_cluster_namespace"]
-        for c in [["pvc", "jld-fileserver-home"],
-                  ["pv", "jld-fileserver-home-%s" % ns],
-                  ["service", "jld-fileserver"],
-                  ["pvc", "jld-fileserver-physpvc"],
-                  ["deployment", "jld-fileserver"],
-                  ["storageclass", "fast"]]:
+        pv = self._get_pv_and_disk_from_pvc("jld-fileserver-physpvc")
+        items = [["pvc", "jld-fileserver-home"],
+                 ["pv", "jld-fileserver-home-%s" % ns],
+                 ["service", "jld-fileserver"],
+                 ["pvc", "jld-fileserver-physpvc"],
+                 ["deployment", "jld-fileserver"],
+                 ["storageclass", "fast"]]
+        if pv:
+            items.append(["pv", pv])
+        for c in items:
             self._run_kubectl_delete(c)
         self._destroy_pods_with_callback(self._check_fileserver_gone,
                                          "fileserver")
@@ -858,11 +932,15 @@ class JupyterLabDeployment(object):
 
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
-        for c in [["deployment", "jld-hub"],
-                  ["configmap", "jld-hub-config"],
-                  ["secret", "jld-hub"],
-                  ["pvc", "jld-hub-physpvc"],
-                  ["svc", "jld-hub"]]:
+        pv = self._get_pv_and_disk_from_pvc("jld-hub-physpvc")
+        items = [["deployment", "jld-hub"],
+                 ["configmap", "jld-hub-config"],
+                 ["secret", "jld-hub"],
+                 ["pvc", "jld-hub-physpvc"],
+                 ["svc", "jld-hub"]]
+        if pv:
+            items.append(["pv", pv])
+        for c in items:
             self._run_kubectl_delete(c)
 
     def _create_nginx(self):
@@ -972,12 +1050,16 @@ class JupyterLabDeployment(object):
             self._destroy_fileserver()
             self._destroy_logging_components()
             self._destroy_gke_cluster()
+            self._destroy_gke_disks()
 
-    def _run_gcloud(self, args):
+    def _run_gcloud(self, args, check=True, capture=False):
         """Convenience method for running gcloud in the right zone.
         """
-        newargs = ["gcloud"] + args + ["--zone=%s" % self.params["gke_zone"]]
-        self._run(newargs)
+        newargs = (["gcloud"] +
+                   args +
+                   ["--zone=%s" % self.params["gke_zone"]] +
+                   ["--format=yaml"])
+        return self._run(newargs, check=check, capture=capture)
 
     def _run_kubectl_create(self, filename):
         """Convenience method to create a kubernetes resource from a file.

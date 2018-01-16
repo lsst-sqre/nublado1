@@ -136,7 +136,7 @@ RUN  cd /usr/share/jupyter/lab/themes/@jupyterlab && \
          mkdir -p lab/api ; \
          cd lab/api ; \
          ln -s ../../../../../themes ; \
-	 cd ../../.. ; \
+         cd ../../.. ; \
      done
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \

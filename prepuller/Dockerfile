@@ -13,4 +13,4 @@ RUN  chmod 0755 /usr/bin/get_builds /usr/bin/run-cron.sh /usr/bin/node_update \
 CMD [ "/usr/bin/run-cron.sh" ]
 LABEL      description="jupyterlab demo: imageprepuller" \
              name="lsstsqre/prepuller" \
-             version="0.0.4"
+             version="0.0.5"

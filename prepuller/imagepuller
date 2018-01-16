@@ -1,14 +1,15 @@
 #!/bin/sh
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
-LAB_REPO_HOST=${1:-"hub.docker.com"}
-LAB_REPO_OWNER=${1:-"lsstsqre"}
-LAB_REPO_NAME=${1:-"jld-lab"}
+LAB_REPO_HOST=${LAB_REPO_HOST:-"hub.docker.com"}
+LAB_REPO_OWNER=${LAB_REPO_OWNER:-"lsstsqre"}
+LAB_REPO_NAME=${LAB_REPO_NAME:-"jld-lab"}
 RANDOM_DELAY=30 # So they don't all run at once.
 export RANDOM_DELAY
 if [ -n "${LAB_IMAGE}" ]; then
     LAB_CONTAINER_NAMES="${LAB_IMAGE}"
+    echo "Pulling image ${LAB_IMAGE}"
 else
+    echo "Pulling image ${LAB_REPO_OWNER}:${LAB_REPO_NAME}from ${LAB_REPO_HOST}!"
     get_builds -r ${LAB_REPO_HOST} \
 	       -o ${LAB_REPO_OWNER} \
 	       -n ${LAB_REPO_NAME} \

@@ -6,6 +6,7 @@ import json
 import kubespawner
 import os
 import urllib
+from urllib.error import HTTPError
 from kubespawner.objects import make_pod
 from tornado import gen
 
@@ -29,9 +30,9 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                            )
         try:
             scanner.scan()
-        except ValueError:
-            self.log.warning("Could not get container data from %s: %s/%s" %
-                             (host, owner, repo))
+        except (ValueError, HTTPError) as e:
+            self.log.warning("Could not get data from %s: %s/%s [%s]" %
+                             (host, owner, repo, str(e)))
             return ""
         lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
@@ -278,7 +279,12 @@ class ScanRepo(object):
         results = []
         page = 1
         while True:
-            resp_bytes = self._get_url(page=page)
+            try:
+                resp_bytes = self._get_url(page=page)
+            except Exception as e:
+                raise ValueError("Failure retrieving %s: %s [ data: %s ]" %
+                                 (url, str(e),
+                                  str(resp_bytes.decode("utf-8"))))
             resp_text = resp_bytes.decode("utf-8")
             try:
                 j = json.loads(resp_text)

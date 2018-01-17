@@ -86,9 +86,9 @@ RUN  mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      jlpm global add webpack && \
      git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
-     git clone https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
-     mv jupyterlab_bokeh jupyterlab-bokeh && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
+     git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+     mv jupyterlab_bokeh jupyterlab-bokeh && \
      for i in hub savequit bokeh; do \
          cd jupyterlab-${i} && \
          python3 /usr/bin/jupyter labextension link . --no-build && \
@@ -140,8 +140,15 @@ RUN  cd /usr/share/jupyter/lab/themes/@jupyterlab && \
      done
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
-     chgrp -R jupyter /usr/share/git && \
-     chmod -R g+w /usr/share/git
+     u="/usr/share" && \
+     jl="jupyter/lab" && \
+     mkdir -p ${u}/${jl}/staging ${u}/${jl}/schemas ${u}/${jl}/themes && \
+     for i in git ${jl}/staging ${jl}; do \
+         chgrp -R jupyter ${u}/${i} ; \
+         chmod -R g+w ${u}/${i} ; \
+     done && \
+     chgrp -R jupyter /usr/share/jupyter/lab/staging && \
+     chmod -R g+w /usr/share/jupyter
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \

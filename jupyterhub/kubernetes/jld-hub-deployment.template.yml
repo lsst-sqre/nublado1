@@ -51,9 +51,9 @@ spec:
             - name: LAB_CPU_LIMIT
               value: '2.0'
             - name: LAB_MEM_GUARANTEE
-              value: '512M'
+              value: '{{LAB_MEM_GUARANTEE}}'
             - name: LAB_CPU_GUARANTEE
-              value: '0.5'
+              value: '{{LAB_CPU_GUARANTEE}}'
             - name: JUPYTERLAB_CONFIG_DIR
               value: '/opt/lsst/software/jupyterhub/config'
             - name: GITHUB_ORGANIZATION_WHITELIST

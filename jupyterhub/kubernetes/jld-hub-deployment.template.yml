@@ -47,9 +47,9 @@ spec:
             - name: LAB_IDLE_TIMEOUT
               value: '{{LAB_IDLE_TIMEOUT}}'
             - name: LAB_MEM_LIMIT
-              value: '3G'
+              value: '{{LAB_MEM_LIMIT}}'
             - name: LAB_CPU_LIMIT
-              value: '2.0'
+              value: '{{LAB_CPU_LIMIT}}'
             - name: LAB_MEM_GUARANTEE
               value: '{{LAB_MEM_GUARANTEE}}'
             - name: LAB_CPU_GUARANTEE

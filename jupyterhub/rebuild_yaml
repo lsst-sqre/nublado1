@@ -1,0 +1,26 @@
+#!/bin/sh
+if [ -z "${DEPYAMLTPL}" ]; then
+    DEPYAMLTPL="kubernetes/jld-hub-deployment.template.yml"
+fi
+DEPYAML="kubernetes/jld-hub-deployment.yml"
+LAB_SELECTOR_TITLE=${1:-"LSST Stack Selector"}
+LAB_REPO_HOST=${1:-"hub.docker.com"}
+LAB_REPO_OWNER=${1:-"lsstsqre"}
+LAB_REPO_NAME=${1:-"jld-lab"}
+LAB_IDLE_TIMEOUT=${1:-"43200"}
+LAB_MEM_GUARANTEE=${1:-"512M"}
+LAB_CPU_GUARANTEE=${1:-"0.5"}
+LAB_MEM_LIMIT=${1:-"2G"}
+LAB_CPU_LIMIT=${1:-"2.0"}
+sed -e "s/{{DEBUG}}/${DEBUG}/g" \
+    -e "s/{{LAB_IMAGE}}/${LAB_IMAGE}/g" \
+    -e "s/{{LAB_SELECTOR_TITLE}}/${LAB_SELECTOR_TITLE}/g" \
+    -e "s/{{LAB_REPO_HOST}}/${LAB_REPO_HOST}/g" \
+    -e "s/{{LAB_REPO_OWNER}}/${LAB_REPO_OWNER}/g" \
+    -e "s/{{LAB_REPO_NAME}}/${LAB_REPO_NAME}/g" \
+    -e "s/{{LAB_IDLE_TIMEOUT}}/${LAB_IDLE_TIMEOUT}/g" \
+    -e "s/{{LAB_MEM_LIMIT}}/${LAB_MEM_LIMIT}/g" \
+    -e "s/{{LAB_CPU_LIMIT}}/${LAB_CPU_LIMIT}/g" \
+    -e "s/{{LAB_MEM_GUARANTEE}}/${LAB_MEM_GUARANTEE}/g" \
+    -e "s/{{LAB_CPU_GUARANTEE}}/${LAB_CPU_GUARANTEE}/g" \
+    ${DEPYAMLTPL} > ${DEPYAML}

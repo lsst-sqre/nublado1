@@ -99,6 +99,10 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_repo_host",
     "lab_selector_title",
     "lab_idle_timeout",
+    "lab_cpu_limit",
+    "lab_mem_limit",
+    "lab_cpu_guarantee",
+    "lab_mem_guarantee",
     "debug"]
 
 
@@ -312,6 +316,14 @@ class JupyterLabDeployment(object):
             self.params['lab_selector_title'] = "LSST Stack Selector"
         if self._empty_param('lab_idle_timeout'):
             self.params['lab_idle_timeout'] = "43200"  # string, not int
+        if self._empty_param('lab_mem_limit'):
+            self.params['lab_mem_limit'] = "3G"
+        if self._empty_param('lab_cpu_limit'):
+            self.params['lab_cpu_limit'] = "2.0"
+        if self._empty_param('lab_mem_guarantee'):
+            self.params['lab_mem_guarantee'] = "512M"
+        if self._empty_param('lab_cpu_guarantee'):
+            self.params['lab_cpu_guarantee'] = "0.5"
         return
 
     def _normalize_params(self):
@@ -531,6 +543,10 @@ class JupyterLabDeployment(object):
                           LAB_REPO_NAME=p['lab_repo_name'],
                           LAB_SELECTOR_TITLE=p['lab_selector_title'],
                           LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],
+                          LAB_MEM_LIMIT=p['lab_mem_limit'],
+                          LAB_CPU_LIMIT=p['lab_cpu_limit'],
+                          LAB_MEM_GUARANTEE=p['lab_mem_guarantee'],
+                          LAB_CPU_GUARANTEE=p['lab_cpu_guarantee'],
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
 

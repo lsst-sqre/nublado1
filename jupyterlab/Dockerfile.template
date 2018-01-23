@@ -88,9 +88,8 @@ RUN  mkdir -p /usr/share/git && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
-     mv jupyterlab_bokeh jupyterlab-bokeh && \
-     for i in hub savequit bokeh; do \
-         cd jupyterlab-${i} && \
+     for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
+         cd ${i} && \
          python3 /usr/bin/jupyter labextension link . --no-build && \
          jlpm install --unsafe-perm && \
          jlpm run build && \
@@ -130,25 +129,21 @@ RUN  for i in clean build; do \
          /usr/bin/python3 /usr/bin/jupyter lab ${i} ; \
      done
 # Temporary fix for theme problems 2017-12-20
-RUN  cd /usr/share/jupyter/lab/themes/@jupyterlab && \
-     for i in light dark; do \
-         cd "theme-${i}-extension" ; \
-         mkdir -p lab/api ; \
-         cd lab/api ; \
-         ln -s ../../../../../themes ; \
-         cd ../../.. ; \
-     done
+# Why do I need this?
+RUN /usr/bin/python3 /usr/bin/jupyter labextension install jupyterlab_bokeh
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
      u="/usr/share" && \
      jl="jupyter/lab" && \
-     mkdir -p ${u}/${jl}/staging ${u}/${jl}/schemas ${u}/${jl}/themes && \
-     for i in git ${jl}/staging ${jl}; do \
-         chgrp -R jupyter ${u}/${i} ; \
-         chmod -R g+w ${u}/${i} ; \
-     done && \
-     chgrp -R jupyter /usr/share/jupyter/lab/staging && \
-     chmod -R g+w /usr/share/jupyter
+# This gets rid of permission errors on startup....but also radically slows
+#  down startup.
+#     mkdir -p ${u}/${jl}/staging ${u}/${jl}/schemas ${u}/${jl}/themes && \
+#     for i in git ${jl}/staging ${jl}; do \
+#         chgrp -R jupyter ${u}/${i} ; \
+#         chmod -R g+w ${u}/${i} ; \
+#     done && \
+     chgrp -R jupyter ${u}/${jl}/staging && \
+     chmod -R g+w ${u}/${jl}/staging
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \

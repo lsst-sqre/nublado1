@@ -135,15 +135,15 @@ RUN /usr/bin/python3 /usr/bin/jupyter labextension install jupyterlab_bokeh
 RUN  groupadd -g 768 jupyter && \
      u="/usr/share" && \
      jl="jupyter/lab" && \
-# This gets rid of permission errors on startup....but also radically slows
-#  down startup.
-#     mkdir -p ${u}/${jl}/staging ${u}/${jl}/schemas ${u}/${jl}/themes && \
-#     for i in git ${jl}/staging ${jl}; do \
-#         chgrp -R jupyter ${u}/${i} ; \
-#         chmod -R g+w ${u}/${i} ; \
-#     done && \
-     chgrp -R jupyter ${u}/${jl}/staging && \
-     chmod -R g+w ${u}/${jl}/staging
+# If we recursively chown all of the lab directory, it gets rid of permission
+# errors on startup....but also radically slows down startup, by about
+# three minutes.
+     mkdir -p ${u}/${jl}/staging ${u}/${jl}/schemas ${u}/${jl}/themes && \
+     for i in git ${jl}/staging; do \
+#     for i in git ${jl}; do \
+         chgrp -R jupyter ${u}/${i} ; \
+         chmod -R g+w ${u}/${i} ; \
+     done
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \

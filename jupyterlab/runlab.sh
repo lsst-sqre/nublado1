@@ -5,8 +5,11 @@ if [ -n "${DEBUG}" ]; then
     set -x
 fi
 # Rebuild Lab
-/usr/bin/python3 /usr/bin/jupyter lab clean
-/usr/bin/python3 /usr/bin/jupyter lab build
+# If write permissions don't exist, these don't actually succeed...but
+#  startup is three minutes faster, and since we did the lab build in the
+#  container image creation, everything works anyway.  Hence the redirection.
+/usr/bin/python3 /usr/bin/jupyter lab clean 2>&1 >/dev/null
+/usr/bin/python3 /usr/bin/jupyter lab build 2>&1 >/dev/null
 # Set GitHub configuration
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"

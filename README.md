@@ -45,7 +45,13 @@ churn, and an IPAC Firefly server.
 * Start by running `. /opt/lsst/software/stack/loadLSST.bash`.  Then
   `setup lsst_distrib` and then you're in a stack shell environment.
 
-## Deploying a Kubernetes Cluster
+## Deploying a Jupyterlab Demo Kubernetes Cluster
+
+### Quick Start: Automated Tool
+
+See [Deployment Tool README](tools/deployment/README.md) for the
+easier way to deploy.  The remainder of these instructions cover a
+manual deployment.
 
 ### Requirements
  

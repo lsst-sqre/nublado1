@@ -5,7 +5,11 @@ authentication and authorization decisions.
 import json
 import os
 import oauthenticator
-from tornado import gen
+from tornado import gen, web
+from tornado.httpclient import HTTPRequest, AsyncHTTPClient
+from tornado.httputil import url_concat
+
+CILOGON_HOST = os.environ.get('CILOGON_HOST') or 'cilogon.org'
 
 
 class LSSTAuth(oauthenticator.CILogonOAuthenticator):
@@ -15,6 +19,7 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
     _state = None
     _default_domain = "ncsa.illinois.edu"
     login_handler = oauthenticator.CILogonLoginHandler
+    allowed_groups = os.environ.get("CILOGON_GROUP_WHITELIST") or "lsst_users"
 
     @gen.coroutine
     def authenticate(self, handler, data=None):
@@ -24,15 +29,87 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
         to the domain.
         """
         userdict = yield super().authenticate(handler, data)
-        if "auth_state" in userdict:
-            if "cilogon_user" in userdict["auth_state"]:
-                user_rec = userdict["auth_state"]["cilogon_user"]
-                if "eppn" in user_rec:
-                    username, domain = user_rec["eppn"].split("@")
-                    if domain != self._default_domain:
-                        username = username + "." + domain
-                userdict["name"] = username
+        if userdict:
+            membership = yield self._check_group_membership(userdict)
+            if not membership:
+                userdict = None
+        if userdict and "cilogon_user" in userdict["auth_state"]:
+            user_rec = userdict["auth_state"]["cilogon_user"]
+            if "eppn" in user_rec:
+                username, domain = user_rec["eppn"].split("@")
+                if domain != self._default_domain:
+                    username = username + "." + domain
+            userdict["name"] = username
         return userdict
+
+    @gen.coroutine
+    def _check_group_membership(self, userdict):
+        if ("auth_state" not in userdict or not userdict["auth_state"]):
+            self.log.warn("User doesn't have auth_state")
+            return False
+        ast = userdict["auth_state"]
+        cu = ast["cilogon_user"]
+        if "isMemberOf" in cu:
+            has_member = yield self._check_member_of(cu["isMemberOf"])
+            if not has_member:
+                return False
+        if ("token_response" not in ast or not ast["token_response"] or
+            "id_token" not in ast["token_response"] or not
+                ast["token_response"]["id_token"]):
+            self.log.warn("User doesn't have ID token!")
+            return False
+        url = "https://%s/oauth2/util" % CILOGON_HOST
+        token = ast["token_response"]["id_token"]
+        params = {
+            "action": "check_claim",
+            "claim_name": "isMemberOf",
+            "token": token
+        }
+        allowed_groups = self.allowed_groups.split(",")
+        http_client = AsyncHTTPClient()
+        uname = userdict["name"]
+        for group in allowed_groups:
+            params.update({"claim_value": "cn=%s" % group})
+            param_url = url_concat(url, params)
+            req = HTTPRequest(param_url, method="GET")
+            resp = yield http_client.fetch(req)
+            text = resp.body.decode('utf8', 'replace').rstrip()
+            if text == u"yes":
+                self.log.info("User %s is in group %s" % (uname, group))
+                return True
+            elif text == u"no":
+                self.log.info("User %s is not in group %s" % (uname, group))
+            else:
+                self.log.info("Response %s for user %s / group %s" %
+                              (text, uname, group))
+        self.log.warn("User %s not in any group in %r" %
+                      (uname, allowed_groups))
+        return False
+
+    @gen.coroutine
+    def _return_groups(self, grouplist):
+        grps = []
+        for ldapfield in grouplist:
+            fldlist = ldapfield.split(",")
+            rec = {}
+            for fld in fldlist:
+                k, v = fld.split("=")
+                rec[k] = v  # This flattens dc but we don't care
+            if "ou" not in rec or rec["ou"] != "Groups":
+                continue  # Not the droid we're looking_for
+            grps.append(rec["cn"])
+        return grps
+
+    @gen.coroutine
+    def _check_member_of(self, grouplist):
+        self.log.info("Using undocumented isMemberOf field.")
+        allowed_groups = self.allowed_groups.split(",")
+        user_groups = yield self._return_groups(grouplist)
+        intersection = list(set(allowed_groups) &
+                            set(user_groups))
+        if intersection:
+            return True
+        return False
 
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
@@ -97,19 +174,32 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
             return
         auth_state = yield user.get_auth_state()
         if auth_state:
-            save_token = auth_state["access_token"]
-            auth_state["access_token"] = "[secret]"
+            save_token = auth_state["token_response"]
+            auth_state["token_response"] = "[secret]"
             self.log.info("auth_state: %s", json.dumps(auth_state,
                                                        indent=4,
                                                        sort_keys=True))
-            auth_state["access_token"] = save_token
+            auth_state["token_response"] = save_token
             if "cilogon_user" in auth_state:
                 user_rec = auth_state["cilogon_user"]
                 sub = user_rec.get("sub")
                 if sub:
-                    uid = sub.split("/")[-1]  # Last field is UID
+                    uid = sub.split("/")[-1]  # We pretend last field is UID
                     spawner.environment['EXTERNAL_UID'] = uid
-            # Might be nice to have a mixin to also get GitHub information...
+                    # We want UID/GIDs from OAuth2
+                membership = user_rec.get("isMemberOf")
+                if membership:
+                    user_groups = yield self._return_groups(membership)
+                    gidlist = []
+                    # This is faked until we get GIDs from OAuth2
+                    igrp = 5000
+                    for grp in user_groups:
+                        gidlist.append(grp + ":" + str(igrp))
+                        igrp = igrp + 1
+                    grplist = ",".join(gidlist)
+                    spawner.environment['EXTERNAL_GROUPS'] = grplist
+                    # Might be nice to have a mixin to also get GitHub
+                    # information...
 
 
 c.JupyterHub.authenticator_class = LSSTAuth

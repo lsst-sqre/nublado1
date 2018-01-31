@@ -11,8 +11,10 @@ RUN  pip3 install jupyterlab ipykernel pyyaml pycurl python-oauth2 wheel \
        cryptography
 RUN pip3 install \
      https://github.com/jupyterhub/jupyterhub/zipball/master \
-     https://github.com/jupyterhub/oauthenticator/zipball/master \
-     https://github.com/jupyterhub/kubespawner/zipball/master
+     https://github.com/jupyterhub/kubespawner/zipball/master \
+     https://github.com/jupyterhub/oauthenticator/zipball/master
+# Until https://github.com/jupyterhub/oauthenticator/pull/154 is merged
+RUN pip3 install https://github.com/lsst-sqre/oauthenticator/zipball/master
 RUN  python3 /usr/bin/jupyter serverextension enable --py \
       jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterhub/config
@@ -23,5 +25,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.4.7"
+	     version="0.4.8"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

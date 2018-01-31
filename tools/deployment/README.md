@@ -10,6 +10,8 @@ true.
 - The domain name is hosted within AWS Route 53.
 - Authentication is done via OAuth against GitHub, and GitHub
   organization membership is used to determine access control.
+- Authentication via OAuth against NCSA/CILogon is also supported,
+  but these instructions assume the GitHub route.
 
 Here are the steps you need to perform:
 
@@ -32,6 +34,10 @@ Here are the steps you need to perform:
 	5. Note the Client ID and Client Secret you get.  You will need
        these later.
 	   
+	If you're using CILogon, set up your client and secret using NCSA as
+    your identity provider.  The whitelist will be a comma-separated
+	list of NCSA groups.
+
 3. Get TLS certificates for the hostname you provided above.  AWS
    certificates will not work, as you need the TLS private key for the
    JupyterLab setup.  A wildcard certificate for the domain would work
@@ -80,7 +86,11 @@ Here are the steps you need to perform:
 
 8. Run `deploy-jupyterlabdemo`.  Answer the questions asked by the
 deployment script (FQDN, certificate directory, OAuth client and secret,
-and GitHub organization whitelist).
+GitHub organization whitelist, and CILogon group whitelist; any old
+value will do for the OAuth service you aren't using).  If you want to
+use CILogon you should set the environment variable
+`JLD_OAUTH_PROVIDER` to `cilogon` before running the deployment tool.
+
 
 ### YAML document-based / Environment-based deployment
 
@@ -95,6 +105,8 @@ and GitHub organization whitelist).
     - `github_organization_whitelist`: each list entry is a GitHub
       organization name that, if the person logging in is a member of,
       login will be allowed to succeed.
+	- alternatively, set `oauth_provider` to `cilogon` and set
+	  `cilogon_group_whitelist` instead.
 	  
    You can also specify these as environment variables.  The rule for
    creation is that the environment variable name is `JLD_` prepended to

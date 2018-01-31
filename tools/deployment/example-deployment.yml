@@ -46,10 +46,18 @@ tls_root_chain: '/path/to/chain.pem'
 oauth_client_id: '{{OAUTH_CLIENT_ID}}'
 oauth_secret: '{{OAUTH_SECRET}}'
 
-### If oauth_type is 'github', 'github_organization_whitelist' is required.
-github_organization_whitelist:
-  - '{{GITHUB_ORG_1}}'
-  - '{{GITHUB_ORG_2}}'
+### Allowed groups (required)
+allowed_groups:
+  - '{{ALLOWED_GROUP_1}}'
+  - '{{ALLOWED_GROUP_2}}'
+
+### Or use these directly
+#github_organization_whitelist:
+#  - '{{GITHUB_ORG_1}}'
+#  - '{{GITHUB_ORG_2}}'
+#cilogon_group_whitelist:
+#  - '{{CILOGON_GROUP_1}}'
+#  - '{{CILOGON_GROUP_2}}'
 
 ### Session storage location.  Any SQLAlchemy URL will work.
 # session_db_url: 'sqlite:////home/jupyter/jupyterhub.sqlite'

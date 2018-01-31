@@ -67,6 +67,7 @@ DEFAULT_GKE_LOCAL_VOLUME_SIZE_GB = 200
 DEFAULT_VOLUME_SIZE_GB = 20
 ENVIRONMENT_NAMESPACE = "JLD_"
 ME = os.path.realpath(__file__)
+OAUTH_DEFAULT_PROVIDER = "github"
 REQUIRED_PARAMETER_NAMES = ["kubernetes_cluster_name",
                             "hostname"]
 REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
@@ -75,10 +76,11 @@ REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
     "tls_cert",
     "tls_key",
     "tls_root_chain",
-    "github_organization_whitelist",
-    "cilogon_group_whitelist"
+    "allowed_groups"
 ]
 PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
+    "github_organization_whitelist",
+    "cilogon_group_whitelist",
     "oauth_provider",
     "tls_dhparam",
     "kubernetes_cluster_namespace",
@@ -282,9 +284,18 @@ class JupyterLabDeployment(object):
         that can be defaulted.
         """
         self._get_cluster_info()
+        if self._empty_param("allowed_groups"):
+            if not self._empty_param("oauth_provider"):
+                if self.params["oauth_provider"] == "cilogon":
+                    self.params["allowed_groups"] = self.params.get(
+                        "cilogon_group_whitelist")
+                else:
+                    self.params["allowed_groups"] = self.params.get(
+                        "github_organization_whitelist")
         if self._any_empty(REQUIRED_PARAMETER_NAMES):
             raise ValueError("All parameters '%s' must be specified!" %
                              str(REQUIRED_PARAMETER_NAMES))
+        del self.params["allowed_groups"]
         if self._empty_param('volume_size_gigabytes'):
             logging.warn("Using default volume size: 20GiB")
             self.params["volume_size_gigabytes"] = DEFAULT_VOLUME_SIZE_GB
@@ -298,14 +309,14 @@ class JupyterLabDeployment(object):
             self.params['gke_local_volume_size_gigabytes'] = \
                 DEFAULT_GKE_LOCAL_VOLUME_SIZE_GB
         if self._empty_param('oauth_provider'):
-            self.params['oauth_provider'] = "github"
-        if self.params['oauth_provider'] != "github":
+            self.params['oauth_provider'] = OAUTH_DEFAULT_PROVIDER
+        if self.params['oauth_provider'] != OAUTH_DEFAULT_PROVIDER:
             if self._empty_param('github_organization_whitelist'):
-                # Not really required if we aren't using GitHub.
+                # Not required if we aren't using GitHub.
                 self.params['github_organization_whitelist'] = "dummy"
         if self.params['oauth_provider'] != "cilogon":
             if self._empty_param('cilogon_group_whitelist'):
-                # Not really required if we aren't using CILogon.
+                # Not required if we aren't using CILogon.
                 self.params['cilogon_group_whitelist'] = "dummy"
         if self._empty_param('debug'):
             self.params['debug'] = ""  # Empty is correct
@@ -1209,18 +1220,14 @@ def get_cli_options():
              "logging components, if you put\n'beats_cert.pem', " +
              "'beats_ca.pem', and 'beats_key.pem' in the same directory,\n" +
              "they will be used as well.\n\n")
-    desc += ("The 'github_organization_whitelist' parameter is a list in " +
-             "the YAML file;\nas the environment variable " +
-             "JLD_GITHUB_ORGANIZATION_WHITELIST it must be a\n" +
-             "comma-separated list of GitHub organization names.  If the " +
-             "'oauth_provider' parameter is not 'github', this is set " +
-             "to 'dummy' and subsequently ignored.\n\n")
-    desc += ("The 'cilogon_group_whitelist' parameter is a list in " +
-             "the YAML file;\nas the environment variable " +
-             "JLD_CILOGON_GROUP_WHITELIST it must be a\n" +
-             "comma-separated list of CILogon group names.  If the " +
-             "'oauth_provider' parameter is not 'cilogon', this is set " +
-             "to 'dummy' and subsequently ignored.\n\n")
+    desc += ("The 'allowed_groups' parameter is a list in " +
+             "the YAML file; as the\nenvironment variable JLD_ALLOWED_GROUPS" +
+             " it must be a comma-separated\n" +
+             "list of GitHub organization names or CILogon/NCSA " +
+             "group names.\n\n")
+    desc += ("The 'cilogon_group_whitelist' or " +
+             "'github_organization_whitelist' parameters\n" +
+             "may be used directly in place of 'allowed-groups'.\n\n")
     desc += ("All deployment parameters may be set from the environment, " +
              "not just\nrequired ones. The complete set of recognized " +
              "parameters is:\n%s.\n\n" % PARAMETER_NAMES)
@@ -1328,13 +1335,17 @@ def _canonicalize_result_params(params):
     """Manage environment (string) to actual data structure (int or list)
     conversion.
     """
+
     wlname = "github_organization_whitelist"
     if params["oauth_provider"] == "cilogon":
         wlname = "cilogon_group_whitelist"
+    if _empty(params, wlname):
+        if not _empty(params, "allowed_groups"):
+            params[wlname] = params["allowed_groups"]
     if not _empty(params, wlname):
-        ghowl = params[wlname]
-        if type(ghowl) is str:
-            params[wlname] = ghowl.split(',')
+        owl = params[wlname]
+        if type(owl) is str:
+            params[wlname] = owl.split(',')
     for intval in ["gke_node_count", "volume_size_gigabytes",
                    "gke_default_volume_size_gigabytes"]:
         if not _empty(params, intval):
@@ -1350,12 +1361,12 @@ def get_options_from_user(dtype="deploy", params={}):
     the cluster namespace, you need to set JLD_KUBERNETES_CLUSTER_NAMESPACE in
     the environment.
     """
-    prompt = {"kubernetes_cluster_name": "Kubernetes Cluster Name",
-              "hostname": "JupyterLab Demo hostname (FQDN)",
-              "oauth_client_id": "OAuth Client ID",
-              "oauth_secret": "OAuth Secret",
-              "github_organization_whitelist": "GitHub Organization Whitelist",
-              "cilogon_group_whitelist": "CILogon Group Whitelist"
+    prompt = {"kubernetes_cluster_name": ["Kubernetes Cluster Name", None],
+              "hostname": ["JupyterLab Demo hostname (FQDN)", None],
+              "oauth_client_id": ["OAuth Client ID", None],
+              "oauth_secret": ["OAuth Secret", None],
+              "oauth_provider": ["OAuth provider", "github"],
+              "allowed_groups": ["Allowed Groups", None],
               }
     params.update(_get_values_from_prompt(params, ['hostname'], prompt))
     if _empty(params, "kubernetes_cluster_name"):
@@ -1364,6 +1375,8 @@ def get_options_from_user(dtype="deploy", params={}):
         params["kubernetes_cluster_name"] = cname
         logging.warn("Using derived cluster name '%s'." % cname)
     if dtype == "deploy":
+        params.update(_get_values_from_prompt(
+            params, ['oauth_provider'], prompt))
         if _empty(params, "tls_cert"):
             line = ""
             while not line:
@@ -1371,6 +1384,14 @@ def get_options_from_user(dtype="deploy", params={}):
             params.update(_set_certs_from_dir(line))
         params.update(_get_values_from_prompt(
             params, REQUIRED_DEPLOYMENT_PARAMETER_NAMES, prompt))
+        if params["oauth_provider"] == "cilogon":
+            params["cilogon_group_whitelist"] = params["allowed_groups"]
+        else:
+            params["github_organization_whitelist"] = params["allowed_groups"]
+    else:
+        # Provider doesn't matter for teardown.
+        if _empty(params, "oauth_provider"):
+            params["oauth_provider"] = "github"
     return params
 
 
@@ -1380,9 +1401,15 @@ def _get_values_from_prompt(params, namelist, prompts={}):
     for n in namelist:
         if _empty(params, n):
             line = ""
+            pr, dfl = prompts.get(n) or [n, None]
             while not line:
-                pr = prompts.get(n) or n
-                line = input(pr + ": ")
+                prpt = pr
+                if dfl:
+                    prpt += " [" + dfl + "]"
+                prpt += ": "
+                line = input(prpt)
+                if not line and dfl:
+                    line = dfl
             params[n] = line
     return params
 

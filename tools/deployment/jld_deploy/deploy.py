@@ -75,7 +75,8 @@ REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
     "tls_cert",
     "tls_key",
     "tls_root_chain",
-    "github_organization_whitelist"
+    "github_organization_whitelist",
+    "cilogon_group_whitelist"
 ]
 PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "oauth_provider",
@@ -300,8 +301,12 @@ class JupyterLabDeployment(object):
             self.params['oauth_provider'] = "github"
         if self.params['oauth_provider'] != "github":
             if self._empty_param('github_organization_whitelist'):
-                # Not really required if we aren't using github.
+                # Not really required if we aren't using GitHub.
                 self.params['github_organization_whitelist'] = "dummy"
+        if self.params['oauth_provider'] != "cilogon":
+            if self._empty_param('cilogon_group_whitelist'):
+                # Not really required if we aren't using CILogon.
+                self.params['cilogon_group_whitelist'] = "dummy"
         if self._empty_param('debug'):
             self.params['debug'] = ""  # Empty is correct
         if self._empty_param('lab_image'):
@@ -344,6 +349,8 @@ class JupyterLabDeployment(object):
                                      self.params['hostname'])
         self.params["github_organization_whitelist"] = ','.join(
             self.params["github_organization_whitelist"])
+        self.params["cilogon_group_whitelist"] = ','.join(
+            self.params["cilogon_group_whitelist"])
         self._check_optional()
 
     def _check_optional(self):
@@ -511,6 +518,8 @@ class JupyterLabDeployment(object):
                               'oauth_callback_url'),
                           GITHUB_ORGANIZATION_WHITELIST=self.encode_value(
                               'github_organization_whitelist'),
+                          CILOGON_GROUP_WHITELIST=self.encode_value(
+                              'cilogon_group_whitelist'),
                           SESSION_DB_URL=self.encode_value(
                               'session_db_url'),
                           JUPYTERHUB_CRYPTO_KEY=self.encode_value(
@@ -1206,6 +1215,12 @@ def get_cli_options():
              "comma-separated list of GitHub organization names.  If the " +
              "'oauth_provider' parameter is not 'github', this is set " +
              "to 'dummy' and subsequently ignored.\n\n")
+    desc += ("The 'cilogon_group_whitelist' parameter is a list in " +
+             "the YAML file;\nas the environment variable " +
+             "JLD_CILOGON_GROUP_WHITELIST it must be a\n" +
+             "comma-separated list of CILogon group names.  If the " +
+             "'oauth_provider' parameter is not 'cilogon', this is set " +
+             "to 'dummy' and subsequently ignored.\n\n")
     desc += ("All deployment parameters may be set from the environment, " +
              "not just\nrequired ones. The complete set of recognized " +
              "parameters is:\n%s.\n\n" % PARAMETER_NAMES)
@@ -1314,6 +1329,8 @@ def _canonicalize_result_params(params):
     conversion.
     """
     wlname = "github_organization_whitelist"
+    if params["oauth_provider"] == "cilogon":
+        wlname = "cilogon_group_whitelist"
     if not _empty(params, wlname):
         ghowl = params[wlname]
         if type(ghowl) is str:
@@ -1333,13 +1350,14 @@ def get_options_from_user(dtype="deploy", params={}):
     the cluster namespace, you need to set JLD_KUBERNETES_CLUSTER_NAMESPACE in
     the environment.
     """
-    prompts = {"kubernetes_cluster_name": "Kubernetes Cluster Name",
-               "hostname": "JupyterLab Demo hostname (FQDN)",
-               "oauth_client_id": "OAuth Client ID",
-               "oauth_secret": "OAuth Secret",
-               "github_organization_whitelist": "GitHub Organization Whitelist"
-               }
-    params.update(_get_values_from_prompt(params, ['hostname'], prompts))
+    prompt = {"kubernetes_cluster_name": "Kubernetes Cluster Name",
+              "hostname": "JupyterLab Demo hostname (FQDN)",
+              "oauth_client_id": "OAuth Client ID",
+              "oauth_secret": "OAuth Secret",
+              "github_organization_whitelist": "GitHub Organization Whitelist",
+              "cilogon_group_whitelist": "CILogon Group Whitelist"
+              }
+    params.update(_get_values_from_prompt(params, ['hostname'], prompt))
     if _empty(params, "kubernetes_cluster_name"):
         hname = params['hostname']
         cname = hname.translate({ord('.'): '-'})
@@ -1352,7 +1370,7 @@ def get_options_from_user(dtype="deploy", params={}):
                 line = input("TLS Certificate Directory: ")
             params.update(_set_certs_from_dir(line))
         params.update(_get_values_from_prompt(
-            params, REQUIRED_DEPLOYMENT_PARAMETER_NAMES, prompts))
+            params, REQUIRED_DEPLOYMENT_PARAMETER_NAMES, prompt))
     return params
 
 

@@ -86,8 +86,7 @@ Here are the steps you need to perform:
 
 8. Run `deploy-jupyterlabdemo`.  Answer the questions asked by the
 deployment script (FQDN, certificate directory, OAuth client and secret,
-GitHub organization whitelist, and CILogon group whitelist; any old
-value will do for the OAuth service you aren't using).  If you want to
+and whitelist of GitHub Organizations or CILogon Groups).  If you want to
 use CILogon you should set the environment variable
 `JLD_OAUTH_PROVIDER` to `cilogon` before running the deployment tool.
 
@@ -102,11 +101,11 @@ use CILogon you should set the environment variable
       them.
     - `oauth_client_id` and `oauth_secret` from the OAuth
       application you created earlier.
-    - `github_organization_whitelist`: each list entry is a GitHub
-      organization name that, if the person logging in is a member of,
-      login will be allowed to succeed.
-	- alternatively, set `oauth_provider` to `cilogon` and set
-	  `cilogon_group_whitelist` instead.
+	- `oauth_provider`: `github` or `cilogon`.
+	- `allowed_groups`: each list entry is the name of a GitHub
+      Organization or CILogon/NCSA Group.  Or you can set:
+        - `github_organization_whitelist` or
+        - `cilogon_group_whitelist`
 	  
    You can also specify these as environment variables.  The rule for
    creation is that the environment variable name is `JLD_` prepended to

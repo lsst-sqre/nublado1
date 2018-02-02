@@ -5,7 +5,7 @@ RUN  yum repolist
 RUN  yum -y  upgrade
 RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
       git sudo \
-      python-devel nodejs \
+      python-devel http-parser nodejs \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       python34-tkinter pandoc \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \

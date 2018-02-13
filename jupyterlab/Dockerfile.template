@@ -163,6 +163,7 @@ COPY 20_jupytervars /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
 COPY lsst_kernel_py${PYVER}.json selfculler.py \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
+      prepuller.sh \
       ${jl}/
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \

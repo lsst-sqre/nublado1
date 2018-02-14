@@ -87,7 +87,7 @@ RUN  mkdir -p /usr/share/git && \
      jlpm global add webpack && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-     git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+     git clone https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
      for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
          cd ${i} && \
          python3 /usr/bin/jupyter labextension link . --no-build && \

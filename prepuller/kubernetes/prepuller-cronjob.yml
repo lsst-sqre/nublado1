@@ -37,7 +37,7 @@ spec:
               # - name: PREPULLER_SORT_FIELD
               #   value: ""
               - name: PREPULLER_IMAGE_LIST
-                value: "jld-hub:latest"
+                value: "lsstsqre/jld-hub:latest"
               # - name: PREPULLER_COMMAND
               #   value: ""
               # - name: PREPULLER_NAMESPACE

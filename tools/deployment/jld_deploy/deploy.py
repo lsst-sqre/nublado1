@@ -96,10 +96,19 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "rabbitmq_target_vhost",
     "external_fileserver_ip",
     "firefly_admin_password",
-    "lab_image",
-    "lab_repo_owner",
-    "lab_repo_name",
-    "lab_repo_host",
+    "prepuller_image_list",
+    "prepuller_no_scan",
+    "prepuller_repo",
+    "prepuller_owner",
+    "prepuller_image_name",
+    "prepuller_dailies",
+    "prepuller_weeklies",
+    "prepuller_releases",
+    "prepuller_insecure",
+    "prepuller_port",
+    "prepuller_sort_field",
+    "prepuller_command",
+    "prepuller_namespace",
     "lab_selector_title",
     "lab_idle_timeout",
     "lab_cpu_limit",
@@ -319,15 +328,25 @@ class JupyterLabDeployment(object):
                 # Not required if we aren't using CILogon.
                 self.params['cilogon_group_whitelist'] = "dummy"
         if self._empty_param('debug'):
-            self.params['debug'] = ""  # Empty is correct
-        if self._empty_param('lab_image'):
-            self.params['lab_image'] = ''  # Use owner/name/host instead
-        if self._empty_param('lab_repo_host'):
-            self.params['lab_repo_host'] = "hub.docker.com"
-        if self._empty_param('lab_repo_owner'):
-            self.params['lab_repo_owner'] = 'lsstsqre'
-        if self._empty_param('lab_repo_name'):
-            self.params['lab_repo_name'] = "jld-lab"
+            self.params['debug'] = ''  # Empty is correct
+        if self._empty_param('prepuller_image_list'):
+            self.params['prepuller_image_list'] = ''  # Owner/name/host instead
+        if self._empty_param('prepuller_repo'):
+            self.params['prepuller_repo'] = "hub.docker.com"
+        if self._empty_param('prepuller_owner'):
+            self.params['prepuller_owner'] = 'lsstsqre'
+        if self._empty_param('prepuller_image_name'):
+            self.params['prepuller_image_name'] = "jld-lab"
+        # Rely on defaults by setting environment in prepuller to
+        #  empty for unused parameters
+        for pname in ['prepuller_image_list', 'prepuller_no_scan',
+                      'prepuller_repo', 'prepuller_owner',
+                      'prepuller_image_name', 'prepuller_dailies',
+                      'prepuller_weeklies', 'prepuller_releases',
+                      'prepuller_port', 'prepuller_sort_field',
+                      'prepuller_command', 'prepuller_namespace']:
+            if self._empty_param(pname):
+                self.params[pname] = ''
         if self._empty_param('lab_selector_title'):
             self.params['lab_selector_title'] = "LSST Stack Selector"
         if self._empty_param('lab_idle_timeout'):
@@ -362,6 +381,9 @@ class JupyterLabDeployment(object):
             self.params["github_organization_whitelist"])
         self.params["cilogon_group_whitelist"] = ','.join(
             self.params["cilogon_group_whitelist"])
+        if not self._empty_param("prepuller_image_list"):
+            self.params["prepuller_image_list"] = ",".join(
+                self.params["prepuller_image_list"])
         self._check_optional()
 
     def _check_optional(self):
@@ -557,9 +579,18 @@ class JupyterLabDeployment(object):
                           RABBITMQ_TARGET_HOST=p['rabbitmq_target_host'],
                           RABBITMQ_TARGET_VHOST=p['rabbitmq_target_vhost'],
                           DEBUG=p['debug'],
-                          LAB_IMAGE=p['lab_image'],
-                          LAB_REPO_HOST=p['lab_repo_host'],
-                          LAB_REPO_OWNER=p['lab_repo_owner'],
+                          PREPULLER_IMAGE_LIST=p['prepuller_image_list'],
+                          PREPULLER_NO_SCAN=p['no_scan'],
+                          PREPULLER_REPO=p['prepuller_repo'],
+                          PREPULLER_OWNER=p['prepuller_owner'],
+                          PREPULLER_IMAGE_NAME=p['prepuller_image_name'],
+                          PREPULLER_DAILIES=p['prepuller_dailies'],
+                          PREPULLER_WEEKLIES=p['prepuller_weeklies'],
+                          PREPULLER_RELEASES=p['prepuller_releases'],
+                          PREPULLER_PORT=p['prepuller_port'],
+                          PREPULLER_SORT_FIELD=p['prepuller_sort_field'],
+                          PREPULLER_COMMAND=p['prepuller_command'],
+                          PREPULLER_NAMESPACE=p['prepuller_namespace'],
                           LAB_REPO_NAME=p['lab_repo_name'],
                           LAB_SELECTOR_TITLE=p['lab_selector_title'],
                           LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],

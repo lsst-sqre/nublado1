@@ -64,14 +64,30 @@ allowed_groups:
 
 ### Parameters for which image or set of images is presented by the Hub
 #  and used by prepuller
-# For a single image, use lab_image.
-# lab_image: 'lsstsqre/jld-lab:latest'
-# To scan a repo, specify some or all of a host/owner/repo combo
+# For a single image, use prepuller_image_list and no_scan.
+#  prepuller_image_list:
+#  - 'lsstsqre/jld-lab:latest'
+#  prepuller_no_scan: 'true'
+# To scan a repo, specify some or all of a repo/owner/image combo
 #  and the tags will be parsed at login time
 # The values shown are the defaults.
-# lab_host: 'hub.docker.com'
-# lab_owner: 'lsstsqre'
-# lab_repo: 'jld-lab'
+#  prepuller_repo: 'hub.docker.com'
+#  prepuller_owner: 'lsstsqre'
+#  prepuller_image_name: 'jld-lab'
+# This controls number of daily/weekly/release images to prepull.
+# This requires a tag format like LSST/DM uses.
+#  prepuller_dailies: '3'
+#  prepuller_weekies: '2'
+#  prepuller_releases: '1'
+# For private Docker repos, maybe you need to set the port or turn off TLS.
+#  prepuller_port: '443'
+#  prepuller_insecure: ''
+# These should not normally need changing.
+#  prepuller_sort_field: 'comp_ts'
+#  prepuller_command: 'echo "Prepuller complete on $(hostname) at $(date)"'
+# In normal operation, namespace will be set from the container itself.
+#  prepuller_namespace: 'jld_namespace'
+
 
 ### Idle timeout for reaping user containers
 # should be a string, and should be number of seconds.  Default is 12

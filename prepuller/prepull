@@ -33,9 +33,6 @@ fi
 if [ -n "${PREPULLER_SORT_FIELD}" ]; then
     cmd="${cmd} -s ${PREPULLER_SORT_FIELD}"
 fi
-if [ -n "${PREPULLER_PORT}" ]; then
-    cmd="${cmd} -p ${PREPULLER_PORT}"
-fi
 if [ -n "${PREPULLER_IMAGE_LIST}" ]; then
     cmd="${cmd} -l ${PREPULLER_IMAGE_LIST}"
 fi

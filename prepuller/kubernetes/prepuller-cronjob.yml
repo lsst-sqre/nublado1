@@ -1,0 +1,44 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: prepuller
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: "OnFailure"
+          containers:
+            - name: prepuller
+              imagePullPolicy: "Always"
+              image: "lsstsqre/prepuller"
+              env:
+              - name: DEBUG
+                value: "TRUE"
+              # - name: PREPULLER_NO_SCAN
+              #   value: "FALSE"
+              # - name: PREPULLER_REPO
+              #   value: ""
+              # - name: PREPULLER_OWNER
+              #   value: "lsstsqre"
+              # - name: PREPULLER_IMAGE_NAME
+              #   value: "jld-lab"
+              # - name: PREPULLER_DAILIES
+              #   value: "3"
+              # - name: PREPULLER_WEEKLIES
+              #   value: "2"
+              # - name: PREPULLER_RELEASES
+              #   value: "1"
+              # - name: PREPULLER_INSECURE
+              #   value: ""
+              # - name: PREPULLER_PORT
+              #   value: ""
+              # - name: PREPULLER_SORT_FIELD
+              #   value: ""
+              - name: PREPULLER_IMAGE_LIST
+                value: "jld-hub:latest"
+              # - name: PREPULLER_COMMAND
+              #   value: ""
+              # - name: PREPULLER_NAMESPACE
+              #   value: ""

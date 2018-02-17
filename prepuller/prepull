@@ -1,0 +1,48 @@
+#!/bin/sh
+cmd="prepuller"
+if [ -n "${DEBUG}" ]; then
+    cmd="${cmd} -d"
+fi
+if [ -n "${PREPULLER_NO_SCAN}" ]; then
+    cmd="${cmd} --no-scan"
+fi
+if [ -n "${PREPULLER_REPO}" ]; then
+    cmd="${cmd} -r ${PREPULLER_REPO}"
+fi
+if [ -n "${PREPULLER_OWNER}" ]; then
+    cmd="${cmd} -o ${PREPULLER_OWNER}"
+fi
+if [ -n "${PREPULLER_IMAGE_NAME}" ]; then
+    cmd="${cmd} -n ${PREPULLER_IMAGE_NAME}"
+fi
+if [ -n "${PREPULLER_DAILIES}" ]; then
+    cmd="${cmd} -q ${PREPULLER_DAILIES}"
+fi
+if [ -n "${PREPULLER_WEEKLIES}" ]; then
+    cmd="${cmd} -w ${PREPULLER_WEEKLIES}"
+fi
+if [ -n "${PREPULLER_RELEASES}" ]; then
+    cmd="${cmd} -b ${PREPULLER_RELEASES}"
+fi
+if [ -n "${PREPULLER_INSECURE}" ]; then
+    cmd="${cmd} -i"
+fi
+if [ -n "${PREPULLER_PORT}" ]; then
+    cmd="${cmd} -b ${PREPULLER_PORT}"
+fi
+if [ -n "${PREPULLER_SORT_FIELD}" ]; then
+    cmd="${cmd} -s ${PREPULLER_SORT_FIELD}"
+fi
+if [ -n "${PREPULLER_PORT}" ]; then
+    cmd="${cmd} -p ${PREPULLER_PORT}"
+fi
+if [ -n "${PREPULLER_IMAGE_LIST}" ]; then
+    cmd="${cmd} -l ${PREPULLER_IMAGE_LIST}"
+fi
+if [ -n "${PREPULLER_COMMAND}" ]; then
+    cmd="${cmd} -l ${PREPULLER_COMMAND}"    
+fi
+if [ -n "${PREPULLER_NAMESPACE}" ]; then
+    cmd="${cmd} -l ${PREPULLER_NAMESPACE}"    
+fi
+exec $cmd

@@ -329,14 +329,6 @@ class JupyterLabDeployment(object):
                 self.params['cilogon_group_whitelist'] = "dummy"
         if self._empty_param('debug'):
             self.params['debug'] = ''  # Empty is correct
-        if self._empty_param('prepuller_image_list'):
-            self.params['prepuller_image_list'] = ''  # Owner/name/host instead
-        if self._empty_param('prepuller_repo'):
-            self.params['prepuller_repo'] = "hub.docker.com"
-        if self._empty_param('prepuller_owner'):
-            self.params['prepuller_owner'] = 'lsstsqre'
-        if self._empty_param('prepuller_image_name'):
-            self.params['prepuller_image_name'] = "jld-lab"
         # Rely on defaults by setting environment in prepuller to
         #  empty for unused parameters
         for pname in ['prepuller_image_list', 'prepuller_no_scan',
@@ -580,7 +572,7 @@ class JupyterLabDeployment(object):
                           RABBITMQ_TARGET_VHOST=p['rabbitmq_target_vhost'],
                           DEBUG=p['debug'],
                           PREPULLER_IMAGE_LIST=p['prepuller_image_list'],
-                          PREPULLER_NO_SCAN=p['no_scan'],
+                          PREPULLER_NO_SCAN=p['prepuller_no_scan'],
                           PREPULLER_REPO=p['prepuller_repo'],
                           PREPULLER_OWNER=p['prepuller_owner'],
                           PREPULLER_IMAGE_NAME=p['prepuller_image_name'],
@@ -591,7 +583,6 @@ class JupyterLabDeployment(object):
                           PREPULLER_SORT_FIELD=p['prepuller_sort_field'],
                           PREPULLER_COMMAND=p['prepuller_command'],
                           PREPULLER_NAMESPACE=p['prepuller_namespace'],
-                          LAB_REPO_NAME=p['lab_repo_name'],
                           LAB_SELECTOR_TITLE=p['lab_selector_title'],
                           LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],
                           LAB_MEM_LIMIT=p['lab_mem_limit'],
@@ -976,12 +967,12 @@ class JupyterLabDeployment(object):
             self.directory,
             "deployment",
             "prepuller",
-            "prepuller-daemonset.yml"
+            "prepuller-cronjob.yml"
         ))
 
     def _destroy_prepuller(self):
         logging.info("Destroying prepuller")
-        self._run_kubectl_delete(["daemonset", "prepuller"])
+        self._run_kubectl_delete(["cronjob", "prepuller"])
 
     def _create_jupyterhub(self):
         logging.info("Creating JupyterHub")

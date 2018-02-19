@@ -963,16 +963,35 @@ class JupyterLabDeployment(object):
 
     def _create_prepuller(self):
         logging.info("Creating prepuller")
-        self._run_kubectl_create(os.path.join(
+        pp_dir = os.path.join(
             self.directory,
             "deployment",
-            "prepuller",
-            "prepuller-cronjob.yml"
-        ))
+            "prepuller")
+        user = self._get_account_user()
+        self._run(["kubectl", "create", "clusterrolebinding",
+                   "admin-binding", "--clusterrole=cluster-admin",
+                   "--user=%s" % user])
+        self._run_kubectl_create(os.path.join(
+            pp_dir, "prepuller-serviceaccount.yml"))
+        self._run_kubectl_create(os.path.join(
+            pp_dir, "prepuller-clusterrole.yml"))
+        self._run_kubectl_create(os.path.join(
+            pp_dir, "prepuller-clusterrolebinding.yml"))
+        self._run_kubectl_create(os.path.join(pp_dir, "prepuller-cronjob.yml"))
+
+    def _get_account_user(self):
+        rc = self._run(["gcloud", "config", "get-value", "account"],
+                       capture=True)
+        user = rc.stdout.decode('utf-8').strip()
+        return user
 
     def _destroy_prepuller(self):
         logging.info("Destroying prepuller")
         self._run_kubectl_delete(["cronjob", "prepuller"])
+        self._run_kubectl_delete(["clusterrolebinding", "prepuller"])
+        self._run_kubectl_delete(["clusterrole", "prepuller"])
+        self._run_kubectl_delete(["serviceaccount", "prepuller"])
+        self._run_kubectl_delete(["clusterrolebinding", "admin-binding"])
 
     def _create_jupyterhub(self):
         logging.info("Creating JupyterHub")

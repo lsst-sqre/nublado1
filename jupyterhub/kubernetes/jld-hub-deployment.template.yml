@@ -9,6 +9,7 @@ spec:
       labels:
         name: jld-hub
     spec:
+      serviceAccountName: jld-hub
       containers:
         - name: jld-hub
           imagePullPolicy: "Always"

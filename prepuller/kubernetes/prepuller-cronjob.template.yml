@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: prepuller
 spec:
-  schedule: "0 * * * *"
+  schedule: "{{PREPULLER_MINUTE}} * * * *"
   jobTemplate:
     spec:
       template:
@@ -24,7 +24,7 @@ spec:
               - name: PREPULLER_NO_SCAN
                 value: "{{PREPULLER_NO_SCAN}}"
               # Use the next three with your own image with an LSST/DM
-              #  dated tag format ( [d|w|r][YYYYMMDD] )
+              #  dated tag format ( [d|w][YYYYMMDD] or r[MajMin])
               - name: PREPULLER_REPO
                 value: "{{PREPULLER_REPO}}"
               - name: PREPULLER_OWNER

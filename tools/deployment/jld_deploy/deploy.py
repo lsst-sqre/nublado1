@@ -322,11 +322,11 @@ class JupyterLabDeployment(object):
         if self.params['oauth_provider'] != OAUTH_DEFAULT_PROVIDER:
             if self._empty_param('github_organization_whitelist'):
                 # Not required if we aren't using GitHub.
-                self.params['github_organization_whitelist'] = "dummy"
+                self.params['github_organization_whitelist'] = ["dummy"]
         if self.params['oauth_provider'] != "cilogon":
             if self._empty_param('cilogon_group_whitelist'):
                 # Not required if we aren't using CILogon.
-                self.params['cilogon_group_whitelist'] = "dummy"
+                self.params['cilogon_group_whitelist'] = ["dummy"]
         if self._empty_param('debug'):
             self.params['debug'] = ''  # Empty is correct
         # Rely on defaults by setting environment in prepuller to
@@ -376,6 +376,9 @@ class JupyterLabDeployment(object):
         if not self._empty_param("prepuller_image_list"):
             self.params["prepuller_image_list"] = ",".join(
                 self.params["prepuller_image_list"])
+        now = datetime.datetime.now()
+        # First prepuller run in 15 minutes; should give us time to finish
+        self.params["prepuller_minute"] = (now.minute + 15) % 60
         self._check_optional()
 
     def _check_optional(self):
@@ -583,6 +586,7 @@ class JupyterLabDeployment(object):
                           PREPULLER_SORT_FIELD=p['prepuller_sort_field'],
                           PREPULLER_COMMAND=p['prepuller_command'],
                           PREPULLER_NAMESPACE=p['prepuller_namespace'],
+                          PREPULLER_MINUTE=p['prepuller_minute'],
                           LAB_SELECTOR_TITLE=p['lab_selector_title'],
                           LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],
                           LAB_MEM_LIMIT=p['lab_mem_limit'],
@@ -976,7 +980,11 @@ class JupyterLabDeployment(object):
         self._run_kubectl_create(os.path.join(
             pp_dir, "prepuller-clusterrole.yml"))
         self._run_kubectl_create(os.path.join(
+            pp_dir, "prepuller-role.yml"))
+        self._run_kubectl_create(os.path.join(
             pp_dir, "prepuller-clusterrolebinding.yml"))
+        self._run_kubectl_create(os.path.join(
+            pp_dir, "prepuller-rolebinding.yml"))
         self._run_kubectl_create(os.path.join(pp_dir, "prepuller-cronjob.yml"))
 
     def _get_account_user(self):
@@ -988,7 +996,9 @@ class JupyterLabDeployment(object):
     def _destroy_prepuller(self):
         logging.info("Destroying prepuller")
         self._run_kubectl_delete(["cronjob", "prepuller"])
+        self._run_kubectl_delete(["rolebinding", "prepuller"])
         self._run_kubectl_delete(["clusterrolebinding", "prepuller"])
+        self._run_kubectl_delete(["role", "prepuller"])
         self._run_kubectl_delete(["clusterrole", "prepuller"])
         self._run_kubectl_delete(["serviceaccount", "prepuller"])
         self._run_kubectl_delete(["clusterrolebinding", "admin-binding"])
@@ -997,7 +1007,8 @@ class JupyterLabDeployment(object):
         logging.info("Creating JupyterHub")
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
         for c in ["jld-hub-service.yml", "jld-hub-physpvc.yml",
-                  "jld-hub-secrets.yml"]:
+                  "jld-hub-secrets.yml", "jld-hub-serviceaccount.yml",
+                  "jld-hub-role.yml", "jld-hub-rolebinding.yml"]:
             self._run_kubectl_create(os.path.join(directory, c))
         cfdir = os.path.join(directory, "config")
         cfnm = "jupyterhub_config"
@@ -1012,6 +1023,9 @@ class JupyterLabDeployment(object):
         pv = self._get_pv_and_disk_from_pvc("jld-hub-physpvc")
         items = [["deployment", "jld-hub"],
                  ["configmap", "jld-hub-config"],
+                 ["rolebinding", "jld-hub"],
+                 ["role", "jld-hub"],
+                 ["serviceaccount", "jld-hub"],
                  ["secret", "jld-hub"],
                  ["pvc", "jld-hub-physpvc"],
                  ["svc", "jld-hub"]]

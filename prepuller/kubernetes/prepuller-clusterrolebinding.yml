@@ -1,0 +1,13 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: prepuller
+subjects:
+- kind: ServiceAccount
+  name: prepuller
+  namespace: quijibo
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: prepuller
+  apiGroup: ""

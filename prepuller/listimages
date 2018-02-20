@@ -1,6 +1,0 @@
-#!/bin/sh
-while : ; do
-    date
-    docker images
-    sleep 900
-done

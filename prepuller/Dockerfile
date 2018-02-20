@@ -1,16 +1,13 @@
 FROM centos:7
 USER root
-RUN  yum install -y cronie epel-release
-RUN  yum install -y python34
+RUN  yum install -y epel-release
+RUN  yum install -y python34 python34-pip git
 RUN  yum -y update
-COPY run-cron.sh /usr/bin/run-cron.sh
-COPY get_builds.py /usr/bin/get_builds
-COPY node_update /usr/bin/node_update
-COPY imagepuller /etc/cron.hourly/local01-imagepuller
-COPY imagepurger /etc/cron.daily/local01-imagepurger
-RUN  chmod 0755 /usr/bin/get_builds /usr/bin/run-cron.sh /usr/bin/node_update \
-      /etc/cron.hourly/local01-imagepuller /etc/cron.daily/local01-imagepurger
-CMD [ "/usr/bin/run-cron.sh" ]
+RUN  pip3 install --upgrade pip
+RUN  pip3 install https://github.com/lsst-sqre/prepullerv2/zipball/master
+COPY prepull /usr/bin/prepull
+RUN  chmod 0755 /usr/bin/prepull
+CMD [ "/usr/bin/prepull" ]
 LABEL      description="jupyterlab demo: imageprepuller" \
              name="lsstsqre/prepuller" \
-             version="0.0.5"
+             version="0.1.0"

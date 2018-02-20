@@ -74,6 +74,13 @@ manual deployment.
   `kubectl config set-context $(kubectl config current-context)
   --namespace <namespace>`.  This step is optional.
 
+* Since you will be creating new `Role` resources, you will need to
+  grant a role binding that will allow the user you are installing as
+  the power to create Roles, ClusterRoles, RoleBindings, and
+  ClusterRoleBindings.  Just issue the command `kubectl create
+  clusterrolebinding admin-binding --clusterrole=cluster-admin
+  --user=$(gcloud config get-value account)` and that will do the trick.
+
 * You will need to expose your Jupyter Lab instance to the public
   internet, and GitHub's egress IPs must be able to reach it.  This is
   necessary for the GitHub OAuth2 callback (or indeed any OAuth
@@ -342,16 +349,42 @@ containers to use.
 * Prepuller is very much geared to the LSST Science Platform use case.
   It is only needed because our containers are on the order of 8GB each;
   thus the first user of any particular build on a given node would have
-  to wait 10 to 15 minutes if we were not prepulling.  Even if you want
-  an image prepuller, you will probably want to create your own version
-  of `get_builds.py` that finds the containers you want to use.
-  Replacing `imagepurger` would be wise as well, assuming you do not
-  have near-infinite storage on each node.
+  to wait 10 to 15 minutes if we were not prepulling.  We rely
+  on Kubernetes to use low-water and high-water marks for managing its
+  image cache; you will need to make sure that you have enough disk
+  space on your nodes that your prepulled containers do not overtop the
+  `image-gc-high-threshold` of `kubelet`.
     
 * `prepuller` is the location of this component.
 
-* The `prepuller-daemonset.yml` file can be used as an input to `kubectl
-  create -f` without modifications, if you're using this image.
+
+* It has several components:
+  - `prepuller-serviceaccount.yml` defines a new service account:
+    `kubectl create -f prepuller-serviceaccount.yml`
+  - Create the `ClusterRole` and `Role`:
+    `kubectl create -f prepuller-clusterrole.yml`
+    `kubectl create -f prepuller-role.yml`	
+  - For each of the rolebindings, copy the `template.yml` file to a
+    working copy and substitute the namespace name.  Then use `kubectl
+    create -f` on the resulting file.
+	
+* Finally, create the `CronJob` by copying the template file to a
+    working file.  Substitute `{{PREPULLER_MINUTE}}` with any value
+    between 0 and 59 inclusive; this is the minute of the hour at which
+    the prepuller runs.  Substitute any of the additional values you
+    want.  Leave the empty string `""` for any omitted value.
+	- `PREPULLER_IMAGE_LIST` is a comma-separated list of images to use
+      for user containers.
+	- If `PREPULLER_NO_SCAN` is set to a non-empty value, the prepuller
+      will not scan a Docker repository looking for the latest tags.
+	- If you *are* scanning the repository, your images should have tags
+      of the form `[d|w]YYYYMMDD` or `rMajMin` (e.g. `d20180219` or
+      `r140`).
+	- The other values can be used to change the number of
+      Daily/Weekly/Release images to prepull.
+	  
+* After creating the working file (let's assume you called it
+  `prepuller-cronjob.yml)`, run  `kubectl create -f prepuller-cronjob.yml`.
 
 ### JupyterHub
 
@@ -361,6 +394,15 @@ customization on your part.
 * This is located in `jupyterhub`.
 
 * Start by creating the `jld-hub-service` component.
+
+* Create a service account for `jupyterhub` so that it can manipulate
+  pods using Role-Based Access Control: `kubectl create -f
+  jld-hub-serviceaccount.yml`.
+  
+* Create a Role and a RoleBinding by copying `jld-hub-role.template.yml`
+  and `jld-hub-rolebinding.template.yml` to working files, substituting
+  the namespace.  Create each of those with `kubectl -f` run against the
+  working file.
 
 * Next, create the Persistent Volume Claim: `kubectl create -f
   jld-hub-physpvc.yml`.  The Hub needs some persistent storage so its

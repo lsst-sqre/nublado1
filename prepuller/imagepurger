@@ -1,6 +1,0 @@
-#!/bin/sh
-MAILTO=""
-RANDOM_DELAY=90 # So they don't all run at once.
-LAB_REPO_OWNER=${LAB_REPO_OWNER:-"lsstsqre"}
-LAB_REPO_NAME=${LAB_REPO_NAME:-"jld-lab"}
-node_update -g /usr/bin/get_builds -n ${LAB_REPO_OWNER}/${LAB_REPO_NAME}

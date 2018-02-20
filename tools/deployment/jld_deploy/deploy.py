@@ -440,12 +440,19 @@ class JupyterLabDeployment(object):
     def _copy_oauth_provider(self):
         configdir = os.path.join(self.srcdir, "jupyterhub", "sample_configs",
                                  self.params['oauth_provider'])
-        targetdir = os.path.join(self.directory, "deployment",
-                                 "jupyterhub", "config",
-                                 "jupyterhub_config.d")
+        target_pdir = os.path.join(self.directory, "deployment",
+                                   "jupyterhub", "config")
+        os.makedirs(target_pdir, exist_ok=True)
+        targetdir = os.path.join(target_pdir, "jupyterhub_config.d")
         logging.info("Copying config %s to %s." % (configdir, targetdir))
-        shutil.rmtree(targetdir)
+        shutil.rmtree(targetdir, ignore_errors=True)
         shutil.copytree(configdir, targetdir)
+        jc_py = os.path.join(self.srcdir, "jupyterhub",
+                             "jupyterhub_config",
+                             "jupyterhub_config.py")
+        logging.info("Copying %s to %s" % (jc_py, target_pdir))
+        shutil.copyfile(jc_py, os.path.join(target_pdir,
+                                            "jupyterhub_config.py"))
 
     def _substitute_templates(self):
         """Walk through template files and make substitutions.
@@ -660,6 +667,7 @@ class JupyterLabDeployment(object):
                 ip = self.params['external_fileserver_ip']
                 ns = self.params['kubernetes_cluster_namespace']
                 self._substitute_fileserver_ip(ip, ns)
+            self._create_admin_binding()
             if self.enable_prepuller:
                 self._create_prepuller()
             self._create_jupyterhub()
@@ -965,16 +973,24 @@ class JupyterLabDeployment(object):
             return None
         return True
 
+    def _create_admin_binding(self):
+        user = self._get_account_user()
+        self._run(["kubectl", "create", "clusterrolebinding",
+                   "admin-binding", "--clusterrole=cluster-admin",
+                   "--user=%s" % user])
+
+    def _get_account_user(self):
+        rc = self._run(["gcloud", "config", "get-value", "account"],
+                       capture=True)
+        user = rc.stdout.decode('utf-8').strip()
+        return user
+
     def _create_prepuller(self):
         logging.info("Creating prepuller")
         pp_dir = os.path.join(
             self.directory,
             "deployment",
             "prepuller")
-        user = self._get_account_user()
-        self._run(["kubectl", "create", "clusterrolebinding",
-                   "admin-binding", "--clusterrole=cluster-admin",
-                   "--user=%s" % user])
         self._run_kubectl_create(os.path.join(
             pp_dir, "prepuller-serviceaccount.yml"))
         self._run_kubectl_create(os.path.join(
@@ -986,12 +1002,6 @@ class JupyterLabDeployment(object):
         self._run_kubectl_create(os.path.join(
             pp_dir, "prepuller-rolebinding.yml"))
         self._run_kubectl_create(os.path.join(pp_dir, "prepuller-cronjob.yml"))
-
-    def _get_account_user(self):
-        rc = self._run(["gcloud", "config", "get-value", "account"],
-                       capture=True)
-        user = rc.stdout.decode('utf-8').strip()
-        return user
 
     def _destroy_prepuller(self):
         logging.info("Destroying prepuller")

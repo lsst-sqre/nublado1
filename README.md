@@ -74,6 +74,13 @@ manual deployment.
   `kubectl config set-context $(kubectl config current-context)
   --namespace <namespace>`.  This step is optional.
 
+* Since you will be creating new `Role` resources, you will need to
+  grant a role binding that will allow the user you are installing as
+  the power to create Roles, ClusterRoles, RoleBindings, and
+  ClusterRoleBindings.  Just issue the command `kubectl create
+  clusterrolebinding admin-binding --clusterrole=cluster-admin
+  --user=$(gcloud config get-value account)` and that will do the trick.
+
 * You will need to expose your Jupyter Lab instance to the public
   internet, and GitHub's egress IPs must be able to reach it.  This is
   necessary for the GitHub OAuth2 callback (or indeed any OAuth
@@ -350,13 +357,6 @@ containers to use.
     
 * `prepuller` is the location of this component.
 
-* Because you are creating a `ClusterRole` resource, you will need
-  to have a `ClusterRoleBinding` that gives the admin account from which
-  you are installing permissions to create new `ClusterRole` and
-  `ClusterRoleBinding` resources.  Do that with:
-  `kubectl create clusterrolebinding admin-binding
-  --clusterrole=cluster-admin --user=$(gcloud config get-value
-  account)`.
 
 * It has several components:
   - `prepuller-serviceaccount.yml` defines a new service account:

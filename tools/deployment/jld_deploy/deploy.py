@@ -109,6 +109,10 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "prepuller_sort_field",
     "prepuller_command",
     "prepuller_namespace",
+    "lab_repo_owner",
+    "lab_repo_name",
+    "lab_repo_host",
+    "lab_image",
     "lab_selector_title",
     "lab_idle_timeout",
     "lab_cpu_limit",
@@ -339,6 +343,14 @@ class JupyterLabDeployment(object):
                       'prepuller_command', 'prepuller_namespace']:
             if self._empty_param(pname):
                 self.params[pname] = ''
+        if self._empty_param('lab_repo_owner'):
+            self.params['lab_repo_owner'] = self.params['prepuller_owner']
+        if self._empty_param('lab_repo_name'):
+            self.params['lab_repo_name'] = self.params['prepuller_image_name']
+        if self._empty_param('lab_repo_host'):
+            self.params['lab_repo_host'] = self.params['prepuller_repo']
+        if self._empty_param('lab_image'):
+            self.params['lab_image'] = ''
         if self._empty_param('lab_selector_title'):
             self.params['lab_selector_title'] = "LSST Stack Selector"
         if self._empty_param('lab_idle_timeout'):
@@ -594,6 +606,10 @@ class JupyterLabDeployment(object):
                           PREPULLER_COMMAND=p['prepuller_command'],
                           PREPULLER_NAMESPACE=p['prepuller_namespace'],
                           PREPULLER_MINUTE=p['prepuller_minute'],
+                          LAB_REPO_HOST=p['lab_repo_host'],
+                          LAB_REPO_OWNER=p['lab_repo_owner'],
+                          LAB_REPO_NAME=p['lab_repo_name'],
+                          LAB_IMAGE=p['lab_image'],
                           LAB_SELECTOR_TITLE=p['lab_selector_title'],
                           LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],
                           LAB_MEM_LIMIT=p['lab_mem_limit'],

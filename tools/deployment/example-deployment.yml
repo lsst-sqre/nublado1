@@ -62,8 +62,7 @@ allowed_groups:
 ### Session storage location.  Any SQLAlchemy URL will work.
 # session_db_url: 'sqlite:////home/jupyter/jupyterhub.sqlite'
 
-### Parameters for which image or set of images is presented by the Hub
-#  and used by prepuller
+### Parameters for which image or set of images is prepulled.
 # For a single image, use prepuller_image_list and no_scan.
 #  prepuller_image_list:
 #  - 'lsstsqre/jld-lab:latest'
@@ -88,6 +87,15 @@ allowed_groups:
 # In normal operation, namespace will be set from the container itself.
 #  prepuller_namespace: 'jld_namespace'
 
+### Parameters for images presented in the Hub menu
+# Unless you are trying to annoy your users, these should probably match
+#  the values above.
+# If you only want a single lab image, set lab_image
+#  lab_image: 'lsstsqre/jld-lab:latest'
+# As with the prepuller, if you want to scan a repo for tags...
+#  lab_repo_host: 'hub.docker.com'
+#  lab_repo_owner: 'lsstsqre'
+#  lab_repo_name: 'jld-lab'
 
 ### Idle timeout for reaping user containers
 # should be a string, and should be number of seconds.  Default is 12

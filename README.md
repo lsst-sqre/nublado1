@@ -407,6 +407,10 @@ customization on your part.
 * Next, create the Persistent Volume Claim: `kubectl create -f
   jld-hub-physpvc.yml`.  The Hub needs some persistent storage so its
   knowledge of user sessions survives a container restart.
+  
+* Symlink the appropriate config into the `kubernetes` directory.  Assuming
+  you are using it as your working directory, `ln -sf
+  ../jupyterhub_config config`.
 
 * Create a file from the secrets template.  Populate this secrets file
   with the following (base64-encoded):

@@ -8,8 +8,8 @@ fi
 # If write permissions don't exist, these don't actually succeed...but
 #  startup is three minutes faster, and since we did the lab build in the
 #  container image creation, everything works anyway.  Hence the redirection.
-/usr/bin/python3 /usr/bin/jupyter lab clean 2>&1 >/dev/null
-/usr/bin/python3 /usr/bin/jupyter lab build 2>&1 >/dev/null
+/usr/bin/python3 /usr/local/bin/jupyter lab clean 2>&1 >/dev/null
+/usr/bin/python3 /usr/local/bin/jupyter lab build 2>&1 >/dev/null
 # Set GitHub configuration
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"
@@ -32,11 +32,14 @@ if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
 	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
               ${HOME}/idleculler/culler.output 2>&1 &
 fi
-cmd="python3 /usr/bin/jupyter-labhub \
-     --ip='*' --port=8888 --debug \
+cmd="python3 /usr/local/bin/jupyter-labhub \
+     --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}/notebooks"
-echo ${cmd}
+if [ -n "${DEBUG}" ]; then
+    cmd="${cmd} --debug"
+fi
+echo "JupyterLab command: '${cmd}'"
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
     while : ; do

@@ -40,8 +40,18 @@ RUN  source scl_source enable rh-python36 && \
       astropy \
       pypandoc \
       ipywidgets \
-      matplotlib \
-      bokeh
+      matplotlib
+# Add Christine's bokeh that supports notebooks
+RUN  source scl_source enable rh-python36 && \
+      mkdir -p /usr/share/git && \
+      cd /usr/share/git && \
+      # change this once merged upstream
+      git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git && \
+      cd /usr/share/git/bokeh/bokehjs && \
+      npm install --no-save && \
+      node ./prepare.js && \
+      cd .. && \
+      python3 setup.py develop --build-js      
 RUN  source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
@@ -83,6 +93,20 @@ RUN  source scl_source enable rh-python36 && \
 RUN  source scl_source enable rh-python36 && \
       /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) serverextension enable --py jupyterlab \
+      --sys-prefix
+RUN  source scl_source enable rh-python36 && \
+      jupyter serverextension enable --py nbserverproxy \
+      --sys-prefix
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) serverextension enable --py nbserverproxy \
+      --sys-prefix
+RUN  source scl_source enable rh-python36 && \
+      jupyter serverextension enable --py nbdime \
+      --sys-prefix
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) serverextension enable --py nbdime \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
       jupyter nbextension enable --py \

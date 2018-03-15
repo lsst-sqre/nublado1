@@ -3,20 +3,18 @@ USER root
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade
-RUN  yum -y install python-pip python36 gcc python36-devel \
+RUN  yum -y install python-pip gcc \
       git sudo \
       python-devel http-parser nodejs \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      python36-tkinter pandoc \
+      pandoc \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
       texlive-adjustbox
-# Force Python 3.6 and install pip (3.6 is not in EPEL)
-RUN  ln -s /usr/bin/python3.6 /usr/bin/python3
-RUN  python3.6 -m ensurepip --default-pip      
-# Newer git; install from SCL
+# Python 3.6, tkinter, and git: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum-config-manager --enable rhel-server-rhscl-7-rpms && \
-     yum -y install rh-git29 devtoolset-6
+     yum -y install rh-git29 devtoolset-6 rh-python36-python-tkinter \
+      rh-python36
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -27,9 +25,11 @@ RUN  cd /tmp && \
      tar xpfz ${F} && \
      install -m 0755 ${FN}/bin/hub /usr/bin && \
      rm -rf ${F} ${FN}
-RUN  pip3 install --upgrade pip setuptools
+RUN  source scl_source enable rh-python36 && \
+      pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
-RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
+RUN  source scl_source enable rh-python36 && \
+      pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
       pipenv \
       nbdime \
@@ -42,7 +42,8 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       ipywidgets \
       matplotlib \
       bokeh
-RUN  pip3 install \
+RUN  source scl_source enable rh-python36 && \
+      pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
       https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
@@ -51,7 +52,8 @@ RUN  pip3 install \
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
-RUN  python3 /usr/local/bin/nbdime config-git --enable --system
+RUN  source scl_source enable rh-python36 && \
+      python3 $(which nbdime) config-git --enable --system
 # scipy/pandas/numpy/astropy/matplotlib all already there
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install --upgrade pip \
@@ -75,21 +77,28 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
       fi
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       -m ipykernel install --name 'LSST_Stack'
-RUN  python3 /usr/local/bin/jupyter serverextension enable --py jupyterlab \
+RUN  source scl_source enable rh-python36 && \
+      jupyter serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      /usr/local/bin/jupyter serverextension enable --py jupyterlab \
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  python3 /usr/local/bin/jupyter nbextension enable --py \
+RUN  source scl_source enable rh-python36 && \
+      jupyter nbextension enable --py \
       widgetsnbextension --sys-prefix
-RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      /usr/local/bin/jupyter serverextension enable --py jupyterlab \
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      /usr/local/bin/jupyter nbextension enable --py widgetsnbextension \
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) nbextension enable --py widgetsnbextension \
       --sys-prefix
-RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
-RUN  mkdir -p /usr/share/git && \
+RUN  source scl_source enable rh-python36 && \
+      jupyter labextension install @jupyter-widgets/jupyterlab-manager
+RUN  source scl_source enable rh-python36 && \
+     mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      jlpm global add webpack && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
@@ -97,7 +106,7 @@ RUN  mkdir -p /usr/share/git && \
      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
      for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
          cd ${i} && \
-         python3 /usr/local/bin/jupyter labextension link . --no-build && \
+         python3 $(which jupyter) labextension link . --no-build && \
          jlpm install --unsafe-perm && \
          jlpm run build && \
          cd .. ;\
@@ -117,24 +126,26 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
          cd $(dirname "${eups}") ; \
          patch < ${jl}/eups.patch ; \
      fi
-RUN  for i in clean build; do \
-         /usr/bin/python3 /usr/local/bin/jupyter lab ${i} ; \
-     done
+RUN  source scl_source enable rh-python36 && \
+      for i in clean build; do \
+          jupyter lab ${i} ; \
+      done
 # Why do I need this?
-RUN /usr/bin/python3 /usr/local/bin/jupyter labextension install \
-     jupyterlab_bokeh
+RUN  source scl_source enable rh-python36 && \
+      jupyter labextension install jupyterlab_bokeh
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
-     u="/usr/local/share" && \
+     scl="/opt/rh/rh-python36/root/usr/share/" && \
+     #uls="/usr/local/share" && \
      jl="jupyter/lab" && \
+     u="${scl}/${jl}" && \
 # If we recursively chown all of the lab directory, it gets rid of permission
 # errors on startup....but also radically slows down startup, by about
 # three minutes.
-     mkdir -p ${u}/${jl}/staging ${u}/${jl}/schemas ${u}/${jl}/themes && \
-     for i in /usr/share/git ${jl}/staging; do \
-#     for i in git ${jl}; do \
-         chgrp -R jupyter ${u}/${i} ; \
-         chmod -R g+w ${u}/${i} ; \
+     mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
+     for i in /usr/share/git ${u}/staging; do \
+         chgrp -R jupyter ${i} ; \
+         chmod -R g+w ${i} ; \
      done
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \

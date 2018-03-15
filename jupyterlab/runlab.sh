@@ -4,12 +4,14 @@
 if [ -n "${DEBUG}" ]; then
     set -x
 fi
+# Set up SCLs
+source /etc/profile.d/local06-scl.sh
 # Rebuild Lab
 # If write permissions don't exist, these don't actually succeed...but
 #  startup is three minutes faster, and since we did the lab build in the
 #  container image creation, everything works anyway.  Hence the redirection.
-/usr/bin/python3 /usr/local/bin/jupyter lab clean 2>&1 >/dev/null
-/usr/bin/python3 /usr/local/bin/jupyter lab build 2>&1 >/dev/null
+jupyter lab clean 2>&1 >/dev/null
+jupyter lab build 2>&1 >/dev/null
 # Set GitHub configuration
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"
@@ -32,7 +34,7 @@ if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
 	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
               ${HOME}/idleculler/culler.output 2>&1 &
 fi
-cmd="python3 /usr/local/bin/jupyter-labhub \
+cmd="jupyter-labhub \
      --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}/notebooks"
@@ -43,6 +45,7 @@ echo "JupyterLab command: '${cmd}'"
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
     while : ; do
+	${cmd}
         d=$(date)
         echo "${d}: sleeping."
         sleep 60

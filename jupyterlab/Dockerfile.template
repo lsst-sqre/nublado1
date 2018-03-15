@@ -3,17 +3,18 @@ USER root
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade
-RUN  yum -y install python-pip python34 python34-pip gcc python34-devel \
+RUN  yum -y install python-pip gcc \
       git sudo \
       python-devel http-parser nodejs \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      python34-tkinter pandoc \
+      pandoc \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
       texlive-adjustbox
-# Newer git; install from SCL
+# Python 3.6, tkinter, and git: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum-config-manager --enable rhel-server-rhscl-7-rpms && \
-     yum -y install rh-git29 devtoolset-6
+     yum -y install rh-git29 devtoolset-6 rh-python36-python-tkinter \
+      rh-python36
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -24,9 +25,11 @@ RUN  cd /tmp && \
      tar xpfz ${F} && \
      install -m 0755 ${FN}/bin/hub /usr/bin && \
      rm -rf ${F} ${FN}
-RUN  pip3 install --upgrade pip setuptools
+RUN  source scl_source enable rh-python36 && \
+      pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
-RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
+RUN  source scl_source enable rh-python36 && \
+      pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
       pipenv \
       nbdime \
@@ -39,15 +42,18 @@ RUN  pip3 install --upgrade virtualenv virtualenvwrapper \
       ipywidgets \
       matplotlib \
       bokeh
-RUN  pip3 install \
+RUN  source scl_source enable rh-python36 && \
+      pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
       https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
-      https://github.com/jupyterhub/jupyterhub/zipball/master
+      https://github.com/jupyterhub/jupyterhub/zipball/master \
+      https://github.com/jupyterhub/nbserverproxy/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
-RUN  python3 /usr/bin/nbdime config-git --enable --system
+RUN  source scl_source enable rh-python36 && \
+      python3 $(which nbdime) config-git --enable --system
 # scipy/pandas/numpy/astropy/matplotlib all already there
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      pip install --upgrade pip \
@@ -71,18 +77,28 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
       fi
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       -m ipykernel install --name 'LSST_Stack'
-RUN  python3 /usr/bin/jupyter serverextension enable --py jupyterlab \
+RUN  source scl_source enable rh-python36 && \
+      jupyter serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
-RUN  python3 /usr/bin/jupyter nbextension enable --py widgetsnbextension \
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) serverextension enable --py jupyterlab \
       --sys-prefix
-RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      /usr/bin/jupyter serverextension enable --py jupyterlab --sys-prefix
-RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      /usr/bin/jupyter nbextension enable --py widgetsnbextension --sys-prefix
-RUN  jupyter labextension install @jupyter-widgets/jupyterlab-manager
-RUN  mkdir -p /usr/share/git && \
+RUN  source scl_source enable rh-python36 && \
+      jupyter nbextension enable --py \
+      widgetsnbextension --sys-prefix
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) serverextension enable --py jupyterlab \
+      --sys-prefix
+RUN  source scl_source enable rh-python36 && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      $(which jupyter) nbextension enable --py widgetsnbextension \
+      --sys-prefix
+RUN  source scl_source enable rh-python36 && \
+      jupyter labextension install @jupyter-widgets/jupyterlab-manager
+RUN  source scl_source enable rh-python36 && \
+     mkdir -p /usr/share/git && \
      cd /usr/share/git && \
      jlpm global add webpack && \
      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
@@ -90,7 +106,7 @@ RUN  mkdir -p /usr/share/git && \
      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
      for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
          cd ${i} && \
-         python3 /usr/bin/jupyter labextension link . --no-build && \
+         python3 $(which jupyter) labextension link . --no-build && \
          jlpm install --unsafe-perm && \
          jlpm run build && \
          cd .. ;\
@@ -110,39 +126,26 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
          cd $(dirname "${eups}") ; \
          patch < ${jl}/eups.patch ; \
      fi
-# Set up firefly
-RUN  cd /usr/share/git && \
-     source /opt/lsst/software/stack/loadLSST.bash && \
-     pip install \
-       https://github.com/Caltech-IPAC/firefly_client/zipball/master && \
-     git clone https://github.com/lsst/display_firefly && \
-     cd display_firefly/ups && \
-     sed -i -e \
-       's/setupRequired(firefly_client)/#setupRequired(firefly_client)/' \
-       display_firefly.table && \
-     cd .. && \
-     setup afw && \
-     source scl_source enable devtoolset-6 && \
-     scons install force=True && \
-     scons declare force=True
-RUN  for i in clean build; do \
-         /usr/bin/python3 /usr/bin/jupyter lab ${i} ; \
-     done
-# Temporary fix for theme problems 2017-12-20
+RUN  source scl_source enable rh-python36 && \
+      for i in clean build; do \
+          jupyter lab ${i} ; \
+      done
 # Why do I need this?
-RUN /usr/bin/python3 /usr/bin/jupyter labextension install jupyterlab_bokeh
+RUN  source scl_source enable rh-python36 && \
+      jupyter labextension install jupyterlab_bokeh
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
-     u="/usr/share" && \
+     scl="/opt/rh/rh-python36/root/usr/share/" && \
+     #uls="/usr/local/share" && \
      jl="jupyter/lab" && \
+     u="${scl}/${jl}" && \
 # If we recursively chown all of the lab directory, it gets rid of permission
 # errors on startup....but also radically slows down startup, by about
 # three minutes.
-     mkdir -p ${u}/${jl}/staging ${u}/${jl}/schemas ${u}/${jl}/themes && \
-     for i in git ${jl}/staging; do \
-#     for i in git ${jl}; do \
-         chgrp -R jupyter ${u}/${i} ; \
-         chmod -R g+w ${u}/${i} ; \
+     mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
+     for i in /usr/share/git ${u}/staging; do \
+         chgrp -R jupyter ${i} ; \
+         chmod -R g+w ${i} ; \
      done
 # Custom local files
 COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \

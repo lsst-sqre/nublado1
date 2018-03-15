@@ -123,6 +123,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         endstr = "/hub/oauth_callback"
         if oauth_callback and oauth_callback.endswith(endstr):
             pod_env['EXTERNAL_URL'] = oauth_callback[:-len(endstr)]
+        if os.getenv('DEBUG'):
+            pod_env['DEBUG'] = os.getenv('DEBUG')
         return make_pod(
             name=self.pod_name,
             image_spec=self.singleuser_image_spec,

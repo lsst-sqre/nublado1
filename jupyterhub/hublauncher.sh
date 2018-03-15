@@ -18,7 +18,7 @@ conf="/opt/lsst/software/jupyterhub/config/jupyterhub_config.py"
 if [ -n "${DEBUG}" ]; then
     dbgflag="--debug "
 fi
-cmd="sudo -E -u ${USER} /usr/bin/jupyterhub ${dbgflag} -f ${conf}"
+cmd="sudo -E -u ${USER} /usr/local/bin/jupyterhub ${dbgflag} -f ${conf}"
 if [ -n "${DEBUG}" ]; then
     ${cmd}
     sleep 600

@@ -47,11 +47,15 @@ RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git && \
       # change this once merged upstream
       git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git && \
-      cd /usr/share/git/bokeh/bokehjs && \
+      cd bokeh/bokehjs && \
       npm install --no-save && \
       node ./prepare.js && \
       cd .. && \
-      python3 setup.py develop --build-js      
+      python3 setup.py install --build-js
+# Add to stack kernel as well
+RUN  source /opt/lsst/software/stack/loadLSST.bash && \
+      cd /usr/share/git/bokeh && \
+      python3 setup.py install --install-js
 RUN  source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
@@ -74,8 +78,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         nbdime \
         nbval \
         pypandoc \
-        ipywidgets \
-        bokeh
+        ipywidgets
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \

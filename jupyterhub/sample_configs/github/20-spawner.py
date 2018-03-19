@@ -284,9 +284,7 @@ class ScanRepo(object):
             try:
                 resp_bytes = self._get_url(page=page)
             except Exception as e:
-                raise ValueError("Failure retrieving %s: %s [ data: %s ]" %
-                                 (url, str(e),
-                                  str(resp_bytes.decode("utf-8"))))
+                raise ValueError("Failure retrieving %s: %s" % (url, str(e)))
             resp_text = resp_bytes.decode("utf-8")
             try:
                 j = json.loads(resp_text)

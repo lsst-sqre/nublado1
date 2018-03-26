@@ -5,7 +5,7 @@ RUN  yum repolist
 RUN  yum -y  upgrade
 RUN  yum -y install python-pip gcc \
       git sudo \
-      python-devel http-parser nodejs \
+      python-devel http-parser \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       pandoc \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
@@ -26,9 +26,11 @@ RUN  cd /tmp && \
      install -m 0755 ${FN}/bin/hub /usr/bin && \
      rm -rf ${F} ${FN}
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       pip3 install --upgrade pip setuptools
 RUN  pip2 install --upgrade pip setuptools
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
       pipenv \
@@ -58,6 +60,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       cd /usr/share/git/bokeh && \
       python3 setup.py install --install-js
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
       https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
@@ -68,6 +71,7 @@ RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       python3 $(which nbdime) config-git --enable --system
 # scipy/pandas/numpy/astropy/matplotlib all already there
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
@@ -92,27 +96,34 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       -m ipykernel install --name 'LSST_Stack'
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       jupyter serverextension enable --py jupyterlab \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) serverextension enable --py jupyterlab \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       jupyter serverextension enable --py nbserverproxy \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) serverextension enable --py nbserverproxy \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       jupyter serverextension enable --py nbdime \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) serverextension enable --py nbdime \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       jupyter nbextension enable --py \
       widgetsnbextension --sys-prefix
 RUN  source scl_source enable rh-python36 && \
@@ -120,25 +131,28 @@ RUN  source scl_source enable rh-python36 && \
       $(which jupyter) serverextension enable --py jupyterlab \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) nbextension enable --py widgetsnbextension \
       --sys-prefix
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN  source scl_source enable rh-python36 && \
-     mkdir -p /usr/share/git && \
-     cd /usr/share/git && \
-     jlpm global add webpack && \
-     git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-     git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-     git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
-     for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
-         cd ${i} && \
-         python3 $(which jupyter) labextension link . --no-build && \
-         jlpm install --unsafe-perm && \
-         jlpm run build && \
-         cd .. ;\
-     done
+      source scl_source enable rh-nodejs8 && \
+      mkdir -p /usr/share/git && \
+      cd /usr/share/git && \
+      jlpm global add webpack && \
+      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
+      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+      for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
+          cd ${i} && \
+          python3 $(which jupyter) labextension link . --no-build && \
+          jlpm install --unsafe-perm && \
+          jlpm run build && \
+          cd .. ;\
+      done
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
@@ -155,11 +169,13 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
          patch < ${jl}/eups.patch ; \
      fi
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       for i in clean build; do \
           jupyter lab ${i} ; \
       done
 # Why do I need this?
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       jupyter labextension install jupyterlab_bokeh
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \

@@ -46,7 +46,7 @@ RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       # change this once merged upstream
-      git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git && \
+      git clone https://github.com/lsst-epo/bokeh.git && \
       cd bokeh/bokehjs && \
       npm install --no-save && \
       node ./prepare.js && \

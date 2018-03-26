@@ -14,7 +14,7 @@ RUN  yum -y install python-pip gcc \
 RUN  yum -y install centos-release-scl && \
      yum-config-manager --enable rhel-server-rhscl-7-rpms && \
      yum -y install rh-git29 devtoolset-6 rh-python36-python-tkinter \
-      rh-python36
+      rh-python36 rh-nodejs8
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -43,6 +43,7 @@ RUN  source scl_source enable rh-python36 && \
       matplotlib
 # Add Christine's bokeh that supports notebooks
 RUN  source scl_source enable rh-python36 && \
+      source scl_source enable rh-nodejs8 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       # change this once merged upstream

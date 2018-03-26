@@ -52,6 +52,7 @@ RUN  source scl_source enable rh-python36 && \
        https://nodejs.org/dist/v8.10.0/node-v8.10.0-linux-x64.tar.xz && \
       tar xvfJ node.xz && \
       export PATH=/usr/share/git/tmp/node-v8.10.0-linux-x64/bin:$PATH && \
+      cd .. && \
       # change this once merged upstream
       git clone https://github.com/lsst-epo/bokeh.git && \
       cd bokeh/bokehjs && \
@@ -59,6 +60,7 @@ RUN  source scl_source enable rh-python36 && \
       node ./prepare.js && \
       cd .. && \
       python3 setup.py install --build-js && \
+      # Get rid of that NodeJS
       rm -rf /usr/share/git/tmp
 # Add to stack kernel as well
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \

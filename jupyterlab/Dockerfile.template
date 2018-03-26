@@ -54,7 +54,7 @@ RUN  source scl_source enable rh-python36 && \
       export PATH=/usr/share/git/tmp/node-v8.10.0-linux-x64/bin:$PATH && \
       cd .. && \
       # change this once merged upstream
-      git clone https://github.com/lsst-epo/bokeh.git && \
+      git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git && \
       cd bokeh/bokehjs && \
       npm install --no-save --unsafe-perm && \
       node ./prepare.js && \

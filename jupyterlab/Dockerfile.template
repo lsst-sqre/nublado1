@@ -135,7 +135,6 @@ RUN  source scl_source enable rh-python36 && \
 RUN  source scl_source enable rh-python36 && \
       jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN  source scl_source enable rh-python36 && \
-      source scl_source enable rh-nodejs8 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       jlpm global add webpack && \

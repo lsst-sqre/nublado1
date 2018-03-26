@@ -58,7 +58,8 @@ RUN  source scl_source enable rh-python36 && \
       npm install --no-save --unsafe-perm && \
       node ./prepare.js && \
       cd .. && \
-      python3 setup.py install --build-js
+      python3 setup.py install --build-js && \
+      rm -rf /usr/share/git/tmp
 # Add to stack kernel as well
 RUN  source /opt/lsst/software/stack/loadLSST.bash && \
       cd /usr/share/git/bokeh && \

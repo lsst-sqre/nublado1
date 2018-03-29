@@ -40,6 +40,7 @@ RUN  source scl_source enable rh-python36 && \
       astropy \
       pypandoc \
       ipywidgets \
+      rise \
       matplotlib
 # Add Christine's bokeh that supports notebooks
 RUN  source scl_source enable rh-python36 && \
@@ -88,6 +89,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         nbdime \
         nbval \
         pypandoc \
+        rise \
         ipywidgets
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
@@ -100,40 +102,31 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
       fi
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       -m ipykernel install --name 'LSST_Stack'
+ENV SVXT="jupyterlab nbserverproxy nbdime"
+ENV NBXT="widgetsnbextension rise"
+ENV LBXT="@jupyter-widgets/jupyterlab-manager"
 RUN  source scl_source enable rh-python36 && \
-      jupyter serverextension enable --py jupyterlab \
-      --sys-prefix
+      for s in $SVXT; do \
+          jupyter serverextension enable ${s} --py --sys-prefix ; \
+          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+           $(which jupyter) serverextension enable ${s} --py --sys-prefix ; \
+      done
 RUN  source scl_source enable rh-python36 && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      $(which jupyter) serverextension enable --py jupyterlab \
-      --sys-prefix
+      for n in $NBXT; do \
+          jupyter nbextension install ${n} --py --sys-prefix ; \
+          jupyter nbextension enable ${n} --py  --sys-prefix ; \
+          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+           $(which jupyter) nbextension install ${n} --py --sys-prefix ; \
+          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+           $(which jupyter) nbextension enable ${n} --py --sys-prefix ; \
+      done
 RUN  source scl_source enable rh-python36 && \
-      jupyter serverextension enable --py nbserverproxy \
-      --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      $(which jupyter) serverextension enable --py nbserverproxy \
-      --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      jupyter serverextension enable --py nbdime \
-      --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      $(which jupyter) serverextension enable --py nbdime \
-      --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      jupyter nbextension enable --py \
-      widgetsnbextension --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      $(which jupyter) serverextension enable --py jupyterlab \
-      --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      $(which jupyter) nbextension enable --py widgetsnbextension \
-      --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      jupyter labextension install @jupyter-widgets/jupyterlab-manager
+      for l in $LBXT; do \
+          jupyter labextension install ${l} --no-build; \
+          /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
+           $(which jupyter) labextension install ${l} --no-build; \
+      done
+ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh"
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
@@ -141,13 +134,25 @@ RUN  source scl_source enable rh-python36 && \
       git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
-      for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
+      for i in ${GITXT}; do \
           cd ${i} && \
           python3 $(which jupyter) labextension link . --no-build && \
           jlpm install --unsafe-perm && \
           jlpm run build && \
           cd .. ;\
       done
+RUN  source scl_source enable rh-python36 && \
+      mkdir -p /usr/share/git && \
+      cd /usr/share/git && \
+      git clone https://github.com/cds-astro/ipyaladin.git && \
+      cd ipyaladin/js && \
+      npm install --unsafe-perm && \
+      cd .. && \
+      pip install -e . && \
+      cd js && \
+      jupyter labextension install --no-build && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+       $(which jupyter) labextension install --no-build
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
@@ -169,7 +174,17 @@ RUN  source scl_source enable rh-python36 && \
       done
 # Why do I need this?
 RUN  source scl_source enable rh-python36 && \
-      jupyter labextension install jupyterlab_bokeh
+      jupyter labextension install jupyterlab_bokeh && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+       $(which jupyter) labextension install jupyterlab_bokeh
+RUN  source scl_source enable rh-python36 && \
+      jupyter lab build
+RUN  source scl_source enable rh-python36 && \
+      for l in ${LBXT} ${GITXT} ipyaladin; do \
+          jupyter labextension enable ${l} && \
+          /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
+           $(which jupyter) labextension enable ${l}; \
+      done
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
      scl="/opt/rh/rh-python36/root/usr/share/" && \

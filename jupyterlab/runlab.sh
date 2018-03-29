@@ -1,6 +1,5 @@
 #!/bin/sh
-# Set to turn on debugging
-#export DEBUG=1
+# Set DEBUG to a non-empty value to turn on debugging
 if [ -n "${DEBUG}" ]; then
     set -x
 fi

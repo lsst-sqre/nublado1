@@ -126,6 +126,7 @@ RUN  source scl_source enable rh-python36 && \
           /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
            $(which jupyter) labextension install ${l} --no-build; \
       done
+ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh"
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
@@ -133,13 +134,25 @@ RUN  source scl_source enable rh-python36 && \
       git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
-      for i in jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
+      for i in ${GITXT}; do \
           cd ${i} && \
           python3 $(which jupyter) labextension link . --no-build && \
           jlpm install --unsafe-perm && \
           jlpm run build && \
           cd .. ;\
       done
+RUN  source scl_source enable rh-python36 && \
+      mkdir -p /usr/share/git && \
+      cd /usr/share/git && \
+      git clone https://github.com/cds-astro/ipyaladin.git && \
+      cd ipyaladin/js && \
+      npm install --unsafe-perm && \
+      cd .. && \
+      pip install -e . && \
+      cd js && \
+      jupyter labextension install --no-build && \
+      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+       $(which jupyter) labextension install --no-build
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
@@ -167,7 +180,7 @@ RUN  source scl_source enable rh-python36 && \
 RUN  source scl_source enable rh-python36 && \
       jupyter lab build
 RUN  source scl_source enable rh-python36 && \
-      for l in $LBXT jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh; do \
+      for l in ${LBXT} ${GITXT} ipyaladin; do \
           jupyter labextension enable ${l} && \
           /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
            $(which jupyter) labextension enable ${l}; \

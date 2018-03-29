@@ -3,7 +3,7 @@ USER root
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade
-RUN  yum -y install python-pip gcc \
+RUN  yum -y install gcc \
       git sudo \
       python-devel http-parser nodejs \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
@@ -27,7 +27,6 @@ RUN  cd /tmp && \
      rm -rf ${F} ${FN}
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
-RUN  pip2 install --upgrade pip setuptools
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
@@ -41,32 +40,9 @@ RUN  source scl_source enable rh-python36 && \
       pypandoc \
       ipywidgets \
       rise \
-      matplotlib
-# Add Christine's bokeh that supports notebooks
-RUN  source scl_source enable rh-python36 && \
-      mkdir -p /usr/share/git && \
-      cd /usr/share/git && \
-      mkdir tmp && \
-      cd tmp && \
-      # Gulp in bokeh requires a ridiculously recent NodeJS
-      curl -o node.xz \
-       https://nodejs.org/dist/v8.10.0/node-v8.10.0-linux-x64.tar.xz && \
-      tar xvfJ node.xz && \
-      export PATH=/usr/share/git/tmp/node-v8.10.0-linux-x64/bin:$PATH && \
-      cd .. && \
-      # change this once merged upstream
-      git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git && \
-      cd bokeh/bokehjs && \
-      npm install --no-save --unsafe-perm && \
-      node ./prepare.js && \
-      cd .. && \
-      python3 setup.py install --build-js && \
-      # Get rid of that NodeJS
-      rm -rf /usr/share/git/tmp
-# Add to stack kernel as well
-RUN  source /opt/lsst/software/stack/loadLSST.bash && \
-      cd /usr/share/git/bokeh && \
-      python3 setup.py install --install-js
+      matplotlib \
+      astroquery \
+      bokeh
 RUN  source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
@@ -76,7 +52,6 @@ RUN  source scl_source enable rh-python36 && \
       https://github.com/jupyterhub/nbserverproxy/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
-RUN  pip2 install --upgrade virtualenv virtualenvwrapper pipenv
 RUN  source scl_source enable rh-python36 && \
       python3 $(which nbdime) config-git --enable --system
 # scipy/pandas/numpy/astropy/matplotlib all already there
@@ -90,7 +65,9 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         nbval \
         pypandoc \
         rise \
-        ipywidgets
+        ipywidgets \
+        astroquery \
+        bokeh
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \

@@ -42,6 +42,7 @@ RUN  source scl_source enable rh-python36 && \
       rise \
       matplotlib \
       astroquery \
+      healpy \
       bokeh
 RUN  source scl_source enable rh-python36 && \
       pip3 install \
@@ -145,6 +146,9 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
          cd $(dirname "${eups}") ; \
          patch < ${jl}/eups.patch ; \
      fi
+RUN source /opt/lsst/software/stack/loadLSST.bash && \
+      cd /usr/share/git/ipyaladin && \
+      pip -install -e .      
 RUN  source scl_source enable rh-python36 && \
       for i in clean build; do \
           jupyter lab ${i} ; \

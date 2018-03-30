@@ -177,8 +177,9 @@ RUN  groupadd -g 768 jupyter && \
          chmod -R g+w ${i} ; \
      done
 # Custom local files
-COPY local01-virtualenvwrapper.sh local02-hub.sh local03-showmotd.sh  \
+COPY local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \
+     local08-virtualenvwrapper.sh \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
      for i in local*; do \

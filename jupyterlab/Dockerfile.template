@@ -148,7 +148,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
      fi
 RUN source /opt/lsst/software/stack/loadLSST.bash && \
       cd /usr/share/git/ipyaladin && \
-      pip -install -e .      
+      pip install -e .      
 RUN  source scl_source enable rh-python36 && \
       for i in clean build; do \
           jupyter lab ${i} ; \

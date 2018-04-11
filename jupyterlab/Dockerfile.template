@@ -80,9 +80,20 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
       fi
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       -m ipykernel install --name 'LSST_Stack'
+# Install holoviews and datashader
+RUN source scl_source enable rh-python36 && \
+      pip3 install \
+      https://github.com/ioam/holoviews/zipball/master \
+      https://github.com/bokeh/datashader/zipball/master && \
+      source /opt/lsst/software/stack/loadLSST.bash && \
+      pip3 install \
+      https://github.com/ioam/holoviews/zipball/master \
+      https://github.com/bokeh/datashader/zipball/master
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise"
-ENV LBXT="@jupyter-widgets/jupyterlab-manager"
+#ENV LBXT="@jupyter-widgets/jupyterlab-manager"
+# Not yet compatible with 0.32
+ENV LBXT=""
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
@@ -105,13 +116,14 @@ RUN  source scl_source enable rh-python36 && \
            $(which jupyter) labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery"
+# Local fork of lab-hub and bokeh until 0.32 is supported upstream
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       jlpm global add webpack && \
-      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+      git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+      git clone https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-lsstquery && \
       for i in ${GITXT}; do \
           cd ${i} && \

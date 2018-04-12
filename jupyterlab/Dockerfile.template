@@ -132,6 +132,19 @@ RUN  source scl_source enable rh-python36 && \
           jlpm run build && \
           cd .. ;\
       done
+#Add lsstsqre flavor of https://github.com/jupyter-widgets/ipywidgets/pull/2047
+RUN  source scl_source enable rh-python36 && \
+      mkdir -p /usr/share/git && \
+      git clone https://github.com/lsst-sqre/ipywidgets.git && \
+      cd ipywidgets && \
+      npm install -g yarn && \
+      yarn install && \
+      yarn run build && \
+      echo Here we go... && \
+      cd packages/jupyterlab-manager && \
+      python3 $(which jupyter) labextension link . --no-build && \
+      jlpm install --unsafe-perm && \
+      jlpm run build
 RUN source scl_source enable rh-python36 && \
      cd /usr/share/git/jupyterlab-lsstquery && \
      pip install -e . && \

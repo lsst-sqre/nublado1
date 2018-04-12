@@ -38,8 +38,8 @@ RUN  source scl_source enable rh-python36 && \
       pandas \
       astropy \
       pypandoc \
-      ipywidgets \
       rise \
+      ipywidgets \
       matplotlib \
       astroquery \
       healpy \
@@ -66,8 +66,8 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         nbval \
         pypandoc \
         rise \
-        ipywidgets \
         astroquery \
+        ipywidgets \
         bokeh
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
@@ -91,9 +91,7 @@ RUN source scl_source enable rh-python36 && \
       https://github.com/bokeh/datashader/zipball/master
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise"
-#ENV LBXT="@jupyter-widgets/jupyterlab-manager"
-# Not yet compatible with 0.32
-ENV LBXT=""
+ENV LBXT="@jupyter-widgets/jupyterlab-manager"
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
@@ -116,12 +114,12 @@ RUN  source scl_source enable rh-python36 && \
            $(which jupyter) labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery"
-# Local fork of lab-hub and bokeh until 0.32 is supported upstream
+# Local fork of bokeh until 0.32 is supported upstream
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       jlpm global add webpack && \
-      git clone https://github.com/lsst-sqre/jupyterlab-hub.git && \
+      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-lsstquery && \
@@ -187,10 +185,14 @@ RUN  source scl_source enable rh-python36 && \
           jupyter lab ${i} ; \
       done
 # Why do I need this?
-RUN  source scl_source enable rh-python36 && \
-      jupyter labextension install jupyterlab_bokeh && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-       $(which jupyter) labextension install jupyterlab_bokeh
+# Get bleeding-edge bokeh labextension into Stack environment
+RUN   source scl_source enable rh-python36 && \
+       source /opt/lsst/software/stack/loadLSST.bash && \
+       cd /usr/share/git/jupyterlab_bokeh && \
+       python3 $(which jupyter) labextension link . --no-build && \
+       jlpm install --unsafe-perm && \
+       jlpm run build && \
+       $(which jupyter) labextension enable jupyterlab_bokeh
 RUN  source scl_source enable rh-python36 && \
       jupyter lab build
 RUN  source scl_source enable rh-python36 && \

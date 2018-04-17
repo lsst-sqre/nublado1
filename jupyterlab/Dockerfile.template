@@ -80,6 +80,13 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
       fi
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       -m ipykernel install --name 'LSST_Stack'
+# Install jupyterutils
+RUN source scl_source enable rh-python36 && \
+      pip3 install \
+      https://github.com/lsst-sqre/jupyterutils/zipball/master && \
+      source /opt/lsst/software/stack/loadLSST.bash && \
+      pip3 install \
+      https://github.com/lsst-sqre/jupyterutils/zipball/master      
 # Install holoviews and datashader
 RUN source scl_source enable rh-python36 && \
       pip3 install \

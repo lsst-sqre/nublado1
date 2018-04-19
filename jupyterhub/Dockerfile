@@ -17,6 +17,7 @@ RUN  source scl_source enable rh-python36 && \
       cryptography mysqlclient
 RUN  source scl_source enable rh-python36 && \
       pip3 install \
+       https://github.com/lsst-sqre/jupyterutils/zipball/master \
        https://github.com/jupyterhub/jupyterhub/zipball/master \
        https://github.com/jupyterhub/kubespawner/zipball/master \
        https://github.com/jupyterhub/oauthenticator/zipball/master
@@ -32,5 +33,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.6.0"
+	     version="0.7.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

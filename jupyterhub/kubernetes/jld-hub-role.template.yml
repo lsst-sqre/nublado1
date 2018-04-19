@@ -5,5 +5,5 @@ metadata:
   name: jld-hub
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
+  resources: ["pods","events"]
   verbs: ["get", "list", "create", "watch", "delete"]

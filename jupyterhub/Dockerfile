@@ -17,10 +17,10 @@ RUN  source scl_source enable rh-python36 && \
       cryptography mysqlclient
 RUN  source scl_source enable rh-python36 && \
       pip3 install \
+       https://github.com/lsst-sqre/jupyterutils/zipball/master \
        https://github.com/jupyterhub/jupyterhub/zipball/master \
        https://github.com/jupyterhub/kubespawner/zipball/master \
-       https://github.com/jupyterhub/oauthenticator/zipball/master \
-       https://github.com/lsst-sqre/jupyterutils/zipball/master
+       https://github.com/jupyterhub/oauthenticator/zipball/master
 RUN  source scl_source enable rh-python36 && \
       jupyter serverextension enable --py \
       jupyterlab --sys-prefix

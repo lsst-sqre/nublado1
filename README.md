@@ -341,7 +341,7 @@ containers to use.
   `{{FIREFLY_ADMIN_PASSWORD}}`.
 
 * Create the service and then the deployment with `kubectl create -f`
-  against the appropriate YAML files..  Firefly will automatically be
+  against the appropriate YAML files.  Firefly will automatically be
   available at `/firefly` with the included nginx configuration.
 
 ### Prepuller [optional]

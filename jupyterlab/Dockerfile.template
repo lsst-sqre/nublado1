@@ -121,14 +121,13 @@ RUN  source scl_source enable rh-python36 && \
            $(which jupyter) labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery"
-# Local fork of bokeh until 0.32 is supported upstream
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       jlpm global add webpack && \
       git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-      git clone https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-lsstquery && \
       for i in ${GITXT}; do \
           cd ${i} && \
@@ -174,11 +173,6 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
 RUN source /opt/lsst/software/stack/loadLSST.bash && \
       cd /usr/share/git/ipyaladin && \
       pip install -e .      
-RUN  source scl_source enable rh-python36 && \
-      for i in clean build; do \
-          jupyter lab ${i} ; \
-      done
-# Why do I need this?
 # Get bleeding-edge bokeh labextension into Stack environment
 RUN   source scl_source enable rh-python36 && \
        source /opt/lsst/software/stack/loadLSST.bash && \
@@ -188,12 +182,14 @@ RUN   source scl_source enable rh-python36 && \
        jlpm run build && \
        $(which jupyter) labextension enable jupyterlab_bokeh
 RUN  source scl_source enable rh-python36 && \
-      jupyter lab build
-RUN  source scl_source enable rh-python36 && \
       for l in ${LBXT} ${GITXT} ipyaladin; do \
           jupyter labextension enable ${l} && \
           /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
            $(which jupyter) labextension enable ${l}; \
+      done
+RUN  source scl_source enable rh-python36 && \
+      for i in clean build; do \
+          jupyter lab ${i} ; \
       done
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \

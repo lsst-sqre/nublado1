@@ -5,12 +5,6 @@ if [ -n "${DEBUG}" ]; then
 fi
 # Set up SCLs
 source /etc/profile.d/local06-scl.sh
-# Rebuild Lab
-# If write permissions don't exist, these don't actually succeed...but
-#  startup is three minutes faster, and since we did the lab build in the
-#  container image creation, everything works anyway.  Hence the redirection.
-jupyter lab clean 2>&1 >/dev/null
-jupyter lab build 2>&1 >/dev/null
 # Set GitHub configuration
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"

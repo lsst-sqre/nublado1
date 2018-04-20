@@ -19,8 +19,9 @@ conf="${jhdir}/config/jupyterhub_config.py"
 if [ -n "${DEBUG}" ]; then
     dbgflag="--debug "
 fi
+upgdb="--upgrade-db"
 source scl_source enable rh-python36
-cmd="sudo -E -u ${USER} ${jhdir}/hubwrapper.sh ${dbgflag} -f ${conf}"
+cmd="sudo -E -u ${USER} ${jhdir}/hubwrapper.sh ${upgdb} ${dbgflag} -f ${conf}"
 if [ -n "${DEBUG}" ]; then
     ${cmd}
     sleep 600

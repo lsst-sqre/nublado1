@@ -21,3 +21,5 @@ c.JupyterHub.hub_ip = os.environ['HUB_BIND_IP']
 db_url = os.getenv('SESSION_DB_URL')
 if db_url:
     c.JupyterHub.db_url = db_url
+# Allow style overrides
+c.JupyterHub.template_paths = ["/opt/lsst/software/jupyterhub/templates/"]

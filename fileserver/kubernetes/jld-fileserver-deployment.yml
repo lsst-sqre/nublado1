@@ -26,29 +26,9 @@ spec:
           securityContext:
             privileged: true
           volumeMounts:
-            - name: jld-home-storage
-              mountPath: /exports/home
-            - name: jld-scratch-storage
-              mountPath: /exports/scratch
-            - name: jld-project-storage
-              mountPath: /exports/project
-            - name: jld-datasets-storage
-              mountPath: /exports/datasets
-            - name: jld-software-storage
-              mountPath: /exports/software
+            - name: jld-storage
+              mountPath: /exports
       volumes:
-        - name: jld-home-storage
+        - name: jld-storage
           persistentVolumeClaim:
-            claimName: jld-fileserver-home-physpvc
-        - name: jld-scratch-storage
-          persistentVolumeClaim:
-            claimName: jld-fileserver-scratch-physpvc
-        - name: jld-project-storage
-          persistentVolumeClaim:
-            claimName: jld-fileserver-project-physpvc
-        - name: jld-datasets-storage
-          persistentVolumeClaim:
-            claimName: jld-fileserver-datasets-physpvc
-        - name: jld-software-storage
-          persistentVolumeClaim:
-            claimName: jld-fileserver-software-physpvc
+            claimName: jld-fileserver-physpvc

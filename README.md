@@ -241,13 +241,11 @@ You will need the IP address of the service for a subsequent step.
 Alternatively, `kubectl describe service jld-fileserver | grep ^IP: |
 awk '{print $2}'` to get just the IP address.
 
-#### Exported Volumes
-
 ##### Physical Storage PersistentVolumeClaim
 
 Next, create a PersistentVolumeClaim (*not* a PersistentVolume!) for the
 underlying storage.  Copy the template file
-`jld-fileserver-home-physpvc.template.yml` to a working file.  Substitute the
+`jld-fileserver-physpvc.template.yml` to a working file.  Substitute the
 disk size in the `storage` field (GKE has a default quota of 500GB);
 the size depends on how much local storage you expect your users to
 require.
@@ -260,11 +258,11 @@ PersistentVolume to back it.  I, at least, found this very surprising.
 If you are not running under GKE you will need to create a
 PersistentVolume for the PersistentVolumeClaim to bind.
 
-##### Other Volumes
-
-Repeat the PersistentVolumeClaim steps for each of `scratch`, `project`,
-`datasets`, and `software`, substituting the appropriate token in place
-of `home`.
+Note that our default deployment puts all exported volumes on a single
+physical volume.  You can modify the deployment to put any or all
+`scratch`, `project`, `datasets`, and `software` as separate physical
+volumes which you then export.  In the real LDF environment they are of
+course separate volumes managed from an external file server.
 
 #### NFS Server
 
@@ -320,7 +318,7 @@ address here.
 ##### NFS Mount PersistentVolumeClaim
 
 From here on it's smooth sailing.  Create a working file from
-`jld-fileserver-home-physpvc.template.yml`, substitute the `storage` field
+`jld-fileserver-home-pvc.template.yml`, substitute the `storage` field
 with the value you used for the PersistentVolume immediately prior, and
 then Create a PersistentVolumeClaim referring to the PersistentVolume
 just created:

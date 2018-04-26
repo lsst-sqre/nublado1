@@ -14,6 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+function ensure_dirs()
+{
+    base="/exports"
+    for dir in home project scratch software datasets; do
+	d="${base}/${dir}"
+	reexport=""
+	if ! [-d "${d}" ]; then
+	    mkdir -p ${d}
+	    case ${dir} in
+		project | scratch)
+		    chmod 1777 ${d}
+		    ;;
+	    esac
+	    echo ${dir} > ${d}/README.${dir}
+	    reexport="yes"
+	fi
+	if [ -n "${reexport}" ]; then
+	    exportfs -r
+	fi
+    done
+}
+
 function start()
 {
 
@@ -63,6 +85,7 @@ function stop()
 
 trap stop TERM
 
+ensure_dirs
 start "$@"
 
 # Ugly hack to do nothing and wait for SIGTERM

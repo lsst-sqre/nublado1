@@ -19,7 +19,27 @@ spec:
           volumeMounts:
             - name: jld-fileserver-home
               mountPath: /home
+            - name: jld-fileserver-scratch
+              mountPath: /scratch
+            - name: jld-fileserver-project
+              mountPath: /project
+            - name: jld-fileserver-datasets
+              mountPath: /datasets
+            - name: jld-fileserver-software
+              mountPath: /software
       volumes:
         - name: jld-fileserver-home
           persistentVolumeClaim:
              claimName: jld-fileserver-home
+        - name: jld-fileserver-scratch
+          persistentVolumeClaim:
+             claimName: jld-fileserver-scratch
+        - name: jld-fileserver-project
+          persistentVolumeClaim:
+             claimName: jld-fileserver-project
+        - name: jld-fileserver-datasets
+          persistentVolumeClaim:
+             claimName: jld-fileserver-datasets
+        - name: jld-fileserver-software
+          persistentVolumeClaim:
+             claimName: jld-fileserver-software

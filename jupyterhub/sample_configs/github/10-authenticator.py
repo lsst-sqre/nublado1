@@ -66,7 +66,14 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
         spawner.cpu_limit = cpulim
         spawner.mem_guarantee = memguar
         spawner.cpu_guarantee = cpuguar
-        # Persistent shared user volume
+        # The standard set of LSST volumes is mountpoints at...
+        #  /home
+        #  /project
+        #  /scratch
+        #  /datasets
+        #  /software
+        # Where software and datasets are read/only and the others are
+        #  read/write
         volname = "jld-fileserver-home"
         homefound = False
         for v in spawner.volumes:
@@ -80,7 +87,32 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
                  {"claimName": volname}}])
             spawner.volume_mounts.extend([
                 {"mountPath": "/home",
-                 "name": volname}])
+                 "name": volname,
+                 "accessModes": ["ReadWriteMany"]}])
+        for vol in ["project", "scratch"]:
+            volname = "jld-fileserver-" + vol
+            spawner.volumes.extend([
+                {"name": volname,
+                 "persistentVolumeClaim": {"claimName": volname}}])
+            spawner.volume_mounts.extend([
+                {"mountPath": "/" + vol,
+                 "name": volname,
+                 "accessModes": ["ReadWriteMany"]}])
+        for vol in ["datasets", "software"]:
+            volname = "jld-fileserver-" + vol
+            spawner.volumes.extend([
+                {"name": volname,
+                 "persistentVolumeClaim": {"claimName": volname}}])
+            spawner.volume_mounts.extend([
+                {"mountPath": "/" + vol,
+                 "name": volname,
+                 "accessModes": ["ReadOnlyMany"]}])
+        self.log.debug("Volumes: %s" % json.dumps(spawner.volumes,
+                                                  indent=4,
+                                                  sort_keys=True))
+        self.log.debug("Volume mounts: %s" % json.dumps(spawner.volume_mounts,
+                                                        indent=4,
+                                                        sort_keys=True))
         # We are running the Lab at the far end, not the old Notebook
         spawner.default_url = '/lab'
         spawner.singleuser_image_pull_policy = 'Always'

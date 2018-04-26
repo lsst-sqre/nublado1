@@ -630,7 +630,7 @@ class JupyterLabDeployment(object):
         for m in MTPTS:
             src = os.path.join(directory, fnbase + "-%s-pv.yml" % m)
             tgt = os.path.join(directory, fnbase + "-%s-pv.template.yml" % m)
-        os.rename(src, tgt)
+            os.rename(src, tgt)
 
     def _save_deployment_yml(self):
         """Either save the input file we used, or synthesize one from our
@@ -832,9 +832,8 @@ class JupyterLabDeployment(object):
                       "r") as fr:
                 tmpl = Template(fr.read())
                 out = tmpl.render(NFS_SERVER_IP_ADDRESS=ip)
-                with open(os.path.join(directory,
-                                       "jld-fileserver-pv-%s.yml" % ns),
-                          "w") as fw:
+                ofn = "jld-fileserver-%s-pv-%s.yml" % (m, ns)
+                with open(os.path.join(directory, ofn), "w") as fw:
                     fw.write(out)
 
     def _waitfor(self, callback, delay=10, tries=10):
@@ -935,13 +934,12 @@ class JupyterLabDeployment(object):
         items = []
         # Remove NFS PVCs and PVs
         for m in MTPTS:
-            items.append["pvc", "jld-fileserver-%s" % m]
+            items.append(["pvc", "jld-fileserver-%s" % m])
         for m in MTPTS:
-            items.append["pv", "jld-fileserver-%s-%s", (m, ns)]
-        items.append(
-            ["deployment", "jld-fileserver"],
-            ["service", "jld-fileserver"],
-            ["pvc", "jld-fileserver-physpvc"])
+            items.append(["pv", "jld-fileserver-%s-%s" % (m, ns)])
+        items.extend([["deployment", "jld-fileserver"],
+                      ["service", "jld-fileserver"],
+                      ["pvc", "jld-fileserver-physpvc"]])
         if pv:
             items.append(["pv", pv])
         items.append(["storageclass", "fast"])

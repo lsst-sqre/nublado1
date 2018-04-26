@@ -20,7 +20,7 @@ function ensure_dirs()
     for dir in home project scratch software datasets; do
 	d="${base}/${dir}"
 	reexport=""
-	if ! [-d "${d}" ]; then
+	if ! [ -d "${d}" ]; then
 	    mkdir -p ${d}
 	    case ${dir} in
 		project | scratch)
@@ -28,12 +28,14 @@ function ensure_dirs()
 		    ;;
 	    esac
 	    echo ${dir} > ${d}/README.${dir}
-	    reexport="yes"
-	fi
-	if [ -n "${reexport}" ]; then
-	    exportfs -r
+	    reexport="${reexport} ${dir}"
 	fi
     done
+    if [ -n "${reexport}" ]; then
+	exportfs -r
+	echo "Exported filesystems changed ${reexport}.  Exiting."
+	exit 0 # Really!  Otherwise it never exports.
+    fi
 }
 
 function start()

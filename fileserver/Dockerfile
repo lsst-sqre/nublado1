@@ -12,6 +12,6 @@ COPY exports /etc/exports
 COPY run_nfs.sh /usr/local/bin/run_nfs.sh
 LABEL      description="jupyterlab demo: fileserver" \
              name="lsstsqre/jld-fileserver" \
-             version="0.0.10"
+             version="0.0.11"
 CMD [ "/usr/local/bin/run_nfs.sh" ]
 

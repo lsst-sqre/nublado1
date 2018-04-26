@@ -1,2 +1,7 @@
-/exports/home *(rw,fsid=0,insecure,no_root_squash)
+/exports/         *(ro,fsid=0)
+/exports/home     *(rw,insecure,no_root_squash)
+/exports/scratch  *(rw,insecure,no_root_squash)
+/exports/project  *(rw,insecure,no_root_squash)
+/exports/datasets *(ro,insecure)
+/exports/software *(ro,insecure)
 

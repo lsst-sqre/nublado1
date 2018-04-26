@@ -27,7 +27,7 @@ spec:
             privileged: true
           volumeMounts:
             - name: jld-storage
-              mountPath: /exports/home
+              mountPath: /exports
       volumes:
         - name: jld-storage
           persistentVolumeClaim:

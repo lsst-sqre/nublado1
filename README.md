@@ -229,23 +229,6 @@ SSD volumes:
 (the `pd-ssd` type parameter is what does that for you; this may be
 Google Kubernetes Engine-specific)
 
-#### Physical Storage PersistentVolumeClaim
-
-Next, create a PersistentVolumeClaim (*not* a PersistentVolume!) for the
-underlying storage.  Copy the template file
-`jld-fileserver-physpvc.template.yml` to a working file.  Substitute the
-disk size in the `storage` field (GKE has a default quota of 500GB);
-the size depends on how much local storage you expect your users to
-require.
-
-`kubectl create -f jld-fileserver-physpvc.yml`
-
-On Google Kubernetes Engine, this will automagically create a
-PersistentVolume to back it.  I, at least, found this very surprising.
-
-If you are not running under GKE you will probably need to create a
-PersistentVolume for the PersistentVolumeClaim to bind.
-
 #### NFS Service
 
 Create a service to expose the NFS server (only inside the cluster)
@@ -257,6 +240,29 @@ You will need the IP address of the service for a subsequent step.
 `kubectl describe service jld-fileserver` and note the IP address.
 Alternatively, `kubectl describe service jld-fileserver | grep ^IP: |
 awk '{print $2}'` to get just the IP address.
+
+##### Physical Storage PersistentVolumeClaim
+
+Next, create a PersistentVolumeClaim (*not* a PersistentVolume!) for the
+underlying storage.  Copy the template file
+`jld-fileserver-physpvc.template.yml` to a working file.  Substitute the
+disk size in the `storage` field (GKE has a default quota of 500GB);
+the size depends on how much local storage you expect your users to
+require.
+
+`kubectl create -f jld-fileserver-home-physpvc.yml`
+
+On Google Kubernetes Engine, this will automagically create a
+PersistentVolume to back it.  I, at least, found this very surprising.
+
+If you are not running under GKE you will need to create a
+PersistentVolume for the PersistentVolumeClaim to bind.
+
+Note that our default deployment puts all exported volumes on a single
+physical volume.  You can modify the deployment to put any or all
+`scratch`, `project`, `datasets`, and `software` as separate physical
+volumes which you then export.  In the real LDF environment they are of
+course separate volumes managed from an external file server.
 
 #### NFS Server
 
@@ -273,7 +279,9 @@ If you are already in an environment where there is an available NFS
 server, then you can omit actually providing your own NFS implementation
 in this step and the next and simply point to the external NFS service.
 
-#### NFS Persistent Volume
+#### Network Volumes
+
+##### NFS Persistent Volume
 
 This one is where it all goes pear-shaped.
 
@@ -295,7 +303,7 @@ deployment of a new Jupyterlab Demo instance, because you have to create
 the service, then pull the IP address off it and use that in the PV
 definition.
 
-Copy the template (`jld-fileserver-pv.template.yml`) to a working file,
+Copy the template (`jld-fileserver-home-pv.template.yml`) to a working file,
 replace the `name` field with something making it unique (such as the
 cluster-plus-namespace), and replace the `server` field with the IP
 address of the NFS service.  Replace the `storage` field with a value a
@@ -307,25 +315,33 @@ If your Kubernetes provider also provides an NFS server, you can skip
 the creation of the server and just point to the external service's IP
 address here.
 
-#### NFS Mount PersistentVolumeClaim
+##### NFS Mount PersistentVolumeClaim
 
 From here on it's smooth sailing.  Create a working file from
-`jld-fileserver-physpvc.template.yml`, substitute the `storage` field
+`jld-fileserver-home-pvc.template.yml`, substitute the `storage` field
 with the value you used for the PersistentVolume immediately prior, and
 then Create a PersistentVolumeClaim referring to the PersistentVolume
 just created:
 
-`kubectl create -f jld-fileserver-pvc.yml`
+`kubectl create -f jld-fileserver-home-pvc.yml`
 
 And now there is a multiple-read-and-write NFS mount for your JupyterLab
 containers to use.
+
+#### Other Volumes
+
+As above, repeat for `scratch`, `project`, `datasets`, and `software`.
+Note that `datasets` and `software` are read-only, so you will need to
+install content to them from the fileserver itself (where the exported
+volumes reside).
 
 ### NFS Keepalive Service
 
 * This service lives in `fs-keepalive`.
 
-* All it does is periodically write a record to the NFS-mounted
-  filesystem, which insures that it doesn't get descheduled when idle.
+* All it does is periodically write a record to the writeable
+  NFS-mounted filesystems, which insures that the fileserver doesn't get
+  descheduled when idle.
   
 * Create it with `kubectl create -f jld-keepalive-deployment.yml`
 

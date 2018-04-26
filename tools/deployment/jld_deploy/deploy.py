@@ -120,6 +120,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_cpu_guarantee",
     "lab_mem_guarantee",
     "debug"]
+MTPTS = ["home", "scratch", "project", "datasets", "software"]
 
 
 class JupyterLabDeployment(object):
@@ -619,16 +620,17 @@ class JupyterLabDeployment(object):
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
 
-    def _rename_fileserver_template(self):
+    def _rename_fileserver_templates(self):
         """We did not finish substituting the fileserver, because
         we need the service address.
         """
         directory = os.path.join(self.directory, "deployment",
                                  "fileserver")
-        fnbase = "jld-fileserver-pv"
-        src = os.path.join(directory, fnbase + ".yml")
-        tgt = os.path.join(directory, fnbase + ".template.yml")
-        os.rename(src, tgt)
+        fnbase = "jld-fileserver"
+        for m in MTPTS:
+            src = os.path.join(directory, fnbase + "-%s-pv.yml" % m)
+            tgt = os.path.join(directory, fnbase + "-%s-pv.template.yml" % m)
+            os.rename(src, tgt)
 
     def _save_deployment_yml(self):
         """Either save the input file we used, or synthesize one from our
@@ -812,9 +814,10 @@ class JupyterLabDeployment(object):
         ip = self._waitfor(self._get_fileserver_ip)
         ns = self.params["kubernetes_cluster_namespace"]
         self._substitute_fileserver_ip(ip, ns)
-        for c in ["jld-fileserver-pv-%s.yml" % ns,
-                  "jld-fileserver-pvc.yml"]:
-            self._run_kubectl_create(os.path.join(directory, c))
+        for m in MTPTS:
+            for c in ["jld-fileserver-%s-pv-%s.yml" % (m, ns),
+                      "jld-fileserver-%s-pvc.yml" % m]:
+                self._run_kubectl_create(os.path.join(directory, c))
 
     def _substitute_fileserver_ip(self, ip, ns):
         """Once we have the (internal) IP of the fileserver service, we
@@ -822,14 +825,16 @@ class JupyterLabDeployment(object):
         service to have been created first.
         """
         directory = os.path.join(self.directory, "deployment", "fileserver")
-        with open(os.path.join(directory,
-                               "jld-fileserver-pv.template.yml"), "r") as fr:
-            tmpl = Template(fr.read())
-            out = tmpl.render(NFS_SERVER_IP_ADDRESS=ip)
+        mtpts = ["home", "scratch", "project", "datasets", "software"]
+        for m in MTPTS:
             with open(os.path.join(directory,
-                                   "jld-fileserver-pv-%s.yml" % ns),
-                      "w") as fw:
-                fw.write(out)
+                                   "jld-fileserver-%s-pv.template.yml" % m),
+                      "r") as fr:
+                tmpl = Template(fr.read())
+                out = tmpl.render(NFS_SERVER_IP_ADDRESS=ip)
+                ofn = "jld-fileserver-%s-pv-%s.yml" % (m, ns)
+                with open(os.path.join(directory, ofn), "w") as fw:
+                    fw.write(out)
 
     def _waitfor(self, callback, delay=10, tries=10):
         """Convenience method to loop-and-delay until the callback function
@@ -926,14 +931,18 @@ class JupyterLabDeployment(object):
         logging.info("Destroying fileserver.")
         ns = self.params["kubernetes_cluster_namespace"]
         pv = self._get_pv_and_disk_from_pvc("jld-fileserver-physpvc")
-        items = [["pvc", "jld-fileserver-home"],
-                 ["pv", "jld-fileserver-home-%s" % ns],
-                 ["service", "jld-fileserver"],
-                 ["pvc", "jld-fileserver-physpvc"],
-                 ["deployment", "jld-fileserver"],
-                 ["storageclass", "fast"]]
+        items = []
+        # Remove NFS PVCs and PVs
+        for m in MTPTS:
+            items.append(["pvc", "jld-fileserver-%s" % m])
+        for m in MTPTS:
+            items.append(["pv", "jld-fileserver-%s-%s" % (m, ns)])
+        items.extend([["deployment", "jld-fileserver"],
+                      ["service", "jld-fileserver"],
+                      ["pvc", "jld-fileserver-physpvc"]])
         if pv:
             items.append(["pv", pv])
+        items.append(["storageclass", "fast"])
         for c in items:
             self._run_kubectl_delete(c)
         self._destroy_pods_with_callback(self._check_fileserver_gone,
@@ -1250,7 +1259,7 @@ class JupyterLabDeployment(object):
             self._check_sourcedir()
             self._copy_deployment_files()
             self._substitute_templates()
-            self._rename_fileserver_template()
+            self._rename_fileserver_templates()
             self._save_deployment_yml()
 
     def deploy(self):

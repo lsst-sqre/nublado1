@@ -27,9 +27,19 @@ if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
 	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
               ${HOME}/idleculler/culler.output 2>&1 &
 fi
+jh_api=${JUPYTERHUB_API_URL}
+if [ -n "${JLD_HUB_SERVICE_HOST}" ]; then
+    jh_proto=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f -1)
+    jh_path=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f 4-)
+    port=${JLD_HUB_SERVICE_PORT_API}
+    if [ -z "${port}" ]; then
+	port="8081"
+    fi
+    jh_api="${jh_proto}//${JLD_HUB_SERVICE_HOST}:${port}/${jh_path}"
+fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \
-     --hub-api-url=${JUPYTERHUB_API_URL} \
+     --hub-api-url=${jh_api} \
      --notebook-dir=${HOME}/notebooks"
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"

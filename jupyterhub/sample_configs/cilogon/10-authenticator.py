@@ -22,6 +22,7 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
     _default_domain = "ncsa.illinois.edu"
     login_handler = oauthenticator.CILogonLoginHandler
     allowed_groups = os.environ.get("CILOGON_GROUP_WHITELIST") or "lsst_users"
+    forbidden_groups = os.environ.get("CILOGON_GROUP_DENYLIST")
 
     @gen.coroutine
     def authenticate(self, handler, data=None):
@@ -82,6 +83,8 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
         if deny:
             self.log.warning("User in forbidden group: %s" % str(deny))
             return False
+        self.log.debug("User not in forbidden groups: %s" % \
+                       str(forbidden_groups))
         intersection = list(set(allowed_groups) &
                             set(user_groups))
         if intersection:

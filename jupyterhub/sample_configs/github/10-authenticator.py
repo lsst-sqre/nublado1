@@ -38,6 +38,41 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
     login_handler = oauthenticator.GitHubLoginHandler
 
     @gen.coroutine
+    def authenticate(self, handler, data=None):
+        """Check for deny list membership too."""
+        userdict = yield super().authenticate(handler, data)
+        denylist = os.environ.get('GITHUB_ORGANIZATION_DENYLIST')
+        if denylist:
+            self.log.debug("Denylist `%s` found." % denylist)
+            denylist = denylist.split(',')
+            denied = yield self._check_denylist(userdict, denylist)
+            if denied:
+                self.log.warning("Rejecting user: denylisted")
+                userdict = None
+        return userdict
+
+    @gen.coroutine
+    def _check_denylist(self, userdict, denylist):
+        if ("auth_state" not in userdict or not userdict["auth_state"]):
+            self.log.warning("User doesn't have auth_state: rejecting.")
+            return True
+        ast = userdict["auth_state"]
+        if ("access_token" not in ast or not ast["access_token"]):
+            self.log.warning("User doesn't have access token: rejecting.")
+            return True
+        tok = ast["access_token"]
+        gh_org = yield self._get_user_organizations(tok)
+        if not gh_org:
+            self.log.warning("Could not get list of GH user orgs: rejecting.")
+            return True
+        deny = list(set(gh_org) & set(denylist))
+        if deny:
+            self.log.warning("User in denylist %s: rejecting." % str(deny))
+            return True
+        self.log.debug("User not in denylist %s" % str(denylist))
+        return False
+
+    @gen.coroutine
     def pre_spawn_start(self, user, spawner):
         # First pulls can be really slow for the LSST stack containers,
         #  so let's give it a big timeout

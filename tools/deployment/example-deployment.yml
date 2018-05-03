@@ -59,6 +59,18 @@ allowed_groups:
 #  - '{{CILOGON_GROUP_1}}'
 #  - '{{CILOGON_GROUP_2}}'
 
+### Forbidden groups (optional)
+# forbidden_groups:
+#   - '{{FORBIDDEN_GROUP_1}}'
+#   - '{{FORBIDDEN_GROUP_2}}'
+#github_organization_denylist:
+#  - '{{GITHUB_FORBIDDEN_ORG_1}}'
+#  - '{{GITHUB_FORBIDDEN_ORG_2}}'
+#cilogon_group_denylist:
+#  - '{{CILOGON_FORBIDDEN_GROUP_1}}'
+#  - '{{CILOGON_FORBIDDEN_GROUP_2}}'
+
+
 ### Session storage location.  Any SQLAlchemy URL will work.
 # session_db_url: 'sqlite:////home/jupyter/jupyterhub.sqlite'
 

@@ -434,6 +434,11 @@ customization on your part.
      log in.  Either membership in the organization must be public, or
      the scopes requested for the OAuth2 token must include `read:org`
      in order for users to be able to log in based on the whitelist.
+	 The secrets `github_organization_denylist` is the dual of this:
+	 no members of this organization may log in.  The pair
+	 `cilogon_organization_whitelist` and
+     `cilogon_organization_denylist` are similar; any unneeded values
+	 may be set to the empty string.
   3. `session_db_url`.  If you don't know this or are happy with the
      stock sqlite3 implementation, use the URL
      `sqlite:////home/jupyter/jupyterhub.sqlite`; any RDBMS supported by

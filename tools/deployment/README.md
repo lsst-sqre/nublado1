@@ -36,7 +36,10 @@ Here are the steps you need to perform:
 	   
 	If you're using CILogon, set up your client and secret using NCSA as
     your identity provider.  The whitelist will be a comma-separated
-	list of NCSA groups.
+	list of NCSA groups.  You can also provide denylists for either
+    GitHub or CILogon; if a user is present in a denylisted group,
+    login will be denied regardless of whether the user is in a
+    whitelisted group.
 
 3. Get TLS certificates for the hostname you provided above.  AWS
    certificates will not work, as you need the TLS private key for the

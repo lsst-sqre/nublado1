@@ -67,6 +67,18 @@ spec:
                 secretKeyRef:
                   name: jld-hub
                   key: cilogon_group_whitelist
+            - name: GITHUB_ORGANIZATION_DENYLIST
+              valueFrom:
+                secretKeyRef:
+                  name: jld-hub
+                  key: github_organization_denylist
+                  optional: true
+            - name: CILOGON_GROUP_DENYLIST
+              valueFrom:
+                secretKeyRef:
+                  name: jld-hub
+                  key: cilogon_group_denylist
+                  optional: true
             - name: OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:

@@ -81,6 +81,9 @@ REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
 PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "github_organization_whitelist",
     "cilogon_group_whitelist",
+    "forbidden_groups",
+    "github_organization_denylist",
+    "cilogon_group_denylist",
     "oauth_provider",
     "tls_dhparam",
     "kubernetes_cluster_namespace",
@@ -386,6 +389,22 @@ class JupyterLabDeployment(object):
             self.params["github_organization_whitelist"])
         self.params["cilogon_group_whitelist"] = ','.join(
             self.params["cilogon_group_whitelist"])
+        if not self._empty_param["forbidden_groups"]:
+            oap = self.param["oauth_provider"]
+            pnm = "cilogon_group_denylist"
+            if oap != "cilogon":
+                pnm = "github_organization_denylist"
+            self.params[pnm] = self.params["forbidden_groups"]
+        if not self._empty_param["github_organization_denylist"]:
+            self.params["github_organization_denylist"] = ','.join(
+                self.params["github_organization_denylist"])
+        else:
+            self.params["github_organization_denylist"] = ''
+        if not self._empty_param["cilogon_organization_denylist"]:
+            self.params["cilogon_organization_denylist"] = ','.join(
+                self.params["cilogon_organization_denylist"])
+        else:
+            self.params["cilogon_organization_denylist"] = ''
         if not self._empty_param("prepuller_image_list"):
             self.params["prepuller_image_list"] = ",".join(
                 self.params["prepuller_image_list"])
@@ -568,6 +587,10 @@ class JupyterLabDeployment(object):
                               'github_organization_whitelist'),
                           CILOGON_GROUP_WHITELIST=self.encode_value(
                               'cilogon_group_whitelist'),
+                          GITHUB_ORGANIZATION_DENYLIST=self.encode_value(
+                              'github_organization_denylist'),
+                          CILOGON_GROUP_DENYLIST=self.encode_value(
+                              'cilogon_group_denylist'),
                           SESSION_DB_URL=self.encode_value(
                               'session_db_url'),
                           JUPYTERHUB_CRYPTO_KEY=self.encode_value(
@@ -1318,6 +1341,10 @@ def get_cli_options():
     desc += ("The 'cilogon_group_whitelist' or " +
              "'github_organization_whitelist' parameters\n" +
              "may be used directly in place of 'allowed-groups'.\n\n")
+    desc += ("The 'forbidden_groups' parameter, 'cilogon_group_denylist'," +
+             "and\n'github_organization_denylist' follow the same format." +
+             "\nThe denylist is optional and defaults to the empty " +
+             "string.\n\n")
     desc += ("All deployment parameters may be set from the environment, " +
              "not just\nrequired ones. The complete set of recognized " +
              "parameters is:\n%s.\n\n" % PARAMETER_NAMES)
@@ -1436,6 +1463,16 @@ def _canonicalize_result_params(params):
         owl = params[wlname]
         if type(owl) is str:
             params[wlname] = owl.split(',')
+    dlname = "github_organization_denylist"
+    if params["oauth_provider"] == "cilogon":
+        dlname = "cilogon_group_denylist"
+    if _empty(params, dlname):
+        if not _empty(params, "forbidden_groups"):
+            params[dlname] = params["forbidden_groups"]
+    if not _empty(params, dlname):
+        odl = params[dlname]
+        if type(odl) is str:
+            params[dlname] = odl.split(',')
     for intval in ["gke_node_count", "volume_size_gigabytes",
                    "gke_default_volume_size_gigabytes"]:
         if not _empty(params, intval):

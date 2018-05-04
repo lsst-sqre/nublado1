@@ -72,8 +72,8 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         astroquery \
         ipywidgets \
         bokeh \
-	pyarrow \
-        cloudpickle	
+        pyarrow \
+        cloudpickle
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \

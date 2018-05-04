@@ -8,6 +8,7 @@ RUN  yum -y install gcc \
       python-devel http-parser nodejs \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       pandoc \
+      ack screen tmux tree vim-enhanced emacs-nox \
       texlive texlive-collection-xetex texlive-ec texlive-upquote \
       texlive-adjustbox
 # Python 3.6, tkinter, and git: install from SCL
@@ -43,7 +44,9 @@ RUN  source scl_source enable rh-python36 && \
       matplotlib \
       astroquery \
       healpy \
-      bokeh
+      bokeh \
+      pyarrow \
+      cloudpickle
 RUN  source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/master \
@@ -68,7 +71,9 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         rise \
         astroquery \
         ipywidgets \
-        bokeh
+        bokeh \
+	pyarrow \
+        cloudpickle	
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \
@@ -91,11 +96,13 @@ RUN source scl_source enable rh-python36 && \
 RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
-      https://github.com/bokeh/datashader/zipball/master && \
+      https://github.com/bokeh/datashader/zipball/master \
+      https://github.com/ioam/parambokeh/zipball/master && \
       source /opt/lsst/software/stack/loadLSST.bash && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
-      https://github.com/bokeh/datashader/zipball/master
+      https://github.com/bokeh/datashader/zipball/master \
+      https://github.com/ioam/parambokeh/zipball/master
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise"
 ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews"

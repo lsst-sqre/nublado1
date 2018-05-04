@@ -10,7 +10,7 @@ import sys
 import time
 import urllib.request
 
-from dateutil.parser import parse as parse_date
+from dateutil.parser import isoparse as parse_date
 
 
 def cull_me(url, api_token, username, timeout_i):
@@ -25,7 +25,7 @@ def cull_me(url, api_token, username, timeout_i):
     resp = urllib.request.urlopen(req)
     body = resp.read()
     user = json.loads(body.decode('utf8', 'replace'))
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
     print("Running culler for %s with %d second timeout at %s" %
           (username, timeout_i, str(now)))
     cull_limit = now - datetime.timedelta(seconds=timeout_i)

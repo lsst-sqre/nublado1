@@ -38,16 +38,26 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         if not lnames or len(lnames) < 2:
             return ""
         optform = "<label for=\"%s\">%s</label><br>\n" % (title, title)
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now()
         nowstr = now.ctime()
         if not now.tzinfo:
             # If we don't have tzinfo, assume it's in UTC"
             nowstr += " UTC"
+        optform = "        <table><tr><td>\n"
         for idx, img in enumerate(lnames):
-            optform += "      "
+            optform += "          "
             optform += "<input type=\"radio\" name=\"kernel_image\""
             optform += " value=\"%s\">%s<br>\n" % (img, ldescs[idx])
+        optform += "              "
+        optform += "<input type=\"text\" name=\"image_tag\""
+        optform += " value=\"or supply Image Tag\"><br>\n"
         optform += "Menu updated at %s<br>\n" % nowstr
+        optform += "          </td>\n          <td>\n"
+        for size in ["tiny", "small", "medium", "large"]:
+            optform += "            "
+            optform += "<input type=\"radio\" name=\"size\""
+            optform += " value=\"%s\">%s<br>\n" % (size, size.title())
+        optform += "        </td></tr></table>\n"
         return optform
 
     @property
@@ -90,12 +100,33 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         image_spec = (self.singleuser_image_spec or os.getenv("LAB_IMAGE")
                       or "lsstsqre/jld-lab:latest")
         image_name = image_spec
+        image_size = None
         if self.user_options:
-            if self.user_options.get('kernel_image'):
+            if self.user_options.get('image_tag'):
+                colon = image_spec.find(':')
+                if colon > -1:
+                    im_n = image_name[:colon]
+                    image_spec = im_n + ":" + \
+                        self.user_options.get('image_tag')
+                    image_name = image_spec
+            elif self.user_options.get('kernel_image'):
                 image_spec = self.user_options.get('kernel_image')
                 image_name = image_spec
                 self.log.info("Replacing image spec from options form: %s" %
                               image_spec)
+            size = self.user_options.get('size')
+            cpu = 0.5
+            mem_per_cpu = 3172
+            mem = cpu * mem_per_cpu
+            szd = {}
+            for i in ["tiny", "small", "medium", "large"]:
+                szd["i"] = {"cpu": cpu,
+                            "mem": mem}
+                cpu = cpu * 2
+                mem = mem * 2
+            image_size = szd[size]
+        if image_size:
+            self.
         self.singleuser_image_spec = image_spec
         s_idx = image_spec.find('/')
         c_idx = image_spec.find(':')

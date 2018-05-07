@@ -6,9 +6,7 @@ import json
 import os
 import oauthenticator
 import random
-from tornado import gen, web
-from tornado.httpclient import HTTPRequest, AsyncHTTPClient
-from tornado.httputil import url_concat
+from tornado import gen
 
 CILOGON_HOST = os.environ.get('CILOGON_HOST') or 'cilogon.org'
 STRICT_LDAP_GROUPS = os.environ.get('STRICT_LDAP_GROUPS')
@@ -83,7 +81,7 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
         if deny:
             self.log.warning("User in forbidden group: %s" % str(deny))
             return False
-        self.log.debug("User not in forbidden groups: %s" % \
+        self.log.debug("User not in forbidden groups: %s" %
                        str(forbidden_groups))
         intersection = list(set(allowed_groups) &
                             set(user_groups))
@@ -95,85 +93,8 @@ class LSSTAuth(oauthenticator.CILogonOAuthenticator):
 
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
-        # First pulls can be really slow for the LSST stack containers,
-        #  so let's give it a big timeout
-        spawner.http_timeout = 60 * 15
-        spawner.start_timeout = 60 * 15
-        # The spawned containers need to be able to talk to the hub through
-        #  the proxy!
-        spawner.hub_connect_port = int(os.environ['JLD_HUB_SERVICE_PORT'])
-        spawner.hub_connect_ip = os.environ['JLD_HUB_SERVICE_HOST']
-        # Set up memory and CPU upper/lower bounds
-        memlim = os.getenv('LAB_MEM_LIMIT')
-        if not memlim:
-            memlim = '2G'
-        memguar = os.getenv('LAB_MEM_GUARANTEE')
-        if not memguar:
-            memguar = '64K'
-        cpulimstr = os.getenv('LAB_CPU_LIMIT')
-        cpulim = 1.0
-        if cpulimstr:
-            cpulim = float(cpulimstr)
-        cpuguar = 0.02
-        cpuguarstr = os.getenv('LAB_CPU_GUARANTEE')
-        if cpuguarstr:
-            cpuguar = float(cpuguarstr)
-        spawner.mem_limit = memlim
-        spawner.cpu_limit = cpulim
-        spawner.mem_guarantee = memguar
-        spawner.cpu_guarantee = cpuguar
-        # The standard set of LSST volumes is mountpoints at...
-        #  /home
-        #  /project
-        #  /scratch
-        #  /datasets
-        #  /software
-        # Where software and datasets are read/only and the others are
-        #  read/write
-        spawner_volnames = [x["name"] for x in spawner.volumes]
-        for vol in ["home", "project", "scratch"]:
-            volname = "jld-fileserver-" + vol
-            if volname in spawner_volnames:
-                continue
-            spawner.volumes.extend([
-                {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname}}])
-            spawner.volume_mounts.extend([
-                {"mountPath": "/" + vol,
-                 "name": volname,
-                 "accessModes": ["ReadWriteMany"]}])
-        for vol in ["datasets", "software"]:
-            volname = "jld-fileserver-" + vol
-            if volname in spawner_volnames:
-                continue
-            spawner.volumes.extend([
-                {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname}}])
-            spawner.volume_mounts.extend([
-                {"mountPath": "/" + vol,
-                 "name": volname,
-                 "accessModes": ["ReadOnlyMany"]}])
-        self.log.debug("Volumes: %s" % json.dumps(spawner.volumes,
-                                                  indent=4,
-                                                  sort_keys=True))
-        self.log.debug("Volume mounts: %s" % json.dumps(spawner.volume_mounts,
-                                                        indent=4,
-                                                        sort_keys=True))
-        # We are running the Lab at the far end, not the old Notebook
-        spawner.default_url = '/lab'
-        spawner.singleuser_image_pull_policy = 'Always'
-        # Let us set the images from the environment.
-        # Get (possibly list of) image(s)
-        imgspec = os.getenv("LAB_CONTAINER_NAMES")
-        if not imgspec:
-            imgspec = "lsstsqre/jld-lab:latest"
-        imagelist = imgspec.split(',')
-        if len(imagelist) < 2:
-            spawner.singleuser_image_spec = imgspec
-        else:
-            spawner.singleuser_image_spec = imagelist[0]
-
-        # Add extra configuration from auth_state
+        """Add extra configuration from auth_state.
+        """
         if not self.enable_auth_state:
             return
         auth_state = yield user.get_auth_state()

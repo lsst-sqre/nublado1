@@ -12,6 +12,10 @@ LAB_MEM_GUARANTEE=${1:-"512M"}
 LAB_CPU_GUARANTEE=${1:-"0.5"}
 LAB_MEM_LIMIT=${1:-"2G"}
 LAB_CPU_LIMIT=${1:-"2.0"}
+LAB_SIZE_RANGE=${1:-"4.0"}
+MB_PER_CPU=${1:-"2048"}
+TINY_CPU_MAX=${1:-"0.5"}
+
 sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{LAB_IMAGE}}/${LAB_IMAGE}/g" \
     -e "s/{{LAB_SELECTOR_TITLE}}/${LAB_SELECTOR_TITLE}/g" \
@@ -23,4 +27,7 @@ sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{LAB_CPU_LIMIT}}/${LAB_CPU_LIMIT}/g" \
     -e "s/{{LAB_MEM_GUARANTEE}}/${LAB_MEM_GUARANTEE}/g" \
     -e "s/{{LAB_CPU_GUARANTEE}}/${LAB_CPU_GUARANTEE}/g" \
+    -e "s/{{LAB_SIZE_RANGE}}/${LAB_SIZE_RANGE}/g" \
+    -e "s/{{MB_PER_CPU}}/${MB_PER_CPU}/g" \
+    -e "s/{{TINY_CPU_MAX}}/${TINY_CPU_MAX}/g" \
     ${DEPYAMLTPL} > ${DEPYAML}

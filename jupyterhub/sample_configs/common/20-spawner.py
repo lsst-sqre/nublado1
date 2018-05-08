@@ -40,7 +40,10 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
-        all_tags = scanner.get_all_tags()
+        try:
+            all_tags = scanner.get_all_tags()
+        except AttributeError:
+            all_tags = []
         optform = "<label for=\"%s\">%s</label><br />\n" % (title, title)
         now = datetime.datetime.now()
         nowstr = now.ctime()

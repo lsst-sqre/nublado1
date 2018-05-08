@@ -123,7 +123,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_cpu_guarantee",
     "lab_mem_guarantee",
     "tiny_cpu_max",
-    "mem_per_cpu",
+    "mb_per_cpu",
     "lab_size_range",
     "debug"]
 MTPTS = ["home", "scratch", "project", "datasets", "software"]

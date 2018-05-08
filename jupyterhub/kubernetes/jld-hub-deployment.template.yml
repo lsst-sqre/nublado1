@@ -57,8 +57,8 @@ spec:
               value: '{{LAB_CPU_GUARANTEE}}'
             - name: TINY_CPU_MAX
               value: '{{TINY_CPU_MAX}}'
-            - name: MEM_PER_CPU
-              value: '{{MEM_PER_CPU}}'
+            - name: MB_PER_CPU
+              value: '{{MB_PER_CPU}}'
             - name: LAB_SIZE_RANGE
               value: '{{LAB_SIZE_RANGE}}'
             - name: JUPYTERLAB_CONFIG_DIR

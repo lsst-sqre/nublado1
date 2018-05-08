@@ -122,6 +122,9 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_mem_limit",
     "lab_cpu_guarantee",
     "lab_mem_guarantee",
+    "tiny_cpu_max",
+    "mem_per_cpu",
+    "lab_size_range",
     "debug"]
 MTPTS = ["home", "scratch", "project", "datasets", "software"]
 
@@ -367,6 +370,12 @@ class JupyterLabDeployment(object):
             self.params['lab_mem_guarantee'] = "512M"
         if self._empty_param('lab_cpu_guarantee'):
             self.params['lab_cpu_guarantee'] = "0.5"
+        if self._empty_param('tiny_max_cpu'):
+            self.params['tiny_max_cpu'] = "0.5"
+        if self._empty_param('mb_per_cpu'):
+            self.params['mb_per_cpu'] = "2048"
+        if self._empty_param('lab_size_range'):
+            self.params['lab_size_range'] = "4.0"
         return
 
     def _normalize_params(self):
@@ -389,22 +398,22 @@ class JupyterLabDeployment(object):
             self.params["github_organization_whitelist"])
         self.params["cilogon_group_whitelist"] = ','.join(
             self.params["cilogon_group_whitelist"])
-        if not self._empty_param["forbidden_groups"]:
+        if not self._empty_param("forbidden_groups"):
             oap = self.param["oauth_provider"]
             pnm = "cilogon_group_denylist"
             if oap != "cilogon":
                 pnm = "github_organization_denylist"
             self.params[pnm] = self.params["forbidden_groups"]
-        if not self._empty_param["github_organization_denylist"]:
+        if not self._empty_param("github_organization_denylist"):
             self.params["github_organization_denylist"] = ','.join(
                 self.params["github_organization_denylist"])
         else:
             self.params["github_organization_denylist"] = ''
-        if not self._empty_param["cilogon_organization_denylist"]:
-            self.params["cilogon_organization_denylist"] = ','.join(
-                self.params["cilogon_organization_denylist"])
+        if not self._empty_param("cilogon_group_denylist"):
+            self.params["cilogon_group_denylist"] = ','.join(
+                self.params["cilogon_group_denylist"])
         else:
-            self.params["cilogon_organization_denylist"] = ''
+            self.params["cilogon_group_denylist"] = ''
         if not self._empty_param("prepuller_image_list"):
             self.params["prepuller_image_list"] = ",".join(
                 self.params["prepuller_image_list"])
@@ -640,6 +649,9 @@ class JupyterLabDeployment(object):
                           LAB_CPU_LIMIT=p['lab_cpu_limit'],
                           LAB_MEM_GUARANTEE=p['lab_mem_guarantee'],
                           LAB_CPU_GUARANTEE=p['lab_cpu_guarantee'],
+                          TINY_MAX_CPU=p['tiny_max_cpu'],
+                          MB_PER_CPU=p['mb_per_cpu'],
+                          LAB_SIZE_RANGE=p['lab_size_range'],
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
 

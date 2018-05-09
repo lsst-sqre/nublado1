@@ -20,14 +20,7 @@ for i in notebooks DATA WORK idleculler; do
 done
 # Fetch/update magic notebook.
 . /opt/lsst/software/jupyterlab/refreshnb.sh
-# Run idle culler.
-if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
-       [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
-    touch ${HOME}/idleculler/culler.output && \
-	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
-              ${HOME}/idleculler/culler.output 2>&1 &
-fi
-jh_api=${JUPYTERHUB_API_URL}
+# Replace API URL with service address if it exists
 if [ -n "${JLD_HUB_SERVICE_HOST}" ]; then
     jh_proto=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f -1)
     jh_path=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f 4-)
@@ -36,10 +29,19 @@ if [ -n "${JLD_HUB_SERVICE_HOST}" ]; then
 	port="8081"
     fi
     jh_api="${jh_proto}//${JLD_HUB_SERVICE_HOST}:${port}/${jh_path}"
+    JUPYTERHUB_API_URL=${jh_api}
+fi
+export JUPYTERHUB_API_URL
+# Run idle culler.
+if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
+       [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
+    touch ${HOME}/idleculler/culler.output && \
+	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
+              ${HOME}/idleculler/culler.output 2>&1 &
 fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \
-     --hub-api-url=${jh_api} \
+     --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}/notebooks"
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"

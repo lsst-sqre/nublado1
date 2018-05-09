@@ -47,12 +47,10 @@ def cull_me(url, api_token, username, timeout_i):
         else:
             print("User [%s] last active [%s]" % (name, str(last_activity)))
 
+
 if __name__ == '__main__':
+    # Assume that this has been updated (if necessary) from Service IP
     url = os.getenv('JUPYTERHUB_API_URL') or "http://localhost:8081/hub/api"
-    hubsvc = os.getenv('JLD_HUB_SERVICE_HOST')
-    if hubsvc:
-        url = "http://" + hubsvc + ":" + \
-              os.getenv('JLD_HUB_SERVICE_PORT_API') + "/hub/api"
     username = os.getenv('JUPYTERHUB_USER') or pwd.getpwuid(os.getuid())[0]
     timeout = os.getenv('JUPYTERLAB_IDLE_TIMEOUT') or "600"
     try:

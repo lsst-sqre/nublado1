@@ -30,7 +30,7 @@ if [ -z "${HUB_ROUTE}" ] || [ "${HUB_ROUTE}" == "{{HUB_ROUTE}}" ]; then
 fi
 if [ -z "${FIREFLY_ROUTE}" ] || \
        [ "${FIREFLY_ROUTE}" == "{{FIREFLY_ROUTE}}" ]; then
-    FIREFLY_ROUTE="/firefly"
+    FIREFLY_ROUTE="/firefly/"
 fi
 set_config HUB_ROUTE
 set_config FIREFLY_ROUTE

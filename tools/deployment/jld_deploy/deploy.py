@@ -381,11 +381,13 @@ class JupyterLabDeployment(object):
         if self._empty_param('hub_route'):
             self.params['hub_route'] = "/"
         if self._empty_param('firefly_route'):
-            self.params['firefly_route'] = "/firefly"
-        # Routes must start with slash; we know they are not empty now.
+            self.params['firefly_route'] = "/firefly/"
+        # Routes must start and end with slash; we know they are not empty.
         for i in ['hub_route', 'firefly_route']:
             if self.params[i][0] != "/":
                 self.params[i] = "/" + self.params[i]
+            if self.params[i][-1] != "/":
+                self.params[i] = self.params[i] + "/"
         return
 
     def _normalize_params(self):

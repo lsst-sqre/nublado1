@@ -125,6 +125,8 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "tiny_cpu_max",
     "mb_per_cpu",
     "lab_size_range",
+    "hub_route",
+    "firefly_route",
     "debug"]
 MTPTS = ["home", "scratch", "project", "datasets", "software"]
 
@@ -376,6 +378,14 @@ class JupyterLabDeployment(object):
             self.params['mb_per_cpu'] = "2048"
         if self._empty_param('lab_size_range'):
             self.params['lab_size_range'] = "4.0"
+        if self._empty_param('hub_route'):
+            self.params['hub_route'] = "/"
+        if self._empty_param('firefly_route'):
+            self.params['firefly_route'] = "/firefly"
+        # Routes must start with slash; we know they are not empty now.
+        for i in ['hub_route', 'firefly_route']:
+            if self.params[i][0] != "/":
+                self.params[i] = "/" + self.params[i]
         return
 
     def _normalize_params(self):
@@ -652,6 +662,8 @@ class JupyterLabDeployment(object):
                           TINY_MAX_CPU=p['tiny_max_cpu'],
                           MB_PER_CPU=p['mb_per_cpu'],
                           LAB_SIZE_RANGE=p['lab_size_range'],
+                          HUB_ROUTE=p['hub_route'],
+                          FIREFLY_ROUTE=p['firefly_route'],
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
 
@@ -860,7 +872,6 @@ class JupyterLabDeployment(object):
         service to have been created first.
         """
         directory = os.path.join(self.directory, "deployment", "fileserver")
-        mtpts = ["home", "scratch", "project", "datasets", "software"]
         for m in MTPTS:
             with open(os.path.join(directory,
                                    "jld-fileserver-%s-pv.template.yml" % m),

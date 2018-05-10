@@ -6,6 +6,10 @@
 # callback
 hostname: '{{FQDN}}'
 
+### Routes
+# hub_route: '/'
+# firefly_route: '/firefly'
+
 ### OAuth Provider
 # oauth_provider: '{{OAUTH_PROVIDER}}'
 #  oauth_provider must be one of 'github' or 'cilogon'.

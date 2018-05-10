@@ -20,6 +20,10 @@ spec:
             value: 'false'
           - name: HOSTNAME
             value: '{{HOSTNAME}}'
+          - name: HUB_ROUTE
+            value: '{{HUB_ROUTE}}'
+          - name: FIREFLY_ROUTE
+            value: '{{FIREFLY_ROUTE}}'
         ports:
           - name: http
             containerPort: 80

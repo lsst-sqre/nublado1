@@ -63,6 +63,8 @@ spec:
               value: '{{LAB_SIZE_RANGE}}'
             - name: JUPYTERLAB_CONFIG_DIR
               value: '/opt/lsst/software/jupyterhub/config'
+            - name: HUB_ROUTE
+              value: '{{HUB_ROUTE}}'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:

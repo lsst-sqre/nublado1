@@ -7,7 +7,7 @@ set_config() {
         echo "${KEY} must be set" 1>&2
         exit 1
     fi
-    sed -i "s/{{${KEY}}}/${VALUE}/g" /nginx.conf
+    sed -i "s|{{${KEY}}}|${VALUE}|g" /nginx.conf
 }
 
 env|sort
@@ -25,6 +25,15 @@ for i in JLD_HUB FIREFLY; do
 	set_config ${i}_SERVICE_${j}
     done
 done
+if [ -z "${HUB_ROUTE}" ] || [ "${HUB_ROUTE}" == "{{HUB_ROUTE}}" ]; then
+    HUB_ROUTE="/"
+fi
+if [ -z "${FIREFLY_ROUTE}" ] || \
+       [ "${FIREFLY_ROUTE}" == "{{FIREFLY_ROUTE}}" ]; then
+    FIREFLY_ROUTE="/firefly"
+fi
+set_config HUB_ROUTE
+set_config FIREFLY_ROUTE
 echo "----nginx.conf----"
 cat /nginx.conf
 echo "------------------"

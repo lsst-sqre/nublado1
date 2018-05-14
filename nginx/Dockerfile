@@ -7,4 +7,4 @@ EXPOSE      80 443
 ENTRYPOINT  ["/entrypoint.sh"]
 LABEL       description="SSL termination/proxy for SQuaRE Jupyterlab demo + Firefly" \
             name="lsstsqre/jld-nginx" \
-	    version="0.0.7"
+	    version="0.0.8"

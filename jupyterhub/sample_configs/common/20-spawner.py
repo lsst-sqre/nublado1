@@ -249,23 +249,13 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         #  /software
         # Where software and datasets are read/only and the others are
         #  read/write
-        volname = "jld-fileserver-home"
-        homefound = False
-        for v in self.volumes:
-            if v["name"] == volname:
-                homefound = True
-                break
-        if not homefound:
-            self.volumes.extend([
-                {"name": volname,
-                 "persistentVolumeClaim":
-                 {"claimName": volname}}])
-            self.volume_mounts.extend([
-                {"mountPath": "/home",
-                 "name": volname,
-                 "accessModes": ["ReadWriteMany"]}])
-        for vol in ["project", "scratch"]:
+        already_vols = []
+        if self.volumes:
+            already_vols = [x["name"] for x in self.volumes]
+        for vol in ["home", "project", "scratch"]:
             volname = "jld-fileserver-" + vol
+            if volname in already_vols:
+                continue
             self.volumes.extend([
                 {"name": volname,
                  "persistentVolumeClaim": {"claimName": volname}}])
@@ -275,6 +265,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                  "accessModes": ["ReadWriteMany"]}])
         for vol in ["datasets", "software"]:
             volname = "jld-fileserver-" + vol
+            if volname in already_vols:
+                continue
             self.volumes.extend([
                 {"name": volname,
                  "persistentVolumeClaim": {"claimName": volname}}])

@@ -3,19 +3,19 @@ if [ -z "${DEPYAMLTPL}" ]; then
     DEPYAMLTPL="kubernetes/jld-hub-deployment.template.yml"
 fi
 DEPYAML="kubernetes/jld-hub-deployment.yml"
-LAB_SELECTOR_TITLE=${1:-"LSST Stack Selector"}
-LAB_REPO_HOST=${1:-"hub.docker.com"}
-LAB_REPO_OWNER=${1:-"lsstsqre"}
-LAB_REPO_NAME=${1:-"jld-lab"}
-LAB_IDLE_TIMEOUT=${1:-"43200"}
-LAB_MEM_GUARANTEE=${1:-"512M"}
-LAB_CPU_GUARANTEE=${1:-"0.5"}
-LAB_MEM_LIMIT=${1:-"2G"}
-LAB_CPU_LIMIT=${1:-"2.0"}
-LAB_SIZE_RANGE=${1:-"4.0"}
-MB_PER_CPU=${1:-"2048"}
-TINY_CPU_MAX=${1:-"0.5"}
-HUB_ROUTE=${1:-"/"}
+LAB_SELECTOR_TITLE=${LAB_SELECTOR_TITLE:-"LSST Stack Selector"}
+LAB_REPO_HOST=${LAB_REPO_HOST:-"hub.docker.com"}
+LAB_REPO_OWNER=${LAB_REPO_OWNER:-"lsstsqre"}
+LAB_REPO_NAME=${LAB_REPO_NAME:-"jld-lab"}
+LAB_IDLE_TIMEOUT=${LAB_IDLE_TIMEOUT:-"43200"}
+LAB_MEM_GUARANTEE=${LAB_MEM_GUARANTEE:-"512M"}
+LAB_CPU_GUARANTEE=${LAB_CPU_GUARANTEE:-"0.5"}
+LAB_MEM_LIMIT=${LAB_MEM_LIMIT:-"2G"}
+LAB_CPU_LIMIT=${LAB_CPU_LIMIT:-"2.0"}
+LAB_SIZE_RANGE=${LAB_SIZE_RANGE:-"4.0"}
+MB_PER_CPU=${MB_PER_CPU:-"2048"}
+TINY_CPU_MAX=${TINY_CPU_MAX:-"0.5"}
+HUB_ROUTE=${HUB_ROUTE:-"/"}
 
 sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{LAB_IMAGE}}/${LAB_IMAGE}/g" \

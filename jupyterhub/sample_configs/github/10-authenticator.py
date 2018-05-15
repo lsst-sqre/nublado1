@@ -89,9 +89,8 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
             gh_email = yield self._get_user_email(gh_token)
         if gh_email:
             spawner.environment['GITHUB_EMAIL'] = gh_email
-        gh_name = gh_user.get("name")
-        if not gh_name:
-            gh_name = gh_user.get("login")
+        gh_login = gh_user.get("login")
+        gh_name = gh_user.get("name") or gh_login
         if gh_id:
             spawner.environment['EXTERNAL_UID'] = str(gh_id)
         if gh_org:
@@ -103,6 +102,8 @@ class LSSTAuth(oauthenticator.GitHubOAuthenticator):
             spawner.environment['EXTERNAL_GROUPS'] = orglstr
         if gh_name:
             spawner.environment['GITHUB_NAME'] = gh_name
+        if gh_login:
+            spawner.environment['GITHUB_LOGIN'] = gh_login
         if gh_token:
             spawner.environment['GITHUB_ACCESS_TOKEN'] = "[secret]"
             self.log.info("Spawned environment: %s", json.dumps(

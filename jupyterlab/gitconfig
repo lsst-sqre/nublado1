@@ -1,0 +1,10 @@
+[push]
+    default = simple
+# Cache anonymous access to LSST Git LFS S3 servers
+[credential "https://lsst-sqre-prod-git-lfs.s3-us-west-2.amazonaws.com"]
+    helper = store
+[credential "https://s3.lsst.codes"]
+    helper = store
+# Use cached GitHub token if we have it
+[credential]
+    helper = store

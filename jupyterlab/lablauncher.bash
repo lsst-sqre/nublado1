@@ -6,7 +6,6 @@ function setup_user() {
 	make_user
     fi
     change_staging_id
-    setup_git
 }
 
 function make_user() {
@@ -86,7 +85,7 @@ function add_group() {
 }
 
 function forget_extraneous_vars() {
-    local purge="GITHUB_ACCESS_TOKEN MEM_LIMIT CPU_LIMIT"
+    local purge="MEM_LIMIT CPU_LIMIT"
     unset ${purge}
     purge_docker_vars KUBERNETES HTTPS:443
     purge_docker_vars K8S_JLD_NGINX HTTP:80,HTTPS:443
@@ -120,28 +119,6 @@ function purge_docker_vars() {
     unset ${purge}
 }
 
-function setup_git() {
-    # Always remove old token and overwrite with latest credentials.
-    # That way if we change permissions on our scope, the old (possibly
-    # more permissive) one doesn't hang around.
-    local file="${HOMEDIRS}/${U_NAME}/.git-credentials"
-    rm -f ${file} 2>/dev/null || /bin/true
-    if [ -n "${GITHUB_ACCESS_TOKEN}" ]; then
-        local entry="https://${U_NAME}:${GITHUB_ACCESS_TOKEN}@github.com"
-        echo "${entry}" > ${file}
-        chmod 0600 ${file}
-        chown ${U_NAME}:${U_NAME} ${file}
-    fi
-    local gitcfg="${HOMEDIRS}/${U_NAME}/.gitconfig"
-    if [ ! -e "${gitcfg}" ]; then
-	touch ${gitcfg}
-	echo "[push]" >> ${gitcfg}
-	echo "    default = simple" >> ${gitcfg}
-        echo "[credential]" >> ${gitcfg}
-        echo "    helper = store" >> ${gitcfg}
-        chown ${U_NAME}:${U_NAME} ${gitcfg}
-    fi
-}
 
 function change_staging_id() {
     # JupyterLab wants to rebuild the index for extensions.

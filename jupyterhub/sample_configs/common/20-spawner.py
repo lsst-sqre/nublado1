@@ -50,9 +50,18 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         if not now.tzinfo:
             # If we don't have tzinfo, assume it's in UTC"
             nowstr += " UTC"
-        optform = "<table>\n        <tr><td>"
-        optform += "<b>Image</b><br /></td><td><b>Size</b><br /></td></tr>\n"
-        optform += "        <tr><td>\n"
+        optform = "<style>\n"
+        optform += "    td#clear_dotlocal {\n"
+        optform += "        border: 1px solid black;\n"
+        optform += "        padding: 2%;\n"
+        optform += "    }\n"
+        optform += "    td#images {\n"
+        optform += "        padding-right: 5%;\n"
+        optform += "    }\n"
+        optform += "</style>\n"
+        optform += "<table>\n        <tr>"
+        optform += "<th>Image</th></th><th>Size<br /></th></tr>\n"
+        optform += "        <tr><td rowspan=2 id=\"images\">\n"
         self._make_sizemap()
         checked = False
         saveimg = ""
@@ -89,7 +98,13 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                 optform += " checked=\"checked\""
             optform += " value=\"%s\">%s<br />\n" % (size,
                                                      sizemap[size]["desc"])
-        optform += "          </td></tr>\n      </table>\n"
+        optform += "          </td></tr>\n"
+        optform += "          <tr><td id=\"clear_dotlocal\">"
+        optform += "<input type=\"checkbox\" name=\"clear_dotlocal\""
+        optform += " value=\"true\">"
+        optform += " Clear <tt>.local</tt> directory (caution!)<br />"
+        optform += "</td></tr>\n"
+        optform += "      </table>\n"
         optform += "<hr />\n"
         optform += "Menu updated at %s<br />\n" % nowstr
         return optform
@@ -167,6 +182,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         # We are running the Lab at the far end, not the old Notebook
         self.default_url = '/lab'
         self.singleuser_image_pull_policy = 'Always'
+        clear_dotlocal = False
         if self.user_options:
             self.log.debug("user_options: %s" % json.dumps(self.user_options,
                                                            sort_keys=True,
@@ -188,6 +204,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                 size = self.user_options.get('size')
                 if size:
                     image_size = self._sizemap[size]
+                clear_dotlocal = self.user_options.get('clear_dotlocal')
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
         cpu_limit = os.getenv('LAB_CPU_LIMIT') or 1.0
         if image_size:
@@ -241,12 +258,13 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             pod_env['EXTERNAL_URL'] = oauth_callback[:-len(endstr)]
         if os.getenv('DEBUG'):
             pod_env['DEBUG'] = os.getenv('DEBUG')
+        if clear_dotlocal:
+            pod_env['CLEAR_DOTLOCAL'] = "true"
         # The standard set of LSST volumes is mountpoints at...
         #  /home
         #  /project
         #  /scratch
         #  /datasets
-        #  /software
         # Where software and datasets are read/only and the others are
         #  read/write
         already_vols = []
@@ -263,7 +281,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                 {"mountPath": "/" + vol,
                  "name": volname,
                  "accessModes": ["ReadWriteMany"]}])
-        for vol in ["datasets", "software"]:
+        for vol in ["datasets"]:
             volname = "jld-fileserver-" + vol
             if volname in already_vols:
                 continue
@@ -319,6 +337,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                 options['size'] = formdata['size'][0]
             if ('image_tag' in formdata and formdata['image_tag']):
                 options['image_tag'] = formdata['image_tag'][0]
+            if ('clear_dotlocal' in formdata and formdata['clear_dotlocal']):
+                options['clear_dotlocal'] = True
         return options
 
 

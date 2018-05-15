@@ -1,11 +1,40 @@
 #!/bin/sh
+function setup_git() {
+    # If we have a token, remove old token and update with new one.
+    # That way if we change permissions on our scope, the old (possibly
+    # more permissive) one doesn't hang around.
+    if [ -n "${GITHUB_ACCESS_TOKEN}" ]; then
+        local file="${HOME}/.git-credentials"
+        local gitname=${GITHUB_LOGIN:-$USER}
+	local regex="/^https:\\/\\/${gitname}.*@github.com\$/d"
+	sed -i '' -e ${regex} ${file}
+        local entry="https://${gitname}:${GITHUB_ACCESS_TOKEN}@github.com"
+        echo "${entry}" >> ${file}
+        chmod 0600 ${file}
+	unset GITHUB_ACCESS_TOKEN
+    fi
+}
+
+function clear_dotlocal() {
+    local dotlocal="${HOME}/.local"
+    local now=$(date +%Y%m%d%H%M%S)
+    if [ -d ${dotlocal} ]; then
+	mv ${dotlocal} ${dotlocal}.${now}
+    fi
+}
+
 # Set DEBUG to a non-empty value to turn on debugging
 if [ -n "${DEBUG}" ]; then
     set -x
 fi
+# Clear $HOME/.local if requested
+if [ -n "${CLEAR_DOTLOCAL}" ]; then
+    clear_dotlocal
+fi
 # Set up SCLs
 source /etc/profile.d/local06-scl.sh
 # Set GitHub configuration
+setup_git
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"
 fi

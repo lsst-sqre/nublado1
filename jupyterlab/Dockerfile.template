@@ -16,6 +16,16 @@ RUN  yum -y install centos-release-scl && \
      yum-config-manager --enable rhel-server-rhscl-7-rpms && \
      yum -y install rh-git29 devtoolset-6 rh-python36-python-tkinter \
       rh-python36
+# Install git-lfs repo and then git-lfs
+RUN  curl -s \
+      https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh \
+      -o /tmp/script.rpm.sh && \
+      bash /tmp/script.rpm.sh && \
+      rm /tmp/script.rpm.sh && \
+      yum -y install git-lfs && \
+      source scl_source enable rh-git29 && \
+      git lfs install
+# Install Hub
 RUN  cd /tmp && \
      V="2.2.9" && \
      FN="hub-linux-amd64-${V}" && \
@@ -28,6 +38,15 @@ RUN  cd /tmp && \
      rm -rf ${F} ${FN}
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
+# Get our bleeding edge versions first, and *then* pick up other things.
+#  Saves us a little installation
+RUN  source scl_source enable rh-python36 && \
+      pip3 install \
+      https://github.com/jupyterlab/jupyterlab/zipball/master \
+      https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
+      https://github.com/jupyter/notebook/zipball/master \
+      https://github.com/jupyterhub/jupyterhub/zipball/master \
+      https://github.com/jupyterhub/nbserverproxy/zipball/master
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
@@ -47,13 +66,6 @@ RUN  source scl_source enable rh-python36 && \
       bokeh \
       pyarrow \
       cloudpickle
-RUN  source scl_source enable rh-python36 && \
-      pip3 install \
-      https://github.com/jupyterlab/jupyterlab/zipball/master \
-      https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
-      https://github.com/jupyter/notebook/zipball/master \
-      https://github.com/jupyterhub/jupyterhub/zipball/master \
-      https://github.com/jupyterhub/nbserverproxy/zipball/master
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 RUN  source scl_source enable rh-python36 && \
@@ -230,6 +242,8 @@ COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 COPY 20_jupytervars /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
+COPY gitconfig /etc/skel/.gitconfig
+COPY git-credentials /etc/skel/.git-credentials
 COPY lsst_kernel_py${PYVER}.json selfculler.py \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
       prepuller.sh \

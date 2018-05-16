@@ -16,6 +16,7 @@ LAB_SIZE_RANGE=${LAB_SIZE_RANGE:-"4.0"}
 MB_PER_CPU=${MB_PER_CPU:-"2048"}
 TINY_CPU_MAX=${TINY_CPU_MAX:-"0.5"}
 HUB_ROUTE=${HUB_ROUTE:-"/"}
+FIREFLY_ROUTE=${FIREFLY_ROUTE:-"/firefly/"}
 
 sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{LAB_IMAGE}}/${LAB_IMAGE}/g" \
@@ -32,4 +33,5 @@ sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{MB_PER_CPU}}/${MB_PER_CPU}/g" \
     -e "s/{{TINY_CPU_MAX}}/${TINY_CPU_MAX}/g" \
     -e "s|{{HUB_ROUTE}}|${HUB_ROUTE}|g" \
+    -e "s|{{FIREFLY_ROUTE}}|${FIREFLY_ROUTE}|g" \
     ${DEPYAMLTPL} > ${DEPYAML}

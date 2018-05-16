@@ -68,6 +68,12 @@ if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
 	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
               ${HOME}/idleculler/culler.output 2>&1 &
 fi
+# Set Firefly URL and landing page
+host_url=$(echo ${EXTERNAL_URL} | cut -d '/' -f 1-3)
+FIREFLY_ROUTE=${FIREFLY_ROUTE:-"/firefly/"}
+FIREFLY_URL="${host_url}${FIREFLY_ROUTE}"
+FIREFLY_HTML="slate.html"
+export FIREFLY_URL FIREFLY_HTML
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \

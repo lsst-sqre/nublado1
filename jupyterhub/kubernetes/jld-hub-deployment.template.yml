@@ -65,6 +65,8 @@ spec:
               value: '/opt/lsst/software/jupyterhub/config'
             - name: HUB_ROUTE
               value: '{{HUB_ROUTE}}'
+            - name: FIREFLY_ROUTE
+              value: '{{FIREFLY_ROUTE}}'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:

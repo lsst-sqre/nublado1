@@ -96,7 +96,7 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
          ln -sf $(which python${PYVER}) . ;\
       fi
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      -m ipykernel install --name 'LSST'
+      -m ipykernel install --name 'LSST (Python {{PYVER}})'
 # Install jupyterlabutils
 RUN source scl_source enable rh-python36 && \
       pip3 install \

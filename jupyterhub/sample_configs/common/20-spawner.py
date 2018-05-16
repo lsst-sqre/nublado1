@@ -67,18 +67,18 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         saveimg = ""
         for idx, img in enumerate(lnames):
             optform += "          "
-            optform += "<input type=\"radio\" name=\"kernel_image\""
+            optform += " <input type=\"radio\" name=\"kernel_image\""
             optform += " value=\"%s\"" % img
             if not checked:
                 checked = True
                 saveimg = img
                 optform += " checked=\"checked\""
-            optform += ">%s<br />\n" % ldescs[idx]
+            optform += "> %s<br />\n" % ldescs[idx]
         optform += "          "
-        optform += "<input type=\"radio\" name=\"kernel_image\""
+        optform += " <input type=\"radio\" name=\"kernel_image\""
         colon = saveimg.find(':')
         custtag = saveimg[:colon] + ":__custom"
-        optform += " value=\"%s\">or select image tag" % custtag
+        optform += " value=\"%s\"> or select image tag " % custtag
         optform += "          "
         optform += "<select name=\"image_tag\">\n"
         optform += "          "
@@ -90,14 +90,15 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         optform += "          </td>\n          <td valign=\"top\">\n"
         checked = False
         sizemap = self._sizemap
+        defaultsize = "small"  # use the second smallest as default
         for size in sizemap:
             optform += "            "
-            optform += "<input type=\"radio\" name=\"size\""
-            if not checked:
+            optform += " <input type=\"radio\" name=\"size\""
+            if size == defaultsize:
                 checked = True
                 optform += " checked=\"checked\""
-            optform += " value=\"%s\">%s<br />\n" % (size,
-                                                     sizemap[size]["desc"])
+            optform += " value=\"%s\"> %s<br />\n" % (size,
+                                                      sizemap[size]["desc"])
         optform += "          </td></tr>\n"
         optform += "          <tr><td id=\"clear_dotlocal\">"
         optform += "<input type=\"checkbox\" name=\"clear_dotlocal\""

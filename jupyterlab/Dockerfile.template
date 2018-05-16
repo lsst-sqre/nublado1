@@ -96,7 +96,7 @@ RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
          ln -sf $(which python${PYVER}) . ;\
       fi
 RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      -m ipykernel install --name 'LSST_Stack'
+      -m ipykernel install --name 'LSST'
 # Install jupyterlabutils
 RUN source scl_source enable rh-python36 && \
       pip3 install \
@@ -192,7 +192,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
 RUN source /opt/lsst/software/stack/loadLSST.bash && \
       cd /usr/share/git/ipyaladin && \
       pip install -e .      
-# Get bleeding-edge bokeh labextension into Stack environment
+# Get bleeding-edge bokeh labextension into LSST environment
 RUN   source scl_source enable rh-python36 && \
        source /opt/lsst/software/stack/loadLSST.bash && \
        cd /usr/share/git/jupyterlab_bokeh && \
@@ -261,6 +261,6 @@ RUN  sed -i -e \
 ENV  LANG=C.UTF-8
 WORKDIR /tmp
 CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]
-LABEL description="JupyterLab demo: LSST Stack (Python {{PYVER}})" \
+LABEL description="LSST Science Platform Notebook Aspect: {{IMAGE_NAME}}" \
        name="{{IMAGE_NAME}}" \
        version="{{VERSION}}"

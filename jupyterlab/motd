@@ -1,10 +1,10 @@
-Welcome to the LSST Jupyterlab demo environment.
+Welcome to the LSST Science Platform Notebook Aspect.
 
-The LSST stack is in:
+The LSST Science Pipelines environment is in:
 
         /opt/lsst/software/stack
 
-If you want to add your own configuration to LSST stack startup in the
+If you want to add your own configuration to LSST environment startup in the
 LSST iPython kernel, create a sourceable shell fragment in:
 
         ${HOME}/notebooks/.user_setups

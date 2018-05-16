@@ -1,5 +1,5 @@
 {
- "display_name": "LSST (Python {{PYVER}})",
+ "display_name": "LSST",
  "language": "python",
  "argv": [
     "/opt/lsst/software/jupyterlab/lsstlaunch.bash",

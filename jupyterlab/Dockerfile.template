@@ -59,6 +59,7 @@ RUN  source scl_source enable rh-python36 && \
       astropy \
       pypandoc \
       rise \
+      ipyevents \
       ipywidgets \
       matplotlib \
       astroquery \
@@ -83,6 +84,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         rise \
         astroquery \
         ipywidgets \
+        ipyevents \
         bokeh \
         pyarrow \
         cloudpickle
@@ -117,8 +119,8 @@ RUN source scl_source enable rh-python36 && \
       https://github.com/bokeh/datashader/zipball/0.6.5 \
       https://github.com/ioam/parambokeh/zipball/master
 ENV SVXT="jupyterlab nbserverproxy nbdime"
-ENV NBXT="widgetsnbextension rise"
-ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews"
+ENV NBXT="widgetsnbextension rise ipyevents"
+ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews ipyevents"
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \

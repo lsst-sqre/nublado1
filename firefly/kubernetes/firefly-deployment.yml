@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: firefly
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:

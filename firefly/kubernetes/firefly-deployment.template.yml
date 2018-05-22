@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: firefly
 spec:
-  replicas: 2
+  replicas: {{FIREFLY_REPLICAS}}
   template:
     metadata:
       labels:
@@ -13,15 +13,12 @@ spec:
         - name: "firefly"
           imagePullPolicy: "Always"
           image: "ipac/firefly:lsst-dev"
-          # Use this for manual testing.
-          #securityContext:
-          #  privileged: true
           volumeMounts:
             - name: jld-fileserver-home
               mountPath: /home
           resources:
             limits:
-              memory: 4G
+              memory: {{FIREFLY_CONTAINER_MEM_LIMIT}}
               cpu: 2.0
             requests:
               memory: 2G
@@ -32,7 +29,7 @@ spec:
             - name: FIREFLY_OPTS
               value: "-Dvisualize.fits.search.path=/home"
             - name: MAX_JVM_SIZE
-              value: 4G
+              value: {{FIREFLY_MAX_JVM_SIZE}}
             - name: DEBUG
               value: 'false'
             - name: ADMIN_PASSWORD

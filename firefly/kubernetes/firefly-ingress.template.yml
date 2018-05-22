@@ -7,20 +7,20 @@ metadata:
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/proxy-body-size: "0m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /firefly/
+    nginx.ingress.kubernetes.io/rewrite-target: {{FIREFLY_ROUTE}}
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
 spec:
   tls:
   - hosts:
-    - jupyterlabsandbox.lsst.codes
+    - {{HOSTNAME}}
     secretName: tls
   rules:
-  - host: jupyterlabsandbox.lsst.codes
+  - host: {{HOSTNAME}}
     http:
       paths:
-      - path: /firefly/
+      - path: {{FIREFLY_ROUTE}}
         backend:
           serviceName: firefly
           servicePort: 8080

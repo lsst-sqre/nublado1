@@ -99,6 +99,9 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "rabbitmq_target_vhost",
     "external_fileserver_ip",
     "firefly_admin_password",
+    "firefly_replicas",
+    "firefly_container_mem_limit",
+    "firefly_max_jvm_size",
     "prepuller_image_list",
     "prepuller_no_scan",
     "prepuller_repo",
@@ -388,6 +391,13 @@ class JupyterLabDeployment(object):
                 self.params[i] = "/" + self.params[i]
             if self.params[i][-1] != "/":
                 self.params[i] = self.params[i] + "/"
+        # Sane defaults for Firefly servers
+        if self._empty_param('firefly_replicas'):
+            self.params['firefly_replicas'] = 1
+        if self._empty_param('firefly_container_mem_limit'):
+            self.params['firefly_container_mem_limit'] = '4G'
+        if self._empty_param('firefly_max_jvm_size'):
+            self.params['firefly_max_jvm_size'] = '3584M'
         return
 
     def _normalize_params(self):

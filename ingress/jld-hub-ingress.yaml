@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: jld-hub
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+spec:
+  tls:
+  - hosts:
+    - jupyterlabsandbox.lsst.codes
+    secretName: tls
+  rules:
+  - host: jupyterlabsandbox.lsst.codes
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: jld-hub
+          servicePort: 8000

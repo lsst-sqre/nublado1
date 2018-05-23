@@ -99,6 +99,9 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "rabbitmq_target_vhost",
     "external_fileserver_ip",
     "firefly_admin_password",
+    "firefly_replicas",
+    "firefly_container_mem_limit",
+    "firefly_max_jvm_size",
     "prepuller_image_list",
     "prepuller_no_scan",
     "prepuller_repo",
@@ -136,7 +139,8 @@ class JupyterLabDeployment(object):
     """
     directory = None
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
-                  "firefly", "prepuller", "jupyterhub", "nginx"]
+                  "firefly", "prepuller", "jupyterhub", "tls",
+                  "nginx-ingress"]
     params = None
     yamlfile = None
     original_context = None
@@ -388,6 +392,13 @@ class JupyterLabDeployment(object):
                 self.params[i] = "/" + self.params[i]
             if self.params[i][-1] != "/":
                 self.params[i] = self.params[i] + "/"
+        # Sane defaults for Firefly servers
+        if self._empty_param('firefly_replicas'):
+            self.params['firefly_replicas'] = 1
+        if self._empty_param('firefly_container_mem_limit'):
+            self.params['firefly_container_mem_limit'] = '4G'
+        if self._empty_param('firefly_max_jvm_size'):
+            self.params['firefly_max_jvm_size'] = '3584M'
         return
 
     def _normalize_params(self):
@@ -481,7 +492,6 @@ class JupyterLabDeployment(object):
     def _copy_deployment_files(self):
         """Copy all the kubernetes files to set up a template environment.
         """
-        self._check_sourcedir()
         d = self.directory
         t = self.srcdir
         os.mkdir(os.path.join(d, "deployment"))
@@ -627,8 +637,6 @@ class JupyterLabDeployment(object):
                           TLS_CRT=self.encode_file('tls_cert'),
                           TLS_KEY=self.encode_file('tls_key'),
                           HOSTNAME=p['hostname'],
-                          FIREFLY_ADMIN_PASSWORD=self.encode_value(
-                              'firefly_admin_password'),
                           CA_CERTIFICATE=self.encode_file('beats_ca'),
                           BEATS_CERTIFICATE=self.encode_file('beats_cert'),
                           BEATS_KEY=self.encode_file('beats_key'),
@@ -665,6 +673,12 @@ class JupyterLabDeployment(object):
                           MB_PER_CPU=p['mb_per_cpu'],
                           LAB_SIZE_RANGE=p['lab_size_range'],
                           HUB_ROUTE=p['hub_route'],
+                          FIREFLY_ADMIN_PASSWORD=self.encode_value(
+                              'firefly_admin_password'),
+                          FIREFLY_REPLICAS=p['firefly_replicas'],
+                          FIREFLY_CONTAINER_MEM_LIMIT=p[
+                              'firefly_container_mem_limit'],
+                          FIREFLY_MAX_JVM_SIZE=p['firefly_max_jvm_size'],
                           FIREFLY_ROUTE=p['firefly_route'],
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
@@ -734,15 +748,17 @@ class JupyterLabDeployment(object):
                 ip = self.params['external_fileserver_ip']
                 ns = self.params['kubernetes_cluster_namespace']
                 self._substitute_fileserver_ip(ip, ns)
-            self._create_admin_binding()
             if self.enable_prepuller:
                 self._create_prepuller()
+            self._create_tls_secrets()
+            if self.enable_firefly:
+                self._create_firefly()
             self._create_jupyterhub()
-            self._create_nginx()
             self._create_dns_record()
 
     def _create_gke_cluster(self):
-        """Create cluster and namespace if required.
+        """Create cluster and namespace if required.  If cluster is created,
+        create nginx ingress controller and external interface.
         """
         mtype = self.params['gke_machine_type']
         nodes = self.params['gke_node_count']
@@ -757,16 +773,68 @@ class JupyterLabDeployment(object):
                               ])
             self._run_gcloud(["container", "clusters", "get-credentials",
                               name])
+            self._create_admin_binding()
+            self._create_nginx_ingress_controller()
         self._switch_to_context(name)
         if namespace != "default" and not self.existing_namespace:
             # This sometimes fails immediately after cluster creation,
             #  so run it under _waitfor()
             self._waitfor(self._create_namespace, delay=1, tries=15)
 
-    def _create_namespace(self):
+    def _create_nginx_ingress_controller(self):
+        ns = "ingress-nginx"
+        self._create_named_namespace(ns)
+        ingdir = os.path.join(self.directory, "deployment", "nginx-ingress")
+        ingfiles = [(os.path.join(ingdir, x) + ".yml") for x in
+                    ["default-http-backend-deployment",
+                     "default-http-backend-service",
+                     "nginx-configuration-configmap",
+                     "tcp-services-configmap",
+                     "udp-services-configmap",
+                     "nginx-ingress-serviceaccount",
+                     "nginx-ingress-clusterrolebinding",
+                     "nginx-ingress-clusterrole",
+                     "nginx-ingress-role",
+                     "nginx-ingress-rolebinding",
+                     "nginx-ingress-controller-deployment",
+                     "ingress-nginx-service"]]
+        for ingf in ingfiles:
+            self._run_kubectl_create_in_namespace(ingf, ns)
+
+    def _destroy_nginx_ingress_controller(self):
+        ns = "ingress-nginx"
+        delitems = [["svc", "ingress-nginx-service"],
+                    ["deployment", "nginx-ingress-controller"],
+                    ["rolebinding", "nginx-ingress-role-nisa-binding"],
+                    ["role", "nginx-ingress-role"],
+                    ["clusterrolebinding",
+                     "nginx-ingress-clusterrole-nisa-binding"],
+                    ["clusterrole", "nginx-ingress", "clusterrole"],
+                    ["serviceaccount", "nginx-ingress-serviceaccount"],
+                    ["configmap", "udp-services"],
+                    ["configmap", "tcp-services"],
+                    ["configmap", "nginx-configuration"],
+                    ["svc", "default-http-backend"],
+                    ["deployment", "default-http-backend"]]
+        for di in delitems:
+            self._run_kubectl_delete_from_namespace(di, ns)
+        self._destroy_namespace(ns, check=False)
+
+    def _create_named_namespace(self, namespace):
         rc = self._run(["kubectl", "create", "namespace",
-                        self.params['kubernetes_cluster_namespace']],
+                        namespace],
                        check=False)
+        if rc.returncode == 0:
+            return True
+        return False
+
+    def _create_namespace(self):
+        return self._create_named_namespace(
+            self.params['kubernetes_cluster_namespace'])
+
+    def _destroy_namespace(self, namespace, check=True):
+        rc = self._run(["kubectl", "delete", "namespace", namespace],
+                       check=check)
         if rc.returncode == 0:
             return True
         return False
@@ -815,7 +883,7 @@ class JupyterLabDeployment(object):
         return True
 
     def _destroy_gke_cluster(self):
-        """Destroy cluster and namespace if required.
+        """Destroy cluster, namespace, and ingress controller if required.
         """
         name = self.params['kubernetes_cluster_name']
         namespace = self.params['kubernetes_cluster_namespace']
@@ -828,9 +896,11 @@ class JupyterLabDeployment(object):
                            "--namespace", "default"])
             # If we are destroying the cluster, we don't really care
             #  whether this succeeds.
-            self._run(["kubectl", "delete", "namespace", namespace],
-                      check=self.existing_cluster)
+            self._destroy_namespace(namespace,
+                                    check=self.existing_cluster)
         if not self.existing_cluster:
+            self._destroy_nginx_ingress_controller()
+            self._run_kubectl_delete(["clusterrolebinding", "admin-binding"])
             self._run_gcloud(["-q", "container", "clusters", "delete", name])
 
     def _create_logging_components(self):
@@ -848,7 +918,7 @@ class JupyterLabDeployment(object):
         for c in [["daemonset", "filebeat"],
                   ["secret", "filebeat"],
                   ["deployment", "logstash"],
-                  ["service", "logstashrmq"],
+                  ["svc", "logstashrmq"],
                   ["secret", "logstashrmq"]]:
             self._run_kubectl_delete(c)
 
@@ -919,9 +989,9 @@ class JupyterLabDeployment(object):
     def _get_external_ip(self):
         """Get external IP of nginx service from YAML output.
         """
-        rc = self._run(["kubectl", "get", "svc", "jld-nginx",
-                        "--namespace=%s" %
-                        self.params['kubernetes_cluster_namespace'],
+        ns = "ingress-nginx"
+        rc = self._run(["kubectl", "get", "svc", "ingress-nginx",
+                        "--namespace=%s" % ns,
                         "-o", "yaml"],
                        check=False,
                        capture=True)
@@ -986,7 +1056,7 @@ class JupyterLabDeployment(object):
         for m in MTPTS:
             items.append(["pv", "jld-fileserver-%s-%s" % (m, ns)])
         items.extend([["deployment", "jld-fileserver"],
-                      ["service", "jld-fileserver"],
+                      ["svc", "jld-fileserver"],
                       ["pvc", "jld-fileserver-physpvc"]])
         if pv:
             items.append(["pv", pv])
@@ -1084,14 +1154,14 @@ class JupyterLabDeployment(object):
         self._run_kubectl_delete(["role", "prepuller"])
         self._run_kubectl_delete(["clusterrole", "prepuller"])
         self._run_kubectl_delete(["serviceaccount", "prepuller"])
-        self._run_kubectl_delete(["clusterrolebinding", "admin-binding"])
 
     def _create_jupyterhub(self):
         logging.info("Creating JupyterHub")
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
         for c in ["jld-hub-service.yml", "jld-hub-physpvc.yml",
                   "jld-hub-secrets.yml", "jld-hub-serviceaccount.yml",
-                  "jld-hub-role.yml", "jld-hub-rolebinding.yml"]:
+                  "jld-hub-role.yml", "jld-hub-rolebinding.yml",
+                  "jld-hub-ingress.yml"]:
             self._run_kubectl_create(os.path.join(directory, c))
         cfdir = os.path.join(directory, "config")
         cfnm = "jupyterhub_config"
@@ -1104,7 +1174,8 @@ class JupyterLabDeployment(object):
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
         pv = self._get_pv_and_disk_from_pvc("jld-hub-physpvc")
-        items = [["deployment", "jld-hub"],
+        items = [["ingress", "jld-hub"],
+                 ["deployment", "jld-hub"],
                  ["configmap", "jld-hub-config"],
                  ["rolebinding", "jld-hub"],
                  ["role", "jld-hub"],
@@ -1117,20 +1188,33 @@ class JupyterLabDeployment(object):
         for c in items:
             self._run_kubectl_delete(c)
 
-    def _create_nginx(self):
-        logging.info("Creating Nginx")
-        directory = os.path.join(self.directory, "deployment", "nginx")
-        for c in ["tls-secrets.yml",
-                  "nginx-service.yml",
-                  "nginx-deployment.yml"]:
-            self._run_kubectl_create(os.path.join(directory, c))
+    def _create_firefly(self):
+        logging.info("Creating Firefly")
+        directory = os.path.join(self.directory, "deployment", "firefly")
+        for c in ["firefly-service",
+                  "firefly-secrets",
+                  "firefly-deployment",
+                  "firefly-ingress"]:
+            self._run_kubectl_create(os.path.join(directory, c + ".yml"))
 
-    def _destroy_nginx(self):
-        logging.info("Destroying Nginx")
-        for c in [["deployment", "jld-nginx"],
-                  ["svc", "jld-nginx"],
-                  ["secret", "tls"]]:
+    def _destroy_firefly(self):
+        logging.info("Destroying Firefly")
+        items = [["ingress", "firefly"],
+                 ["deployment", "firefly"],
+                 ["secret", "firefly"],
+                 ["svc", "firefly"]]
+        for c in items:
             self._run_kubectl_delete(c)
+
+    def _create_tls_secrets(self):
+        logging.info("Creating TLS secrets")
+        directory = os.path.join(self.directory, "deployment", "tls")
+        self._run_kubectl_create(os.path.join(directory, "tls-secrets.yml"))
+
+    def _destroy_tls_secrets(self):
+        logging.info("Destroying TLS secrets")
+        directory = os.path.join(self.directory, "deployment", "tls")
+        self._run_kubectl_delete(["secret", "tls"])
 
     def _create_dns_record(self):
         logging.info("Creating DNS record")
@@ -1217,8 +1301,9 @@ class JupyterLabDeployment(object):
         with self.kubecontext():
             self._switch_to_context(self.params["kubernetes_cluster_name"])
             self._destroy_dns_record()
-            self._destroy_nginx()
+            self._destroy_firefly()
             self._destroy_jupyterhub()
+            self._destroy_tls_secrets()
             self._destroy_prepuller()
             self._destroy_fs_keepalive()
             self._destroy_fileserver()
@@ -1235,19 +1320,33 @@ class JupyterLabDeployment(object):
                    ["--format=yaml"])
         return self._run(newargs, check=check, capture=capture)
 
+    def _run_kubectl_create_in_namespace(self, filename, namespace):
+        """Convenience method to create a resource in a namespace.
+        """
+        self._run(['kubectl', 'create', '-f', filename, "--namespace=%s" %
+                   namespace])
+
     def _run_kubectl_create(self, filename):
         """Convenience method to create a kubernetes resource from a file.
         """
-        self._run(['kubectl', 'create', '-f', filename, "--namespace=%s" %
-                   self.params["kubernetes_cluster_namespace"]])
+        ns = self.params["kubernetes_cluster_namespace"]
+        self._run_kubectl_create_in_namespace(filename, ns)
+
+    def _run_kubectl_delete_from_namespace(self, component, namespace):
+        """Convenience method to delete a resource from a namespace.
+        Note that "component" is a two-item list, where the first item
+        is a string indicating the resource type, and the second item
+        is a string indicating its name.
+        """
+        self._run(['kubectl', 'delete'] + component +
+                  ['--namespace=%s' % namespace],
+                  check=False)
 
     def _run_kubectl_delete(self, component):
         """Convenience method to delete a kubernetes resource.
         """
-        self._run(['kubectl', 'delete'] + component +
-                  ["--namespace=%s" % (
-                      self.params["kubernetes_cluster_namespace"])],
-                  check=False)
+        ns = self.params["kubernetes_cluster_namespace"]
+        self._run_kubectl_delete_from_namespace(component, ns)
 
     def _switch_to_context(self, name):
         """Save current context, if set, and change to a new one.

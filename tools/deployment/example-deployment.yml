@@ -8,7 +8,7 @@ hostname: '{{FQDN}}'
 
 ### Routes
 # hub_route: '/'
-# firefly_route: '/firefly'
+# firefly_route: '/firefly/'
 
 ### OAuth Provider
 # oauth_provider: '{{OAUTH_PROVIDER}}'
@@ -142,6 +142,9 @@ allowed_groups:
 
 ### Optional for firefly
 # firefly_admin_password: 'firefly'
+# firefly_replicas: '1'
+# firefly_max_jvm_size: '3584M'
+# firefly_container_mem_limit: '4G'
 
 ### Gets you more verbose Hub logging
 # debug: 'true'

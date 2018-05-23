@@ -109,12 +109,12 @@ RUN source scl_source enable rh-python36 && \
 RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
-      https://github.com/bokeh/datashader/zipball/0.6.5 \
+      https://github.com/bokeh/datashader/zipball/master \
       https://github.com/ioam/parambokeh/zipball/master && \
       source /opt/lsst/software/stack/loadLSST.bash && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
-      https://github.com/bokeh/datashader/zipball/0.6.5 \
+      https://github.com/bokeh/datashader/zipball/master \
       https://github.com/ioam/parambokeh/zipball/master
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise"

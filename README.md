@@ -149,6 +149,41 @@ manual deployment.
   base64 representation of the file as a single string without
   linebreaks.
 
+### Nginx Ingress Controller
+
+* The Ingress Controller components are found in the `nginx-ingress`
+  directory.  The controller will live in its own namespace.
+  
+* Create the namespace first, with `kubectl create -f
+  ingress-nginx-namespace.yml`.  Then create, in order:
+    * `default-http-backend-deployment`
+    * `default-http-backend-service`
+	* `nginx-configuration-configmap`
+	* `tcp-services-configmap`
+	* `udp-services-configmap`
+    * `nginx-ingress-serviceaccount`
+    * `nginx-ingress-clusterrolebinding`
+    * `nginx-ingress-clusterrole`
+    * `nginx-ingress-role`
+	* `nginx-ingress-rolebinding`
+    * `nginx-ingress-controller-deployment`
+    * `ingress-nginx-service`
+
+* Once the service has been created, wait until it brings up an external
+  IP address: `kubectl get svc -n ingress-nginx ingress-nginx` and
+  inspect the `EXTERNAL-IP` field, or `N="ingress-nginx" kubectl get svc
+  ${N} -n ${N} | grep ${N} | awk '{print $4}'`.  Then update your DNS
+  record for the external endpoint with this IP address.
+
+### TLS
+
+* Create secrets from the secrets template.  The three standard TLS
+  files should be the CA certificate, the key, and the server
+  certificate, all base64-encoded and put into the file.  `dhparam.pem`
+  can be created with `openssl dhparam -out dhparam.pem 2048`, and then
+  base64-encoded and inserted into the secrets YAML file.  That command
+  may take some time to run.
+
 ### Logging [optional]
 
 * The logging components are located in the `logstashrmq` and `filebeat`
@@ -355,10 +390,21 @@ volumes reside).
   `firefly-secrets.template.yml` to a working file, and then
   base64-encode and adding an admin password in place of
   `{{FIREFLY_ADMIN_PASSWORD}}`.
+  
+* Make a copy of `firefly-deployment-template.yml`.  Set
+  `FIREFLY_REPLICAS`, `FIREFLY_CONTAINER_MEM_LIMIT`, and
+  `FIREFLY_MAX_JVM_SIZE`.  The maximum JVM size should be slightly
+  smaller than the container memory limit.  Create the deployment with
+  `kubectl create -f` against your working file.
 
-* Create the service and then the deployment with `kubectl create -f`
-  against the appropriate YAML files.  Firefly will automatically be
-  available at `/firefly` with the included nginx configuration.
+* Copy `firefly-ingress.template.yml` to a working file, substituting
+  `FIREFLY_ROUTE` (use `/firefly/` if you have no particular reason to do
+  otherwise) and `HOSTNAME`.  Create that with `kubectl -f` against the
+  working file.
+
+* Create the service with `kubectl create -f` against the appropriate
+  YAML files.  Firefly will be available at whatever you set
+  `FIREFLY_ROUTE` to (probably `/firefly/`).
 
 ### Prepuller [optional]
 
@@ -372,7 +418,6 @@ volumes reside).
   `image-gc-high-threshold` of `kubelet`.
     
 * `prepuller` is the location of this component.
-
 
 * It has several components:
   - `prepuller-serviceaccount.yml` defines a new service account:
@@ -423,7 +468,11 @@ customization on your part.
 * Next, create the Persistent Volume Claim: `kubectl create -f
   jld-hub-physpvc.yml`.  The Hub needs some persistent storage so its
   knowledge of user sessions survives a container restart.
-  
+
+* Copy `jld-hub-ingress.template.yml` to a working file, substituting
+  `HUB_ROUTE` (use `/` if you have no particular reason to do otherwise)
+  and `HOSTNAME`.  Create that with `kubectl -f` against the working file.
+
 * Create a file from the secrets template.  Populate this secrets file
   with the following (base64-encoded):
   
@@ -502,36 +551,6 @@ customization on your part.
   the `ConfigMap` resource from the JupyterHub configuration, and then
   deploy the Hub into the specified context and namespace.
   
-### Nginx
-
-Nginx terminates TLS and uses the Hub Service (and Firefly if you
-installed it) as its backend target(s).
-
-* Create secrets from the secrets template.  The three standard TLS
-  files should be the CA certificate, the key, and the server
-  certificate, all base64-encoded and put into the file.  `dhparam.pem`
-  can be created with `openssl dhparam -out dhparam.pem 2048`, and then
-  base64-encoded and inserted into the secrets YAML file.  That command
-  may take some time to run.
-
-* Create the service: `kubectl create -f nginx-service.yml`.
-
-* Create a deployment configuration from the template.  `HOSTNAME` must
-  be set to the DNS entry you created at the beginning of the
-  installation.  Create the deployment.
-
-* Retrieve the externally-visible IP address from the service.  `kubectl
-  describe service jld-nginx | grep ^LoadBalancer | awk '{print $3}'`
-  will work.  You may need to wait a little while before it shows up.
-
-* Update the DNS record with the newly-determined externally-visible
-  address.  This is another piece that will be challenging to script
-  because of the wide variety of APIs to public DNS providers.
-  
-* If you already have an ingress controller you can just use the
-  `nginx-ingress.yml` ingress definition; if you do this you will need
-  to modify the JupyterHub configuration (set `c.JupyterHub.base_url`).
-
 ### JupyterLab
 
 JupyterLab is launched from the Hub.

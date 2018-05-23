@@ -11,6 +11,7 @@ metadata:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Forwarded-Path {{FIREFLY_ROUTE}};
 spec:
   tls:
   - hosts:

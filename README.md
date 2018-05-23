@@ -158,14 +158,14 @@ manual deployment.
   ingress-nginx-namespace.yml`.  Then create, in order:
     * `default-http-backend-deployment`
     * `default-http-backend-service`
-	* `nginx-configuration-configmap`
-	* `tcp-services-configmap`
-	* `udp-services-configmap`
+    * `nginx-configuration-configmap`
+    * `tcp-services-configmap`
+    * `udp-services-configmap`
     * `nginx-ingress-serviceaccount`
     * `nginx-ingress-clusterrolebinding`
     * `nginx-ingress-clusterrole`
     * `nginx-ingress-role`
-	* `nginx-ingress-rolebinding`
+    * `nginx-ingress-rolebinding`
     * `nginx-ingress-controller-deployment`
     * `ingress-nginx-service`
 

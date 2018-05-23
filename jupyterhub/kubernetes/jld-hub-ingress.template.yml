@@ -15,13 +15,13 @@ metadata:
 spec:
   tls:
   - hosts:
-    - jupyterlabsandbox.lsst.codes
+    - {{HOSTNAME}}
     secretName: tls
   rules:
-  - host: jupyterlabsandbox.lsst.codes
+  - host: {{HOSTNAME}}
     http:
       paths:
-      - path: /
+      - path: {{HUB_ROUTE}}
         backend:
           serviceName: jld-hub
           servicePort: 8000

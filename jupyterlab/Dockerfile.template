@@ -13,7 +13,6 @@ RUN  yum -y install \
       texlive-adjustbox
 # Python 3.6, tkinter, and git: install from SCL
 RUN  yum -y install centos-release-scl && \
-     yum-config-manager --enable rhel-server-rhscl-7-rpms && \
      yum -y install rh-git29 devtoolset-6 rh-python36-python-tkinter \
       rh-python36
 # Install git-lfs repo and then git-lfs

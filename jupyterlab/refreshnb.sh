@@ -8,6 +8,7 @@ if ! [ -d "${dirname}" ]; then
     cd "${HOME}/notebooks" && \
 	git clone https://github.com/${owner}/notebook-demo && \
 	cd notebook-demo
+        git checkout prod
 else
     cd "${dirname}"
 fi

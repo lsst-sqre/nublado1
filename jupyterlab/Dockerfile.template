@@ -5,12 +5,9 @@ RUN  yum repolist
 RUN  yum -y  upgrade
 RUN  yum -y install \
       git sudo \
-      python-devel http-parser nodejs \
+      python-devel http-parser nodejs perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      pandoc \
-      ack screen tmux tree vim-enhanced emacs-nox \
-      texlive texlive-collection-xetex texlive-ec texlive-upquote \
-      texlive-adjustbox
+      ack screen tmux tree vim-enhanced emacs-nox
 # Python 3.6, tkinter, and git: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum -y install rh-git29 rh-python36-python-tkinter \
@@ -31,10 +28,30 @@ RUN  cd /tmp && \
      F="${FN}.tgz" && \
      URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
      cmd="curl -L ${URL} -o ${F}" && \
-     $cmd && \
+     ${cmd} && \
      tar xpfz ${F} && \
      install -m 0755 ${FN}/bin/hub /usr/bin && \
      rm -rf ${F} ${FN}
+# Install Pandoc
+RUN cd /tmp && \
+     V="2.2.1" && \
+     FN="pandoc-${V}-linux" && \
+     F="${FN}.tar.gz" && \
+     URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
+     cmd="curl -L ${URL} -o ${F}" && \
+     ${cmd} && \
+     tar xvfz ${F} -C /usr --strip-components=1 && \
+     rm -rf ${F}
+# Install minimal LaTeX from TexLive
+COPY texlive.profile /tmp
+RUN cd /tmp && \
+    FN="install-tl-unx.tar.gz" && \
+    wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
+    tar xvpfz ${FN} && \
+    ./install-tl-*/install-tl --repository \
+     http://ctan.math.washington.edu/tex-archive/systems/texlive/tlnet \
+     --profile /tmp/texlive.profile && \
+    rm -rf /tmp/${FN} /tmp/install-tl*
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
 # Get our bleeding edge versions first, and *then* pick up other things.
@@ -226,6 +243,17 @@ RUN  groupadd -g 768 jupyter && \
          chgrp -R jupyter ${i} ; \
          chmod -R g+w ${i} ; \
      done
+# More TeX stuff we need for PDF export
+RUN  PATH=/usr/local/texlive/2018/bin/x86_64-linux:${PATH} && \
+     tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
+     upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
+     mathpazo
+# This, bizarrely, has to be installed on its own to get the binaries.
+RUN  PATH=/usr/local/texlive/2018/bin/x86_64-linux:${PATH} && \
+     tlmgr install xetex && \
+     ln -s /usr/local/texlive/2018/bin/x86_64-linux/xelatex \
+           /usr/local/texlive/2018/bin/x86_64-linux/bibtex \
+	   /usr/bin
 # Custom local files
 COPY local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \

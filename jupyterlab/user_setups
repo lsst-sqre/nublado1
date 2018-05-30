@@ -1,0 +1,6 @@
+#!/bin/sh
+# This file is expected to be found in ${HOME}/notebooks/.user_setups
+#  It is a shell fragment that will be sourced during kernel startup
+#  when the LSST kernel is started in a JupyterLab environment.  It runs
+#  in the user context and can contain arbitrary shell code.  Exported changes
+#  in its environment will persist into the JupyterLab Python environment.

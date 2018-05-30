@@ -7,7 +7,7 @@ RUN  yum -y install \
       git sudo \
       python-devel http-parser nodejs perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      ack screen tmux tree vim-enhanced emacs-nox
+      ack screen tmux tree vim-enhanced emacs-nox man
 # Python 3.6, tkinter, and git: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum -y install rh-git29 rh-python36-python-tkinter \

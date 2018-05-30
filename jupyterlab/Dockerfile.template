@@ -1,6 +1,6 @@
 FROM {{BASE_IMAGE}}:{{TAG_PREFIX}}{{TAG}}
 USER root
-RUN  sed -e '/tsflags\=nodocs/d' < /etc/yum.conf
+RUN  sed -i '' -e '/tsflags\=nodocs/d' < /etc/yum.conf
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade

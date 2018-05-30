@@ -23,6 +23,20 @@ function clear_dotlocal() {
     fi
 }
 
+function copy_etc_skel {
+    es="/etc/skel"
+    for i in $(find ${es}); do
+	if [ "${i}" == "${es}" ]; then
+	    continue
+	fi
+	b=$(basename ${i})
+	hb="${HOME}/${b}"
+	if ! [ -e ${hb} ]; then
+	    cp -a ${i} ${hb}
+	fi
+    done
+}
+
 # Set DEBUG to a non-empty value to turn on debugging
 if [ -n "${DEBUG}" ]; then
     set -x
@@ -43,10 +57,9 @@ if [ -n "${GITHUB_NAME}" ]; then
 fi
 sync
 cd ${HOME}
-# Create standard dirs
-for i in notebooks DATA WORK idleculler; do
-    mkdir -p "${HOME}/${i}"
-done
+# Do /etc/skel copy (in case we didn't provision homedir but still need to
+#  populate it)
+copy_etc_skel
 # Fetch/update magic notebook.
 . /opt/lsst/software/jupyterlab/refreshnb.sh
 # Replace API URL with service address if it exists

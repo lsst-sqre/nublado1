@@ -77,7 +77,6 @@ RUN  source scl_source enable rh-python36 && \
       pandas \
       astropy \
       pypandoc \
-      rise \
       ipyevents \
       ipywidgets \
       matplotlib \
@@ -100,7 +99,6 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         nbdime \
         nbval \
         pypandoc \
-        rise \
         astroquery \
         ipywidgets \
         ipyevents \
@@ -137,6 +135,13 @@ RUN source scl_source enable rh-python36 && \
       https://github.com/ioam/holoviews/zipball/master \
       https://github.com/bokeh/datashader/zipball/0.6.5 \
       https://github.com/ioam/parambokeh/zipball/master
+# Install RISE from jupyterlab_rise branch
+RUN source scl_source enable rh-python36 && \
+      pip3 install \
+      git+https://github.com/damianavila/RISE@jupyterlab_extension && \
+      source /opt/lsst/software/stack/loadLSST.bash && \
+      pip3 install \
+      git+https://github.com/damianavila/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise ipyevents"
 ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews ipyevents"
@@ -161,7 +166,7 @@ RUN  source scl_source enable rh-python36 && \
           /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
            $(which jupyter) labextension install ${l} --no-build; \
       done
-ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery"
+ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE"
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
@@ -170,6 +175,8 @@ RUN  source scl_source enable rh-python36 && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone https://github.com/lsst-sqre/jupyterlab-lsstquery && \
+      git clone -b jupyterlab_extension \
+       https://github.com/damianavila/RISE.git && \
       for i in ${GITXT}; do \
           cd ${i} && \
           python3 $(which jupyter) labextension link . --no-build && \
@@ -223,7 +230,7 @@ RUN   source scl_source enable rh-python36 && \
        jlpm run build && \
        $(which jupyter) labextension enable jupyterlab_bokeh
 RUN  source scl_source enable rh-python36 && \
-      for l in ${LBXT} ${GITXT} ipyaladin; do \
+      for l in ${LBXT} ${GITXT} ipyaladin jupyterlab_rise; do \
           jupyter labextension enable ${l} && \
           /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
            $(which jupyter) labextension enable ${l}; \

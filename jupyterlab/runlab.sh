@@ -55,6 +55,12 @@ fi
 if [ -n "${GITHUB_NAME}" ]; then
     git config --global --replace-all user.name "${GITHUB_NAME}"
 fi
+# Initialize git LFS
+grep -q '^\[filter "lfs"\]$' ${HOME}/.gitconfig
+rc=$?
+if [ ${rc} -ne 0 ]; then
+    git lfs install
+fi
 sync
 cd ${HOME}
 # Do /etc/skel copy (in case we didn't provision homedir but still need to

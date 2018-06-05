@@ -203,6 +203,11 @@ RUN  source scl_source enable rh-python36 && \
       jupyter labextension install --no-build && \
       /opt/lsst/software/stack/python/current/bin/python${PYVER} \
        $(which jupyter) labextension install --no-build
+RUN  source scl_source enable rh-python36 && \
+      cd /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
+      npm install --unsafe-perm && \
+      npm run build && \
+      jupyter labextension install .
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/

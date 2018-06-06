@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: landing-page
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: landing-page
+    spec:
+      containers:
+        - name: landing-page
+          imagePullPolicy: "Always"
+          image: "lsstsqre/tiny-static-server"
+          volumeMounts:
+            - name: landing-page-www
+              mountPath: /www
+      volumes:
+        - name: landing-page-www
+          configMap:
+            name: landing-page-www

@@ -3,11 +3,13 @@ WORKDIR /go/src/tinyserver
 COPY main.go /go/src/tinyserver
 ENV CGO_ENABLED=0
 ENV GOOS=linux
-RUN go build
+RUN go build -ldflags '-w'
 CMD ["/bin/sh"]
 
 FROM scratch
 COPY --from=builder /go/src/tinyserver/tinyserver /
-# Do this with a ConfigMap
-# COPY www /www 
+# Map in www directory with a ConfigMap
+LABEL      description="Tiny static web server" \
+             name="lsstsqre/tiny-static-server" \
+             version="0.0.1"
 CMD ["/tinyserver"]

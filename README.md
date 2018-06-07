@@ -61,13 +61,16 @@ manual deployment.
   convenient to `cd` inside it.
 
 * You will need `kubectl` installed in order to run the Kubernetes
-  commands throughout these instructions.
+  commands throughout these instructions.  In order to deploy the
+  landing page, which uses a binary ConfigMap for its content, you will
+  need version `1.10` or later of `kubectl`.
 
 * You need to start with a cluster to which you have administrative
   access.  This is created out-of-band at this point, using whatever
   tools your Kubernetes administrative interface gives you.  Use
   `kubectl config use-context <context-name>` to set the default
-  context.
+  context.  In order to use the landing page, the cluster's master and
+  node Kubernetes versions must be at least `1.10`.
 
 * We recommend creating a non-default namespace for the cluster and
   using that, with `kubectl create namespace <namespace>` followed by
@@ -567,7 +570,8 @@ page.  Specifically, to mimic the LSP site, the Hub route should be
   create -f` against the working file.
   
 * Create the ConfigMap that contains the landing page files: `kubectl
-  create configmap landing-page-www --from-file=config/`
+  create configmap landing-page-www --from-file=config/`.  Note that
+  this requires Kubernetes `1.10` or later and a matching `kubectl`.
   
 * Create the deployment with `kubectl create -f
   landing-page-deployment.yml`.

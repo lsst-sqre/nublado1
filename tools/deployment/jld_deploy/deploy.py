@@ -141,7 +141,7 @@ class JupyterLabDeployment(object):
     directory = None
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
                   "firefly", "prepuller", "jupyterhub", "tls",
-                  "nginx-ingress"]
+                  "nginx-ingress", "landing-page"]
     params = None
     yamlfile = None
     original_context = None
@@ -306,6 +306,9 @@ class JupyterLabDeployment(object):
         if self._empty_param('gke_zone'):
             logging.info("Using default gke_zone '%s'." % DEFAULT_GKE_ZONE)
             self.params["gke_zone"] = DEFAULT_GKE_ZONE
+        if not self._empty_param('gke_project'):
+            logging.info("Using gke project '%s'." %
+                         self.params["gke_project"])
 
     def _validate_deployment_params(self):
         """Verify that we have what we need, and get sane defaults for things
@@ -786,7 +789,7 @@ class JupyterLabDeployment(object):
                                  "--cluster-version=%s" % clver,
                                  "--node-version=%s" % clver
                                  ]
-            self._run_gcloud([gcloud_parameters])
+            self._run_gcloud(gcloud_parameters)
             self._run_gcloud(["container", "clusters", "get-credentials",
                               name])
             self._create_admin_binding()
@@ -1155,7 +1158,7 @@ class JupyterLabDeployment(object):
         self._run_kubectl_create(os.path.join(
             lp_dir, "landing-page-ingress.yml"))
         self._run(['kubectl', 'create', 'configmap', 'landing-page-www',
-                   "--from-file=%s" % os.path.join(lpdir, "config")])
+                   "--from-file=%s" % os.path.join(lp_dir, "config")])
         self._run_kubectl_create(os.path.join(
             lp_dir, "landing-page-deployment.yml"))
 
@@ -1357,7 +1360,7 @@ class JupyterLabDeployment(object):
                    args +
                    ["--zone=%s" % self.params["gke_zone"]] +
                    ["--format=yaml"])
-        if not self._empty_param["gke_project"]:
+        if not self._empty_param("gke_project"):
             newargs = newargs + ["--project=%s" % self.params["gke_project"]]
         return self._run(newargs, check=check, capture=capture)
 

@@ -83,6 +83,12 @@ allowed_groups:
 ### Session storage location.  Any SQLAlchemy URL will work.
 # session_db_url: 'sqlite:////home/jupyter/jupyterhub.sqlite'
 
+### Auto repo URLs.  Any URLs here will be checked out with git at
+# container start.
+# auto_repo_urls:
+#  - {{AUTO_REPO_URL_1}}
+#  - {{AUTO_REPO_URL_2}}
+
 ### Parameters for which image or set of images is prepulled.
 # For a single image, use prepuller_image_list and no_scan.
 #  prepuller_image_list:

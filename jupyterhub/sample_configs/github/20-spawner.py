@@ -263,6 +263,9 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             pod_env['CLEAR_DOTLOCAL'] = "true"
         firefly_route = os.getenv('FIREFLY_ROUTE') or "/firefly/"
         pod_env['FIREFLY_ROUTE'] = firefly_route
+        auto_repo_urls = os.getenv('AUTO_REPO_URLS')
+        if auto_repo_urls:
+            pod_env['AUTO_REPO_URLS'] = auto_repo_urls
         # The standard set of LSST volumes is mountpoints at...
         #  /home
         #  /project

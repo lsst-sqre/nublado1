@@ -25,6 +25,7 @@ hostname: '{{FQDN}}'
 
 ### GKE parameters
 # gke_project: 'your-project-name'
+#  project defaults to your gcloud default project if not defined
 # gke_zone: 'us-central-1a'
 # gke_node_count: 3
 # gke_machine_type: 'n1-standard-2'
@@ -43,8 +44,9 @@ tls_root_chain: '/path/to/chain.pem'
 
 ### Fileserver specification
 # This obviously depends on your use case.  Must be an integer at least
-# 1, and GKE caps default volume size at 500.  If you have no idea, go
-# with 20 (the default)
+#  1, and GKE caps default volume size at 500.  If you have no idea, go
+#  with 20 (the default).  You can get larger volumes if you apply to
+#  get your limits raised, which is usually a very quick process.
 # volume_size_gigabytes: 20
 # Or you can just specify an external fileserver, if you have one:
 # external_fileserver_ip: '192.168.10.22'

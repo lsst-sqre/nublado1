@@ -14,7 +14,8 @@ at the moment, assumes the following:
     stack communication, those must also be present on the local filesystem.
 5) You are using GitHub or CILogon OAuth for your authentication, and you
     have created an OAuth application Client ID, Client Secret, and a client
-    callback that is 'https://fqdn.of.jupyterlab.demo/hub/oauth_callback'.
+    callback that is 'https://fqdn.of.jupyterlab.demo/nb/hub/oauth_callback'.
+    ( "/nb/" is configurable, but is the default hub_route value )
     If you are using GitHub as your OAuth2 provider, you must also specify
     a list of GitHub organizations, to at least one of which any authenticated
     user must belong.
@@ -47,6 +48,7 @@ import json
 import logging
 import os
 import os.path
+import semver
 import shutil
 import subprocess
 import sys
@@ -181,6 +183,7 @@ class JupyterLabDeployment(object):
         """
         self._check_authentication()
         savec = ["kubectl", "config", "current-context"]
+        self._check_kubectl_version()
         rc = self._run(savec, capture=True, check=False)
         if rc.stdout:
             self.original_context = rc.stdout.decode('utf-8').strip()
@@ -189,6 +192,34 @@ class JupyterLabDeployment(object):
             restorec = ["kubectl", "config",
                         "use-context", self.original_context]
             self._run(restorec, check=False)
+
+    def _check_kubectl_version(self):
+        """Make sure we have kubectl 1.10 or later; we need that for the
+        landing page configuration to be stored as a binary ConfigMap.
+        """
+        rc = self._run(["kubectl", "-o", "yaml", "version"], capture=True)
+        if rc.stdout:
+            result = yaml.load(rc.stdout.decode('utf-8'))
+            cv = result["clientVersion"]
+            vstr = cv["major"] + "." + cv["minor"] + ".0"
+            if semver.match(vstr, "<1.10.0"):
+                errstr = "kubectl 1.10 required; %s present" % vstr
+                raise RuntimeError(errstr)
+
+    def _get_correct_k8s_version(self):
+        """We need the cluster to be at least Kubernetes 1.10 in order
+        to have a binary ConfigMap for the landing page.  If the default
+        version is not 1.10 or later, use the latest master version that
+        exists, which unless you have a time machine, will always be at
+        least 1.10.
+        """
+        rc = self._run_gcloud(["container", "get-server-config"], capture=True)
+        if rc.stdout:
+            result = yaml.load(rc.stdout.decode('utf-8'))
+            defver = result["defaultClusterVersion"]
+            if semver.match(defver, ">=1.10.0"):
+                return defver
+            return result["validMasterVersions"][0]
 
     def _check_authentication(self):
         """We also set the AWS zone id from this: if the hostname is not
@@ -775,12 +806,7 @@ class JupyterLabDeployment(object):
         dsize = self.params['gke_local_volume_size_gigabytes']
         name = self.params['kubernetes_cluster_name']
         namespace = self.params['kubernetes_cluster_namespace']
-        clver = "1.10.2-gke.3"
-        # Fix this by running gcloud container get-server-config; we need
-        #  at least 1.10 for the landing page to be created correctly.
-        # The right behavior is to get the server config, check the default
-        #  level, and if it's not 1.10 or greater, take the most current
-        #  version.
+        clver = self._get_correct_k8s_version()
         if not self.existing_cluster:
             gcloud_parameters = ["container", "clusters", "create", name,
                                  "--num-nodes=%d" % nodes,

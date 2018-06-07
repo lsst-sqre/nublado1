@@ -58,8 +58,11 @@ Here are the steps you need to perform:
 	   
 4. Make sure that your shell environment is set up to allow `gcloud`,
    `kubectl`, and `aws` to run authenticated.  This will require `gcloud
-   init`, `aws configure`, and an installation of the `kubectl`
-   component of `gcloud`.
+   init`, `aws configure`, and `kubectl`.  On MacOS the brew version of
+   `kubectl` is generally slightly ahead of the `kubectl` component of
+   `gcloud`.  In order to allow the landing page deployment to use a
+   binary ConfigMap for its static content, you will require `kubectl`
+   version `1.10` or later.
 
 5. Create a Python virtualenv with Python3 as its interpreter.  This
    step is not strictly necessary but will keep you from cluttering up

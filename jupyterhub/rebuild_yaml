@@ -32,6 +32,7 @@ sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{LAB_SIZE_RANGE}}/${LAB_SIZE_RANGE}/g" \
     -e "s/{{MB_PER_CPU}}/${MB_PER_CPU}/g" \
     -e "s/{{TINY_CPU_MAX}}/${TINY_CPU_MAX}/g" \
+    -e "s/{{AUTO_REPO_URLS}}/${AUTO_REPO_URLS}/g" \
     -e "s|{{HUB_ROUTE}}|${HUB_ROUTE}|g" \
     -e "s|{{FIREFLY_ROUTE}}|${FIREFLY_ROUTE}|g" \
     ${DEPYAMLTPL} > ${DEPYAML}

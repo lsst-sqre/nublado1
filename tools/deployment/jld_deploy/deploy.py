@@ -131,6 +131,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "tiny_cpu_max",
     "mb_per_cpu",
     "lab_size_range",
+    "auto_repo_urls",
     "hub_route",
     "firefly_route",
     "debug"]
@@ -711,6 +712,7 @@ class JupyterLabDeployment(object):
                           TINY_MAX_CPU=p['tiny_max_cpu'],
                           MB_PER_CPU=p['mb_per_cpu'],
                           LAB_SIZE_RANGE=p['lab_size_range'],
+                          AUTO_REPO_URLS=p['auto_repo_urls'],
                           HUB_ROUTE=p['hub_route'],
                           FIREFLY_ADMIN_PASSWORD=self.encode_value(
                               'firefly_admin_password'),
@@ -1536,9 +1538,13 @@ def get_cli_options():
              "'github_organization_whitelist' parameters\n" +
              "may be used directly in place of 'allowed-groups'.\n\n")
     desc += ("The 'forbidden_groups' parameter, 'cilogon_group_denylist'," +
-             "and\n'github_organization_denylist' follow the same format." +
-             "\nThe denylist is optional and defaults to the empty " +
-             "string.\n\n")
+             "\n'github_organization_denylist', and 'auto_repo_urls' " +
+             "follow the same format." +
+             "\nThe denylist and URL list are optional and default to the " +
+             "empty string.\n\n")
+    desc += ("The 'auto_repo_urls' parameter, if supplied, is a list of " +
+             "'git clone' URLs;\nat startup time, these repositories will " +
+             "be synchronized and the 'prod'\nbranch brought up to date.\n\n")
     desc += ("All deployment parameters may be set from the environment, " +
              "not just\nrequired ones. The complete set of recognized " +
              "parameters is:\n%s.\n\n" % PARAMETER_NAMES)
@@ -1646,7 +1652,11 @@ def _canonicalize_result_params(params):
     """Manage environment (string) to actual data structure (int or list)
     conversion.
     """
-
+    arurls = "auto_repo_urls"
+    if not _empty(params, arurls):
+        aru = params[arurls]
+        if type(aru) is not str:
+            arurls = ','.join(arurls)
     wlname = "github_organization_whitelist"
     if params["oauth_provider"] == "cilogon":
         wlname = "cilogon_group_whitelist"

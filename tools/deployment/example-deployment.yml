@@ -7,8 +7,10 @@
 hostname: '{{FQDN}}'
 
 ### Routes
-# hub_route: '/'
+# hub_route: '/nb/'
 # firefly_route: '/firefly/'
+# If hub_route is '/', the landing page will not be installed; otherwise
+#  it will.
 
 ### OAuth Provider
 # oauth_provider: '{{OAUTH_PROVIDER}}'
@@ -22,10 +24,11 @@ hostname: '{{FQDN}}'
 #  namespace defaults to 'default' if not defined
 
 ### GKE parameters
-# zone: 'us-central-1a'
-# node_count: 3
-# machine_type: 'n1-standard-2'
-# default_local_volume_size_gigabytes: 200
+# gke_project: 'your-project-name'
+# gke_zone: 'us-central-1a'
+# gke_node_count: 3
+# gke_machine_type: 'n1-standard-2'
+# gke_default_local_volume_size_gigabytes: 200
 
 ### Nginx TLS termination (required)
 tls_cert: '/path/to/cert.pem'

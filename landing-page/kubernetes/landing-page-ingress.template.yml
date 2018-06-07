@@ -21,7 +21,8 @@ spec:
   - host: {{HOSTNAME}}
     http:
       paths:
-      - path: {{HUB_ROUTE}}
+      - path: /
         backend:
-          serviceName: jld-hub
-          servicePort: 8000
+          serviceName: landing-page
+          servicePort: 8080
+

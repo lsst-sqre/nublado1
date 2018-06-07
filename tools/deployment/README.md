@@ -29,9 +29,10 @@ Here are the steps you need to perform:
 	3. Click on `New OAuth App`.
 	4. The Application Name is probably something to do with
        JupyterLab.  The `Homepage URL` is just `https://` prepended to the
-       FQDN you chose above.  The Authorization callback URL is the
-       `Homepage URL` prepended to `/hub/oauth_callback`.
-	5. Note the Client ID and Client Secret you get.  You will need
+       FQDN you chose above plus the route to the Hub (usually `/nb/`).
+	   The Authorization callback URL is the `Homepage URL` prepended to
+       `/hub/oauth_callback`. 
+    5. Note the Client ID and Client Secret you get.  You will need
        these later.
 	   
 	If you're using CILogon, set up your client and secret using NCSA as

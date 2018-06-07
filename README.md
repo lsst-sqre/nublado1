@@ -470,7 +470,7 @@ customization on your part.
   knowledge of user sessions survives a container restart.
 
 * Copy `jld-hub-ingress.template.yml` to a working file, substituting
-  `HUB_ROUTE` (use `/` if you have no particular reason to do otherwise)
+  `HUB_ROUTE` (use `/nb/` if you have no particular reason to do otherwise)
   and `HOSTNAME`.  Create that with `kubectl -f` against the working file.
 
 * Create a file from the secrets template.  Populate this secrets file
@@ -550,6 +550,27 @@ customization on your part.
 * Deploy the file using the `redeploy` script, which will create
   the `ConfigMap` resource from the JupyterHub configuration, and then
   deploy the Hub into the specified context and namespace.
+
+### Landing Page (optional)
+
+If the route to the Hub is not `/` you will probably want a landing
+page.  Specifically, to mimic the LSP site, the Hub route should be
+`/nb/` and you should use a landing page.
+
+* This is located in `landing-page`.
+
+* Create the associated service with `kubectl create -f
+  landing-page-service.yml`.
+
+* Copy `landing-page-ingress.template.yml` to a working file, replace
+  `{{HOSTNAME}}` with your FQDN, and create the ingress with `kubectl
+  create -f` against the working file.
+  
+* Create the ConfigMap that contains the landing page files: `kubectl
+  create configmap landing-page-www --from-file=config/`
+  
+* Create the deployment with `kubectl create -f
+  landing-page-deployment.yml`.
   
 ### JupyterLab
 

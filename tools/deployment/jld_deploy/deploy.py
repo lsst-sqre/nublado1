@@ -87,6 +87,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "oauth_provider",
     "tls_dhparam",
     "kubernetes_cluster_namespace",
+    "gke_project",
     "gke_zone",
     "gke_node_count",
     "gke_machine_type",
@@ -140,7 +141,7 @@ class JupyterLabDeployment(object):
     directory = None
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
                   "firefly", "prepuller", "jupyterhub", "tls",
-                  "nginx-ingress"]
+                  "nginx-ingress", "landing-page"]
     params = None
     yamlfile = None
     original_context = None
@@ -148,6 +149,7 @@ class JupyterLabDeployment(object):
     enable_prepuller = True
     enable_logging = False
     existing_cluster = False
+    enable_landing_page = True
     b64_cache = {}
     executables = {}
     srcdir = None
@@ -304,6 +306,9 @@ class JupyterLabDeployment(object):
         if self._empty_param('gke_zone'):
             logging.info("Using default gke_zone '%s'." % DEFAULT_GKE_ZONE)
             self.params["gke_zone"] = DEFAULT_GKE_ZONE
+        if not self._empty_param('gke_project'):
+            logging.info("Using gke project '%s'." %
+                         self.params["gke_project"])
 
     def _validate_deployment_params(self):
         """Verify that we have what we need, and get sane defaults for things
@@ -383,7 +388,7 @@ class JupyterLabDeployment(object):
         if self._empty_param('lab_size_range'):
             self.params['lab_size_range'] = "4.0"
         if self._empty_param('hub_route'):
-            self.params['hub_route'] = "/"
+            self.params['hub_route'] = "/nb/"
         if self._empty_param('firefly_route'):
             self.params['firefly_route'] = "/firefly/"
         # Routes must start and end with slash; we know they are not empty.
@@ -392,6 +397,8 @@ class JupyterLabDeployment(object):
                 self.params[i] = "/" + self.params[i]
             if self.params[i][-1] != "/":
                 self.params[i] = self.params[i] + "/"
+        if self.params['hub_route'] == '/':
+            self.params['enable_landing_page'] = False
         # Sane defaults for Firefly servers
         if self._empty_param('firefly_replicas'):
             self.params['firefly_replicas'] = 1
@@ -414,9 +421,10 @@ class JupyterLabDeployment(object):
         logging.info("Volume size: %s / NFS volume size: %s" %
                      (self.params['volume_size'],
                       self.params['nfs_volume_size']))
-        self.params[
-            'oauth_callback_url'] = ("https://%s/hub/oauth_callback" %
-                                     self.params['hostname'])
+        self.params['oauth_callback_url'] = ("https://" +
+                                             self.params['hostname'] +
+                                             self.params['hub_route'] +
+                                             "hub/oauth_callback")
         self.params["github_organization_whitelist"] = ','.join(
             self.params["github_organization_whitelist"])
         self.params["cilogon_group_whitelist"] = ','.join(
@@ -754,6 +762,8 @@ class JupyterLabDeployment(object):
             if self.enable_firefly:
                 self._create_firefly()
             self._create_jupyterhub()
+            if self.enable_landing_page:
+                self._create_landing_page()
             self._create_dns_record()
 
     def _create_gke_cluster(self):
@@ -765,12 +775,21 @@ class JupyterLabDeployment(object):
         dsize = self.params['gke_local_volume_size_gigabytes']
         name = self.params['kubernetes_cluster_name']
         namespace = self.params['kubernetes_cluster_namespace']
+        clver = "1.10.2-gke.3"
+        # Fix this by running gcloud container get-server-config; we need
+        #  at least 1.10 for the landing page to be created correctly.
+        # The right behavior is to get the server config, check the default
+        #  level, and if it's not 1.10 or greater, take the most current
+        #  version.
         if not self.existing_cluster:
-            self._run_gcloud(["container", "clusters", "create", name,
-                              "--num-nodes=%d" % nodes,
-                              "--machine-type=%s" % mtype,
-                              "--disk-size=%s" % dsize
-                              ])
+            gcloud_parameters = ["container", "clusters", "create", name,
+                                 "--num-nodes=%d" % nodes,
+                                 "--machine-type=%s" % mtype,
+                                 "--disk-size=%s" % dsize,
+                                 "--cluster-version=%s" % clver,
+                                 "--node-version=%s" % clver
+                                 ]
+            self._run_gcloud(gcloud_parameters)
             self._run_gcloud(["container", "clusters", "get-credentials",
                               name])
             self._create_admin_binding()
@@ -1128,6 +1147,28 @@ class JupyterLabDeployment(object):
         user = rc.stdout.decode('utf-8').strip()
         return user
 
+    def _create_landing_page(self):
+        logging.info("Creating landing page")
+        lp_dir = os.path.join(
+            self.directory,
+            "deployment",
+            "landing-page")
+        self._run_kubectl_create(os.path.join(
+            lp_dir, "landing-page-service.yml"))
+        self._run_kubectl_create(os.path.join(
+            lp_dir, "landing-page-ingress.yml"))
+        self._run(['kubectl', 'create', 'configmap', 'landing-page-www',
+                   "--from-file=%s" % os.path.join(lp_dir, "config")])
+        self._run_kubectl_create(os.path.join(
+            lp_dir, "landing-page-deployment.yml"))
+
+    def _destroy_landing_page(self):
+        logging.info("Destroying landing page")
+        self._run_kubectl_delete(["deployment", "landing-page"])
+        self._run_kubectl_delete(["configmap", "landing-page-www"])
+        self._run_kubectl_delete(["ingress", "landing-page"])
+        self._run_kubectl_delete(["service", "landing-page"])
+
     def _create_prepuller(self):
         logging.info("Creating prepuller")
         pp_dir = os.path.join(
@@ -1301,8 +1342,9 @@ class JupyterLabDeployment(object):
         with self.kubecontext():
             self._switch_to_context(self.params["kubernetes_cluster_name"])
             self._destroy_dns_record()
-            self._destroy_firefly()
+            self._destroy_landing_page()
             self._destroy_jupyterhub()
+            self._destroy_firefly()
             self._destroy_tls_secrets()
             self._destroy_prepuller()
             self._destroy_fs_keepalive()
@@ -1318,6 +1360,8 @@ class JupyterLabDeployment(object):
                    args +
                    ["--zone=%s" % self.params["gke_zone"]] +
                    ["--format=yaml"])
+        if not self._empty_param("gke_project"):
+            newargs = newargs + ["--project=%s" % self.params["gke_project"]]
         return self._run(newargs, check=check, capture=capture)
 
     def _run_kubectl_create_in_namespace(self, filename, namespace):

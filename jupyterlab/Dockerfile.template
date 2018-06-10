@@ -84,7 +84,8 @@ RUN  source scl_source enable rh-python36 && \
       healpy \
       bokeh \
       pyarrow \
-      cloudpickle
+      cloudpickle \
+      ipympl
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 RUN  source scl_source enable rh-python36 && \
@@ -104,7 +105,8 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         ipyevents \
         bokeh \
         pyarrow \
-        cloudpickle
+        cloudpickle \
+        ipympl
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \

@@ -106,7 +106,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         bokeh \
         pyarrow \
         cloudpickle \
-	ipympl
+        ipympl
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \

@@ -129,6 +129,7 @@ function change_staging_id() {
     for i in package.json index.js webpack.config.js; do
 	chown ${U_NAME} "${stagedir}/${i}"
     done
+    chown ${U_NAME} "${stagedir}"
 }
 
 ## Begin mainline code. ##

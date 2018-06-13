@@ -193,18 +193,18 @@ RUN source scl_source enable rh-python36 && \
      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) serverextension enable jupyterlab_lsstquery --py \
        --sys-prefix
-RUN  source scl_source enable rh-python36 && \
-      mkdir -p /usr/share/git && \
-      cd /usr/share/git && \
-      git clone https://github.com/cds-astro/ipyaladin.git && \
-      cd ipyaladin/js && \
-      npm install --unsafe-perm && \
-      cd .. && \
-      pip install -e . && \
-      cd js && \
-      jupyter labextension install --no-build && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-       $(which jupyter) labextension install --no-build
+#RUN  source scl_source enable rh-python36 && \
+#      mkdir -p /usr/share/git && \
+#      cd /usr/share/git && \
+#      git clone https://github.com/cds-astro/ipyaladin.git && \
+#      cd ipyaladin/js && \
+#      npm install --unsafe-perm && \
+#      cd .. && \
+#      pip install -e . && \
+#      cd js && \
+#      jupyter labextension install --no-build && \
+#      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+#       $(which jupyter) labextension install --no-build
 RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
       npm install --unsafe-perm && \
@@ -225,9 +225,9 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
          cd $(dirname "${eups}") ; \
          patch < ${jl}/eups.patch ; \
      fi
-RUN source /opt/lsst/software/stack/loadLSST.bash && \
-      cd /usr/share/git/ipyaladin && \
-      pip install -e .      
+#RUN source /opt/lsst/software/stack/loadLSST.bash && \
+#      cd /usr/share/git/ipyaladin && \
+#      pip install -e .      
 # Get bleeding-edge bokeh labextension into LSST environment
 RUN   source scl_source enable rh-python36 && \
        source /opt/lsst/software/stack/loadLSST.bash && \
@@ -237,7 +237,7 @@ RUN   source scl_source enable rh-python36 && \
        jlpm run build && \
        $(which jupyter) labextension enable jupyterlab_bokeh
 RUN  source scl_source enable rh-python36 && \
-      for l in ${LBXT} ${GITXT} ipyaladin jupyterlab_rise; do \
+      for l in ${LBXT} ${GITXT} jupyterlab_rise; do \
           jupyter labextension enable ${l} && \
           /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
            $(which jupyter) labextension enable ${l}; \

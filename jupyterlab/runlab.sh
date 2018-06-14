@@ -29,7 +29,7 @@ function copy_etc_skel {
 	if [ "${i}" == "${es}" ]; then
 	    continue
 	fi
-	b=$(basename ${i})
+	b=$(echo ${i} | cut -d '/' -f 3-)
 	hb="${HOME}/${b}"
 	if ! [ -e ${hb} ]; then
 	    cp -a ${i} ${hb}

@@ -12,6 +12,7 @@ RUN  yum -y install centos-release-scl && \
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
 RUN  npm install -g configurable-http-proxy
+ENV  PYCURL_SSL_LIBRARY=openssl
 RUN  source scl_source enable rh-python36 && \
      pip3 install jupyterlab ipykernel pyyaml pycurl python-oauth2 wheel \
       cryptography mysqlclient
@@ -40,5 +41,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.8.0"
+	     version="0.9.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

@@ -88,6 +88,7 @@ RUN  source scl_source enable rh-python36 && \
       ipympl \
       fastparquet \
       paramnb \
+      parambokeh \
       ginga
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
@@ -112,6 +113,7 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         ipympl \
         fastparquet \
         paramnb \
+        parambokeh \
         ginga
 ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \

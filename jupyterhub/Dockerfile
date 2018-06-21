@@ -41,5 +41,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="dev_0.9.0"
+	     version="0.9.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

@@ -1,7 +1,6 @@
 """The spawner is the KubeSpawner, modified to use the options form data.
 """
 import datetime
-import escapism
 import json
 import kubespawner
 import os
@@ -19,6 +18,27 @@ class LSSTSpawner(kubespawner.KubeSpawner):
     auth_state."""
 
     _sizemap = {}
+    # Generally bad practice, but we do this in order to provision a user
+    #  with correct, globally-unique UID/GID in the container, and then we
+    #  sudo to that user before starting the jupyter server.  Do not attempt
+    #  this at home.
+    uid = 0
+    gid = 0
+    # The fields need to be defined; we don't use them.
+    fs_gid = None
+    supplemental_gids = []
+    extra_labels = []
+    extra_annotations = []
+    image_pull_secrets = None
+    node_selector = None
+    privileged = False
+    working_dir = None
+    lifecycle_hooks = {}  # This one will be useful someday.
+    init_containers = []
+    service_account = None
+    extra_container_config = None
+    extra_pod_config = None
+    extra_containers = []
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -138,33 +158,38 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         """
         Make a pod manifest that will spawn current user's notebook pod.
         """
-        if callable(self.singleuser_uid):
-            singleuser_uid = yield gen.maybe_future(self.singleuser_uid(self))
-        else:
-            singleuser_uid = self.singleuser_uid
 
-        if callable(self.singleuser_fs_gid):
-            singleuser_fs_gid = yield \
-                gen.maybe_future(self.singleuser_fs_gid(self))
+        if callable(self.uid):
+            uid = yield gen.maybe_future(self.uid(self))
         else:
-            singleuser_fs_gid = self.singleuser_fs_gid
+            uid = self.uid
+
+        if callable(self.gid):
+            gid = yield gen.maybe_future(self.gid(self))
+        else:
+            gid = self.gid
+
+        if callable(self.fs_gid):
+            fs_gid = yield gen.maybe_future(self.fs_gid(self))
+        else:
+            fs_gid = self.fs_gid
+
+        if callable(self.supplemental_gids):
+            supplemental_gids = yield gen.maybe_future(self.supplemental_gids(self))
+        else:
+            supplemental_gids = self.supplemental_gids
 
         if self.cmd:
             real_cmd = self.cmd + self.get_args()
         else:
             real_cmd = None
 
-        # Default set of labels, picked up from
-        # https://github.com/kubernetes/helm/blob/\
-        #  master/docs/chart_best_practices/labels.md
-        labels = {
-            'heritage': 'jupyterhub',
-            'component': 'singleuser-server',
-            'app': 'jupyterhub',
-            'hub.jupyter.org/username': escapism.escape(self.user.name)
-        }
+        labels = self._build_pod_labels(self._expand_all(self.extra_labels))
+        annotations = self._build_common_annotations(
+            self._expand_all(self.extra_annotations))
 
-        labels.update(self._expand_all(self.singleuser_extra_labels))
+        # The above was from the superclass.
+        # This part is our custom LSST stuff.
 
         pod_name = self.pod_name
         image_spec = (self.singleuser_image_spec or os.getenv("LAB_IMAGE")
@@ -183,6 +208,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         # We are running the Lab at the far end, not the old Notebook
         self.default_url = '/lab'
         self.singleuser_image_pull_policy = 'Always'
+        self.image_pull_policy = 'Always'
         clear_dotlocal = False
         if self.user_options:
             self.log.debug("user_options: %s" % json.dumps(self.user_options,
@@ -304,30 +330,41 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         self.log.debug("Volume mounts: %s" % json.dumps(self.volume_mounts,
                                                         indent=4,
                                                         sort_keys=True))
+        self.image_spec = image_spec
+
+        # The return is from the superclass
 
         return make_pod(
             name=self.pod_name,
-            image_spec=self.singleuser_image_spec,
-            image_pull_policy=self.singleuser_image_pull_policy,
-            image_pull_secret=self.singleuser_image_pull_secrets,
-            port=self.port,
             cmd=real_cmd,
-            node_selector=self.singleuser_node_selector,
-            run_as_uid=singleuser_uid,
-            fs_gid=singleuser_fs_gid,
-            run_privileged=self.singleuser_privileged,
-            env=pod_env,
+            port=self.port,
+            image_spec=self.image_spec,
+            image_pull_policy=self.image_pull_policy,
+            image_pull_secret=self.image_pull_secrets,
+            node_selector=self.node_selector,
+            run_as_uid=uid,
+            #            run_as_gid=gid,
+            fs_gid=fs_gid,
+            supplemental_gids=supplemental_gids,
+            run_privileged=self.privileged,
+            env=self.get_env(),
             volumes=self._expand_all(self.volumes),
             volume_mounts=self._expand_all(self.volume_mounts),
-            working_dir=self.singleuser_working_dir,
+            working_dir=self.working_dir,
             labels=labels,
+            annotations=annotations,
             cpu_limit=self.cpu_limit,
             cpu_guarantee=self.cpu_guarantee,
             mem_limit=self.mem_limit,
             mem_guarantee=self.mem_guarantee,
-            lifecycle_hooks=self.singleuser_lifecycle_hooks,
-            init_containers=self.singleuser_init_containers,
-            service_account=None
+            extra_resource_limits=self.extra_resource_limits,
+            extra_resource_guarantees=self.extra_resource_guarantees,
+            lifecycle_hooks=self.lifecycle_hooks,
+            init_containers=self._expand_all(self.init_containers),
+            service_account=self.service_account,
+            extra_container_config=self.extra_container_config,
+            extra_pod_config=self.extra_pod_config,
+            extra_containers=self.extra_containers,
         )
 
     def options_from_form(self, formdata=None):

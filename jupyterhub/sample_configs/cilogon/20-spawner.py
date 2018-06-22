@@ -347,7 +347,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             fs_gid=fs_gid,
             supplemental_gids=supplemental_gids,
             run_privileged=self.privileged,
-            env=self.get_env(),
+            # env is locally-modified
+            env=pod_env,
             volumes=self._expand_all(self.volumes),
             volume_mounts=self._expand_all(self.volume_mounts),
             working_dir=self.working_dir,

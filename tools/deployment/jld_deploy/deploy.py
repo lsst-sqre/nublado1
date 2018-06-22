@@ -104,6 +104,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "firefly_admin_password",
     "firefly_replicas",
     "firefly_container_mem_limit",
+    "firefly_container_cpu_limit",
     "firefly_max_jvm_size",
     "prepuller_image_list",
     "prepuller_no_scan",
@@ -436,6 +437,8 @@ class JupyterLabDeployment(object):
             self.params['firefly_replicas'] = 1
         if self._empty_param('firefly_container_mem_limit'):
             self.params['firefly_container_mem_limit'] = '4G'
+        if self._empty_param('firefly_container_cpu_limit'):
+            self.params['firefly_container_cpu_limit'] = '3.0'
         if self._empty_param('firefly_max_jvm_size'):
             self.params['firefly_max_jvm_size'] = '3584M'
         return
@@ -719,6 +722,8 @@ class JupyterLabDeployment(object):
                           FIREFLY_REPLICAS=p['firefly_replicas'],
                           FIREFLY_CONTAINER_MEM_LIMIT=p[
                               'firefly_container_mem_limit'],
+                          FIREFLY_CONTAINER_CPU_LIMIT=p[
+                              'firefly_container_cpu_limit'],
                           FIREFLY_MAX_JVM_SIZE=p['firefly_max_jvm_size'],
                           FIREFLY_ROUTE=p['firefly_route'],
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',

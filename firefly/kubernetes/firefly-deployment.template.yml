@@ -14,20 +14,22 @@ spec:
           imagePullPolicy: "Always"
           image: "ipac/firefly:lsst-dev"
           volumeMounts:
-            - name: jld-fileserver-home
-              mountPath: /home
+            - name: jld-fileserver-scratch
+              mountPath: /scratch
           resources:
             limits:
               memory: {{FIREFLY_CONTAINER_MEM_LIMIT}}
-              cpu: 2.0
+              cpu: {{FIREFLY_CONTAINER_CPU_LIMIT}}
             requests:
-              memory: 2G
+              memory: 3G
               cpu: 0.8
           env:
             - name: MANAGER
               value: 'FALSE'
             - name: FIREFLY_OPTS
-              value: "-Dvisualize.fits.search.path=/home"
+              value: "-Dvisualize.fits.search.path=/scratch/firefly"
+            - name: FIREFLY_WORK_DIR
+              value: "/scratch/firefly/workarea"
             - name: MAX_JVM_SIZE
               value: {{FIREFLY_MAX_JVM_SIZE}}
             - name: DEBUG
@@ -38,6 +40,6 @@ spec:
                   name: firefly
                   key: admin.password              
       volumes:
-        - name: jld-fileserver-home
+        - name: jld-fileserver-scratch
           persistentVolumeClaim:
-             claimName: jld-fileserver-home
+             claimName: jld-fileserver-scratch

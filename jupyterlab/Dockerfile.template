@@ -207,17 +207,21 @@ RUN source scl_source enable rh-python36 && \
      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) serverextension enable jupyterlab_lsstquery --py \
        --sys-prefix
-# https://github.com/cds-astro/ipyaladin.git is forked to unpin jquery
+# aa009c6d88ccfd2d25ea9d2b08c9dda201b9f55a is last-known-good.
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
-      git clone https://github.com/lsst-sqre/ipyaladin.git && \
-      cd ipyaladin/js && \
+      git clone https://github.com/cds-astro/ipyaladin.git && \
+      cd ipyaladin && \
+      git checkout aa009c6d88ccfd2d25ea9d2b08c9dda201b9f55a && \
+      cd js && \
+      npm install --unsafe-perm && \
+      cd .. && \
+      pip install -e . && \
+      cd js && \
       jupyter labextension install --no-build && \
       /opt/lsst/software/stack/python/current/bin/python${PYVER} \
-      $(which jupyter) labextension install --no-build && \
-      cd .. && \
-      pip install -e .
+        $(which jupyter) labextension install --no-build
 RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
       npm install --unsafe-perm && \

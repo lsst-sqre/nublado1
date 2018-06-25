@@ -1,9 +1,10 @@
 #!/bin/bash
 # This relies on a few things:
-#  1) "name" and "version" first appear in a Dockerfile as part of a label
+#  1) "name" and "version" first appear in a Dockerfile as part of a label.
 #  2) They're on separate lines (the same logical line with continuations
 #       is OK).
-#  3) Versions starting with "exp_" will not be tagged or pushed as "latest"
+#  3) Versions starting with "exp_" will not be tagged or pushed as "latest".
+#  4) Versions starting with "nopush_" will not be pushed at all.
 IMAGE=$(  grep name\= Dockerfile | \
 	      head -1 | \
 	      sed -e    's/name=\"\(.*\)\"/\1/' | \
@@ -26,12 +27,15 @@ if [ "${rc}" -ne 0 ]; then
     echo 1>&2 "Docker build failed."
     exit 1
 fi
-docker push ${IMAGE}:${VERSION}
 EXPERIMENTAL=0
-etag=$(echo "${VERSION}" | cut -d 1-4)
-if [ "${etag}" = "exp_" ]; then
+etag=$(echo "${VERSION}" | cut -d '_' -f 1)
+if [ "${etag}" = "nopush" ]; then
+    exit 0
+fi
+if [ "${etag}" = "exp" ]; then
     EXPERIMENTAL=1
 fi
+docker push ${IMAGE}:${VERSION}
 if [ "${EXPERMENTAL}" -ne 1 ]; then
     docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
     docker push ${IMAGE}:latest

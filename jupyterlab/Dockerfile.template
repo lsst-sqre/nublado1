@@ -207,13 +207,13 @@ RUN source scl_source enable rh-python36 && \
      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
       $(which jupyter) serverextension enable jupyterlab_lsstquery --py \
        --sys-prefix
-# aa009c6d88ccfd2d25ea9d2b08c9dda201b9f55a is last-known-good.
+# 3ca224b41afc429647802cafd8dada83266faa6a is last good (2018 Jun 26)
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin.git && \
       cd ipyaladin && \
-      git checkout aa009c6d88ccfd2d25ea9d2b08c9dda201b9f55a && \
+      git checkout 3ca224b41afc429647802cafd8dada83266faa6a && \
       cd js && \
       npm install --unsafe-perm && \
       cd .. && \

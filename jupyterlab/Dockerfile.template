@@ -140,16 +140,16 @@ RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/lsst-sqre/jupyterlabutils/zipball/master      
 # Install holoviews and datashader
-# 0.6.5 as of 16 May 2018
+# 0.6.5 as of 16 May 2018 ...
 RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
-      https://github.com/bokeh/datashader/zipball/0.6.5 \
+      git+https://github.com/bokeh/datashader \ 
       https://github.com/ioam/parambokeh/zipball/master && \
       source /opt/lsst/software/stack/loadLSST.bash && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
-      https://github.com/bokeh/datashader/zipball/0.6.5 \
+      git+https://github.com/bokeh/datashader \
       https://github.com/ioam/parambokeh/zipball/master
 # Install RISE from jupyterlab_rise branch
 RUN source scl_source enable rh-python36 && \

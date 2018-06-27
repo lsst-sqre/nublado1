@@ -212,7 +212,6 @@ RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin.git && \
       cd ipyaladin && \
-      git checkout 3ca224b41afc429647802cafd8dada83266faa6a && \
       cd js && \
       npm install --unsafe-perm && \
       cd .. && \

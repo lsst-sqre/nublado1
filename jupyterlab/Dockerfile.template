@@ -140,7 +140,6 @@ RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/lsst-sqre/jupyterlabutils/zipball/master      
 # Install holoviews and datashader
-# 0.6.5 as of 16 May 2018 ...
 RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \

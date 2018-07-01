@@ -178,7 +178,7 @@ RUN  source scl_source enable rh-python36 && \
 RUN  source scl_source enable rh-python36 && \
       for l in $LBXT; do \
           jupyter labextension install ${l} --no-build; \
-          /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
+          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
            $(which jupyter) labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE"

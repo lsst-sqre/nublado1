@@ -223,7 +223,7 @@ RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
       npm install --unsafe-perm && \
       npm run build && \
-      jupyter labextension install .
+      jupyter labextension install --no-build
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
@@ -250,17 +250,16 @@ RUN   source scl_source enable rh-python36 && \
        jlpm install --unsafe-perm && \
        jlpm run build && \
        $(which jupyter) labextension enable jupyterlab_bokeh
-# # Add ipyaladin back when it is buildable.
 RUN  source scl_source enable rh-python36 && \
       for l in ${LBXT} ${GITXT} jupyterlab_rise ipyaladin ; do \
           jupyter labextension enable ${l} && \
           /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
            $(which jupyter) labextension enable ${l}; \
       done
+ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
-      for i in clean build; do \
-          jupyter lab ${i} ; \
-      done
+      jupyter lab clean && \
+      jupyter lab build
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
      scl="/opt/rh/rh-python36/root/usr/share/" && \

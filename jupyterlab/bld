@@ -2,12 +2,11 @@
 set -e
 
 function usage() {
-    echo 1>&2 "Usage: $0 [-d] [-e] [-x] [-p PYVER] [-b BASE_IMAGE] \\"
+    echo 1>&2 "Usage: $0 [-d] [-e] [-x] [-b BASE_IMAGE] \\"
     echo 1>&2 "           [-n IMAGE_NAME ] [-t TAG_PREFIX ] TAG"
     echo 1>&2 "  -d enables dry run (no Docker build or push)"
     echo 1>&2 "  -e is experimental (exp_ before tag), no 'latest' tag."
     echo 1>&2 "  -x is 'do not push' (but does build)."
-    echo 1>&2 "  default PYVER=3 (legal values: 2,3)"
     echo 1>&2 "  default BASE_IMAGE='lsstsqre/centos'"
     echo 1>&2 "  default IMAGE_NAME='lsstsqre/jld-lab'"
     echo 1>&2 "  default TAG_PREFIX='7-stack-lsst_distrib-'"
@@ -19,7 +18,6 @@ OPTIND=1
 DRY_RUN=0
 EXPERIMENTAL=0
 NOPUSH=0
-PYVER=3
 BASE_IMAGE="lsstsqre/centos"
 IMAGE_NAME="lsstsqre/jld-lab"
 TAG_PREFIX="7-stack-lsst_distrib-"
@@ -38,10 +36,8 @@ while getopts ':hdexp:n:b:t:' opt; do
 	    NOPUSH=1
 	    ;;
 	p)
-	    PYVER=${OPTARG}
-	    if [ "${PYVER}" -ne 2 ] && [ "${PYVER}" -ne 3 ]; then
-		usage
-	    fi
+	    _junk=${OPTARG}
+	    echo 1>&2 "-p PYVER is no longer supported.  Ignoring."
 	    ;;
 	b)
 	    BASE_IMAGE=${OPTARG}
@@ -70,12 +66,9 @@ fi
 if [ "${NOPUSH}" -eq 1 ]; then
     VERSION="nopush_${VERSION}"
 fi
-KFILE=lsst_kernel_py${PYVER}.json
-sed -e "s|{{PYVER}}|${PYVER}|g" lsst_kernel.json.template > ${KFILE}
 sed -e "s|{{BASE_IMAGE}}|${BASE_IMAGE}|g" \
     -e "s|{{IMAGE_NAME}}|${IMAGE_NAME}|g" \
     -e "s|{{TAG_PREFIX}}|${TAG_PREFIX}|g" \
-    -e "s|{{PYVER}}|${PYVER}|g" \
     -e "s|{{VERSION}}|${VERSION}|g" \
     -e "s|{{TAG}}|${TAG}|g" \
     < Dockerfile.template > Dockerfile

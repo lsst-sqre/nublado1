@@ -1,11 +1,10 @@
 #!/bin/bash
-PYTHON_VER=$1
-CONFIG_FILE=$2
+CONFIG_FILE=$1
 source /opt/lsst/software/stack/loadLSST.bash
 setup lsst_distrib
 setup display_firefly
 if [ -e ${HOME}/notebooks/.user_setups ]; then
     source ${HOME}/notebooks/.user_setups
 fi
-exec python${PYTHON_VER} -m ipykernel -f ${CONFIG_FILE}
+exec python3 -m ipykernel -f ${CONFIG_FILE}
 

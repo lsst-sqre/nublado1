@@ -441,6 +441,9 @@ class JupyterLabDeployment(object):
             self.params['firefly_container_cpu_limit'] = '3.0'
         if self._empty_param('firefly_max_jvm_size'):
             self.params['firefly_max_jvm_size'] = '3584M'
+        if self._empty_param('auto_repo_urls'):
+            self.params['auto_repo_urls'] = \
+                'https://github.com/lsst-sqre/notebook-demo'
         return
 
     def _normalize_params(self):
@@ -1661,7 +1664,9 @@ def _canonicalize_result_params(params):
     if not _empty(params, arurls):
         aru = params[arurls]
         if type(aru) is not str:
-            arurls = ','.join(arurls)
+            params[arurls] = ','.join(aru)
+    else:
+        params[arurls] = "https://github.com/lsst-sqre/notebook-demo"
     wlname = "github_organization_whitelist"
     if params["oauth_provider"] == "cilogon":
         wlname = "cilogon_group_whitelist"

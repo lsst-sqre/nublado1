@@ -125,16 +125,15 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         fastparquet \
         paramnb \
         ginga
-ENV  PYVER={{PYVER}}
 RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
      export pdir && \
      if ! [ -d ${pdir} ]; then \
          mkdir -p ${pdir} && \
          cd ${pdir} && \
          source /opt/lsst/software/stack/loadLSST.bash && \     
-         ln -sf $(which python${PYVER}) . ;\
+         ln -sf $(which python3) . ;\
       fi
-RUN  /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+RUN  /opt/lsst/software/stack/python/current/bin/python3 \
       -m ipykernel install --name 'LSST'
 # Install jupyterlabutils
 RUN source scl_source enable rh-python36 && \
@@ -167,22 +166,22 @@ ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews ipyeve
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
-          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+          /opt/lsst/software/stack/python/current/bin/python3 \
            $(which jupyter) serverextension enable ${s} --py --sys-prefix ; \
       done
 RUN  source scl_source enable rh-python36 && \
       for n in $NBXT; do \
           jupyter nbextension install ${n} --py --sys-prefix ; \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
-          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+          /opt/lsst/software/stack/python/current/bin/python3 \
            $(which jupyter) nbextension install ${n} --py --sys-prefix ; \
-          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+          /opt/lsst/software/stack/python/current/bin/python3 \
            $(which jupyter) nbextension enable ${n} --py --sys-prefix ; \
       done
 RUN  source scl_source enable rh-python36 && \
       for l in $LBXT; do \
           jupyter labextension install ${l} --no-build; \
-          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+          /opt/lsst/software/stack/python/current/bin/python3 \
            $(which jupyter) labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE"
@@ -207,7 +206,7 @@ RUN source scl_source enable rh-python36 && \
      cd /usr/share/git/jupyterlab-lsstquery && \
      pip install -e . && \
      jupyter serverextension enable jupyterlab_lsstquery --py --sys-prefix && \
-     /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+     /opt/lsst/software/stack/python/current/bin/python3 \
       $(which jupyter) serverextension enable jupyterlab_lsstquery --py \
        --sys-prefix
 # 3ca224b41afc429647802cafd8dada83266faa6a is last good (2018 Jun 26)
@@ -221,7 +220,7 @@ RUN  source scl_source enable rh-python36 && \
       pip install -e . && \
       cd js && \
       jupyter labextension install --no-build && \
-      /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+      /opt/lsst/software/stack/python/current/bin/python3 \
         $(which jupyter) labextension install --no-build
 RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
@@ -257,7 +256,7 @@ RUN   source scl_source enable rh-python36 && \
 RUN  source scl_source enable rh-python36 && \
       for l in ${LBXT} ${GITXT} jupyterlab_rise ipyaladin ; do \
           jupyter labextension enable ${l} && \
-          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
+          /opt/lsst/software/stack/python/current/bin/python3 \
            $(which jupyter) labextension enable ${l}; \
       done
 ENV  NODE_OPTIONS=--max-old-space-size=4096
@@ -301,7 +300,7 @@ RUN  cd /etc/profile.d && \
 RUN  for i in notebooks WORK DATA idleculler ; do \
         mkdir -p /etc/skel/${i} ; \
      done	
-COPY lsst_kernel_py${PYVER}.json \
+COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst/kernel.json
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
@@ -310,7 +309,7 @@ COPY pythonrc /etc/skel/.pythonrc
 COPY gitconfig /etc/skel/.gitconfig
 COPY git-credentials /etc/skel/.git-credentials
 COPY user_setups /etc/skel/notebooks/.user_setups
-COPY lsst_kernel_py${PYVER}.json selfculler.py \
+COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
       prepuller.sh \
       ${jl}/

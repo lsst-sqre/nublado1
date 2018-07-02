@@ -253,7 +253,7 @@ RUN   source scl_source enable rh-python36 && \
 RUN  source scl_source enable rh-python36 && \
       for l in ${LBXT} ${GITXT} jupyterlab_rise ipyaladin ; do \
           jupyter labextension enable ${l} && \
-          /opt/lsst/software/stack/python/current/bin/python${PYVER} ; \
+          /opt/lsst/software/stack/python/current/bin/python${PYVER} \
            $(which jupyter) labextension enable ${l}; \
       done
 ENV  NODE_OPTIONS=--max-old-space-size=4096

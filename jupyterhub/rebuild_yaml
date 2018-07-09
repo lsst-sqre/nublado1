@@ -17,6 +17,23 @@ MB_PER_CPU=${MB_PER_CPU:-"2048"}
 TINY_CPU_MAX=${TINY_CPU_MAX:-"0.5"}
 HUB_ROUTE=${HUB_ROUTE:-"/nb/"}
 FIREFLY_ROUTE=${FIREFLY_ROUTE:-"/firefly/"}
+AUTO_REPO_URLS=${AUTO_REPO_URLS:-""}
+if [ -z "${DB_IDENTIFIER}" ]; then
+    if [ -z "${GKE_PROJECT}" ]; then
+       GKE_PROJECT=$(gcloud config list core/project --format json | \
+                         jq -r .core.project)
+    fi
+    if [ -z "${GKE_REGION}" ]; then
+        GKE_REGION=$(gcloud config list compute/region --format json | \
+                         jq -r .compute.region)
+    fi
+    if [ -z "${K8S_NAMESPACE}" ]; then
+        K8S_NAMESPACE=$(kubectl config get-contexts \
+                            $(kubectl config current-context) \
+                            | grep '^*' | awk '{print $NF}')
+    fi
+    DB_IDENTIFIER="${GKE_PROJECT}:${GKE_REGION}:${K8S_NAMESPACE}"
+fi
 
 sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{LAB_IMAGE}}/${LAB_IMAGE}/g" \
@@ -33,6 +50,7 @@ sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{MB_PER_CPU}}/${MB_PER_CPU}/g" \
     -e "s/{{TINY_CPU_MAX}}/${TINY_CPU_MAX}/g" \
     -e "s/{{AUTO_REPO_URLS}}/${AUTO_REPO_URLS}/g" \
+    -e "s/{{DB_IDENTIFIER}}/${DB_IDENTIFIER}/g" \
     -e "s|{{HUB_ROUTE}}|${HUB_ROUTE}|g" \
     -e "s|{{FIREFLY_ROUTE}}|${FIREFLY_ROUTE}|g" \
     ${DEPYAMLTPL} > ${DEPYAML}

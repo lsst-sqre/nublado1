@@ -153,6 +153,9 @@ class JupyterLabDeployment(object):
     enable_prepuller = True
     enable_logging = False
     existing_cluster = False
+    existing_namespace = False
+    existing_database_server = False
+    existing_database = False
     enable_landing_page = True
     b64_cache = {}
     executables = {}
@@ -162,13 +165,15 @@ class JupyterLabDeployment(object):
 
     def __init__(self, yamlfile=None, params=None, directory=None,
                  disable_prepuller=False, existing_cluster=False,
-                 existing_namespace=False, config_only=False,
-                 temporary=False):
+                 existing_namespace=False, existing_database_server=False,
+                 existing_database=False, config_only=False,temporary=False):
         self._check_executables(EXECUTABLES)
         if yamlfile:
             self.yamlfile = os.path.realpath(yamlfile)
         self.existing_cluster = existing_cluster
         self.existing_namespace = existing_namespace
+        self.existing_database_server = existing_database_server
+        self.existing_database = existing_database
         self.temporary = temporary
         self.directory = directory
         if self.directory:
@@ -212,7 +217,7 @@ class JupyterLabDeployment(object):
         """We need the cluster to be at least Kubernetes 1.10 in order
         to have a binary ConfigMap for the landing page.  If the default
         version is not 1.10 or later, use the latest master version that
-        exists, which unless you have a time machine, will always be at
+        exists, which, unless you have a time machine, will always be at
         least 1.10.
         """
         rc = self._run_gcloud(["container", "get-server-config"], capture=True)
@@ -339,6 +344,8 @@ class JupyterLabDeployment(object):
         if self._empty_param('gke_zone'):
             logging.info("Using default gke_zone '%s'." % DEFAULT_GKE_ZONE)
             self.params["gke_zone"] = DEFAULT_GKE_ZONE
+        self.param['gke_region'] = '-'.join(self.params["gke_zone"].
+                                            split('-')[:-1])
         if not self._empty_param('gke_project'):
             logging.info("Using gke project '%s'." %
                          self.params["gke_project"])
@@ -788,6 +795,8 @@ class JupyterLabDeployment(object):
     def _create_resources(self):
         with self.kubecontext():
             self._create_gke_cluster()
+            self._create_database()
+            sys.exit(1)
             if self.enable_logging:
                 self._create_logging_components()
             if _empty(self.params, "external_fileserver_ip"):
@@ -836,6 +845,9 @@ class JupyterLabDeployment(object):
             #  so run it under _waitfor()
             self._waitfor(self._create_namespace, delay=1, tries=15)
 
+    def _create_database(self):
+        pass
+            
     def _create_nginx_ingress_controller(self):
         ns = "ingress-nginx"
         self._create_named_namespace(ns)
@@ -1597,6 +1609,18 @@ def get_cli_options():
                                       "Respected for undeployment as well." +
                                       "  Requires --existing-cluster."),
         action='store_true')
+    pr.add_argument(
+        "--existing-database-server", help=("Do not create/destroy database " +
+                                            "server.  " +
+                                            "Respected for undeployment " +
+                                            "as well."),
+        action='store_true')
+    pr.add_argument(
+        "--existing-database", help=("Do not create/destroy database.  " +
+                                     "Respected for undeployment as well.  " +
+                                     "Requires --existing-database-server."),
+        action='store_true')
+
     result = pr.parse_args()
     dtype = "deploy"
     if "undeploy" in result and result.undeploy:
@@ -1800,6 +1824,8 @@ def standalone_deploy(options):
     d_p = options.disable_prepuller
     y_f = options.file
     e_c = options.existing_cluster
+    e_d = options.existing_database
+    e_s = options.existing_database_server
     e_n = options.existing_namespace
     e_d = options.directory
     c_c = options.create_config
@@ -1811,6 +1837,8 @@ def standalone_deploy(options):
                                       disable_prepuller=d_p,
                                       existing_cluster=e_c,
                                       existing_namespace=e_n,
+                                      existing_database=e_d,
+                                      existing_database_server=e_s,
                                       directory=e_d,
                                       config_only=c_c,
                                       params=p_p,
@@ -1825,12 +1853,16 @@ def standalone_undeploy(options):
     y_f = options.file
     e_c = options.existing_cluster
     e_n = options.existing_namespace
+    e_s = options.existing_database_server
+    e_d = options.existing_database
     p_p = None
     if "params" in options:
         p_p = options.params
     deployment = JupyterLabDeployment(yamlfile=y_f,
                                       existing_cluster=e_c,
                                       existing_namespace=e_n,
+                                      existing_database_server=e_s,
+                                      existing_database=e_d,
                                       params=p_p
                                       )
     deployment.undeploy()

@@ -4,7 +4,7 @@ RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y  upgrade
 RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
-      git patch python-alembic
+      git patch python-alembic mariadb
 # Python 3.6: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum-config-manager --enable rhel-server-rhscl-7-rpms && \
@@ -41,5 +41,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.9.0"
+	     version="0.9.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

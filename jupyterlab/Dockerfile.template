@@ -106,7 +106,8 @@ RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
 RUN  source scl_source enable rh-python36 && \
       python3 $(which nbdime) config-git --enable --system
 # scipy/pandas/numpy/astropy/matplotlib all already there
-RUN  source /opt/lsst/software/stack/loadLSST.bash && \
+ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
+RUN  source ${LOADSTACK} && \
      pip install --upgrade pip \
         setuptools \
         virtualenvwrapper \
@@ -125,30 +126,22 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
         fastparquet \
         paramnb \
         ginga
-RUN  pdir=/opt/lsst/software/stack/python/current/bin && \
-     export pdir && \
-     if ! [ -d ${pdir} ]; then \
-         mkdir -p ${pdir} && \
-         cd ${pdir} && \
-         source /opt/lsst/software/stack/loadLSST.bash && \     
-         ln -sf $(which python3) . ;\
-      fi
-RUN  /opt/lsst/software/stack/python/current/bin/python3 \
-      -m ipykernel install --name 'LSST'
+RUN  source ${LOADSTACK} && \
+     python3 -m ipykernel install --name 'LSST'
 # Install jupyterlabutils
 RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/lsst-sqre/jupyterlabutils/zipball/master && \
-      source /opt/lsst/software/stack/loadLSST.bash && \
+      source ${LOADSTACK} && \
       pip3 install \
-      https://github.com/lsst-sqre/jupyterlabutils/zipball/master      
+      https://github.com/lsst-sqre/jupyterlabutils/zipball/master
 # Install holoviews and datashader
 RUN source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
-      git+https://github.com/bokeh/datashader \ 
+      git+https://github.com/bokeh/datashader \
       https://github.com/ioam/parambokeh/zipball/master && \
-      source /opt/lsst/software/stack/loadLSST.bash && \
+      source ${LOADSTACK} && \
       pip3 install \
       https://github.com/ioam/holoviews/zipball/master \
       git+https://github.com/bokeh/datashader \
@@ -157,7 +150,7 @@ RUN source scl_source enable rh-python36 && \
 RUN source scl_source enable rh-python36 && \
       pip3 install \
       git+https://github.com/damianavila/RISE@jupyterlab_extension && \
-      source /opt/lsst/software/stack/loadLSST.bash && \
+      source ${LOADSTACK} && \
       pip3 install \
       git+https://github.com/damianavila/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy nbdime"
@@ -166,23 +159,15 @@ ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews ipyeve
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
-          /opt/lsst/software/stack/python/current/bin/python3 \
-           $(which jupyter) serverextension enable ${s} --py --sys-prefix ; \
       done
 RUN  source scl_source enable rh-python36 && \
       for n in $NBXT; do \
           jupyter nbextension install ${n} --py --sys-prefix ; \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
-          /opt/lsst/software/stack/python/current/bin/python3 \
-           $(which jupyter) nbextension install ${n} --py --sys-prefix ; \
-          /opt/lsst/software/stack/python/current/bin/python3 \
-           $(which jupyter) nbextension enable ${n} --py --sys-prefix ; \
       done
 RUN  source scl_source enable rh-python36 && \
       for l in $LBXT; do \
           jupyter labextension install ${l} --no-build; \
-          /opt/lsst/software/stack/python/current/bin/python3 \
-           $(which jupyter) labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE"
 RUN  source scl_source enable rh-python36 && \
@@ -197,7 +182,7 @@ RUN  source scl_source enable rh-python36 && \
        https://github.com/damianavila/RISE.git && \
       for i in ${GITXT}; do \
           cd ${i} && \
-          python3 $(which jupyter) labextension link . --no-build && \
+          jupyter labextension link . --no-build && \
           jlpm install --unsafe-perm && \
           jlpm run build && \
           cd .. ;\
@@ -205,11 +190,7 @@ RUN  source scl_source enable rh-python36 && \
 RUN source scl_source enable rh-python36 && \
      cd /usr/share/git/jupyterlab-lsstquery && \
      pip install -e . && \
-     jupyter serverextension enable jupyterlab_lsstquery --py --sys-prefix && \
-     /opt/lsst/software/stack/python/current/bin/python3 \
-      $(which jupyter) serverextension enable jupyterlab_lsstquery --py \
-       --sys-prefix
-# 3ca224b41afc429647802cafd8dada83266faa6a is last good (2018 Jun 26)
+     jupyter serverextension enable jupyterlab_lsstquery --py --sys-prefix
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
@@ -219,9 +200,7 @@ RUN  source scl_source enable rh-python36 && \
       cd .. && \
       pip install -e . && \
       cd js && \
-      jupyter labextension install --no-build && \
-      /opt/lsst/software/stack/python/current/bin/python3 \
-        $(which jupyter) labextension install --no-build
+      jupyter labextension install --no-build
 RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
       npm install --unsafe-perm && \
@@ -231,7 +210,7 @@ ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
 # Patch eups if it needs patching -- that is, is it prior to 2.1.4?
-RUN  source /opt/lsst/software/stack/loadLSST.bash && \
+RUN  source ${LOADSTACK} && \
      eups="/opt/lsst/software/stack/eups/current/bin/eups" && \
      e_ver=$(${eups} --version | cut -d ':' -f 2 | cut -c 2- ) && \
      e_maj=$(echo ${e_ver} | cut -d '.' -f 1 ) && \
@@ -242,22 +221,19 @@ RUN  source /opt/lsst/software/stack/loadLSST.bash && \
          cd $(dirname "${eups}") ; \
          patch < ${jl}/eups.patch ; \
      fi
-RUN source /opt/lsst/software/stack/loadLSST.bash && \
+RUN source ${LOADSTACK} && \
       cd /usr/share/git/ipyaladin && \
-      pip install -e .      
-# Get bleeding-edge bokeh labextension into LSST environment
+      pip install -e .
+# Get bleeding-edge bokeh labextension into Lab environment
 RUN   source scl_source enable rh-python36 && \
-       source /opt/lsst/software/stack/loadLSST.bash && \
        cd /usr/share/git/jupyterlab_bokeh && \
-       python3 $(which jupyter) labextension link . --no-build && \
+       jupyter labextension link . --no-build && \
        jlpm install --unsafe-perm && \
        jlpm run build && \
-       $(which jupyter) labextension enable jupyterlab_bokeh
+       jupyter labextension enable jupyterlab_bokeh
 RUN  source scl_source enable rh-python36 && \
       for l in ${LBXT} ${GITXT} jupyterlab_rise ipyaladin ; do \
-          jupyter labextension enable ${l} && \
-          /opt/lsst/software/stack/python/current/bin/python3 \
-           $(which jupyter) labextension enable ${l}; \
+          jupyter labextension enable ${l} ; \
       done
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
@@ -299,7 +275,7 @@ RUN  cd /etc/profile.d && \
      done
 RUN  for i in notebooks WORK DATA idleculler ; do \
         mkdir -p /etc/skel/${i} ; \
-     done	
+     done
 COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst/kernel.json
 COPY motd /etc/motd

@@ -61,6 +61,9 @@ rc=$?
 if [ ${rc} -ne 0 ]; then
     git lfs install
 fi
+# Bump up node max storage to allow rebuild
+NODE_OPTIONS=--max-old-space-size=4096
+export NODE_OPTIONS
 sync
 cd ${HOME}
 # Do /etc/skel copy (in case we didn't provision homedir but still need to

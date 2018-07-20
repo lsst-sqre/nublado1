@@ -890,7 +890,10 @@ class JupyterLabDeployment(object):
         if self.existing_database_instance:
             return
         self._delete_db_service_account()
-        
+        self._run_gcloud(["sql", "instances", "delete",
+                          self.params['kubernetes_cluster_name'],
+                          "-q"])
+
     def _create_database(self):
         if self.existing_database:
             return
@@ -903,7 +906,8 @@ class JupyterLabDeployment(object):
             return
         self._run_gcloud(["sql", "databases", "delete",
                           self.params['kubernetes_cluster_namespace'],
-                          "-i", self.params['kubernetes_cluster_name']])
+                          "-i", self.params['kubernetes_cluster_name'],
+                          "-q"])
 
     def _create_db_service_account(self):
         sa_name = self.params["kubernetes_cluster_name"] + "-db-sa"
@@ -927,7 +931,7 @@ class JupyterLabDeployment(object):
         project = self.params['gke_project']
         saname = self.params['kubernetes_cluster_namespace'] + "-db-sa"
         email = saname + "@" + project + ".iam.gserviceaccount.com"
-        self.run_gcloud(["iam", "service-accounts", "delete", email])
+        self.run_gcloud(["iam", "service-accounts", "delete", email, "-q"])
 
     def _bind_db_service_account(self):
         uid = self.database['sa']['uid']

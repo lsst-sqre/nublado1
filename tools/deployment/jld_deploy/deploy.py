@@ -48,8 +48,10 @@ import json
 import logging
 import os
 import os.path
+import random
 import semver
 import shutil
+import string
 import subprocess
 import sys
 import tempfile
@@ -154,7 +156,7 @@ class JupyterLabDeployment(object):
     enable_logging = False
     existing_cluster = False
     existing_namespace = False
-    existing_database_server = False
+    existing_database_instance = False
     existing_database = False
     enable_landing_page = True
     b64_cache = {}
@@ -165,14 +167,14 @@ class JupyterLabDeployment(object):
 
     def __init__(self, yamlfile=None, params=None, directory=None,
                  disable_prepuller=False, existing_cluster=False,
-                 existing_namespace=False, existing_database_server=False,
-                 existing_database=False, config_only=False,temporary=False):
+                 existing_namespace=False, existing_database_instance=False,
+                 existing_database=False, config_only=False, temporary=False):
         self._check_executables(EXECUTABLES)
         if yamlfile:
             self.yamlfile = os.path.realpath(yamlfile)
         self.existing_cluster = existing_cluster
         self.existing_namespace = existing_namespace
-        self.existing_database_server = existing_database_server
+        self.existing_database_instance = existing_database_instance
         self.existing_database = existing_database
         self.temporary = temporary
         self.directory = directory
@@ -349,6 +351,16 @@ class JupyterLabDeployment(object):
         if not self._empty_param('gke_project'):
             logging.info("Using gke project '%s'." %
                          self.params["gke_project"])
+        else:
+            rc = self._run_cloud(["config", "get-value", "project"],
+                                 capture=True)
+            if rc.stdout:
+                result = yaml.load(rc.stdout.decode('utf-8'))
+                if not result:
+                    raise RuntimeError("gke_project not specified " +
+                                       "and no default set.")
+                logging.info("Using default gke project '%s'." % result)
+                self.params["gke_project"] = result
 
     def _validate_deployment_params(self):
         """Verify that we have what we need, and get sane defaults for things
@@ -522,8 +534,12 @@ class JupyterLabDeployment(object):
         else:
             self.enable_logging = True
         if self._empty_param('session_db_url'):
-            self.params[
-                'session_db_url'] = 'sqlite:////home/jupyter/jupyterhub.sqlite'
+            pw = self._generate_random_pw()
+            ns = self.params["kubernetes_cluster_namespace"]
+            url = "mysql://proxyuser:" + pw + "@127.0.0.1/3306/" + ns
+            self.params['session_db_url'] = url
+            self.params['session_db_pw'] = pw
+            # Used to be 'sqlite:////home/jupyter/jupyterhub.sqlite'
         if self._empty_param('tls_dhparam'):
             self._check_executables(["openssl"])
             if self._empty_param('dhparam_bits'):
@@ -554,6 +570,8 @@ class JupyterLabDeployment(object):
         self._copy_oauth_provider()
 
     def _copy_oauth_provider(self):
+        """Copy the right set of config files, based on oauth_provider.
+        """
         configdir = os.path.join(self.srcdir, "jupyterhub", "sample_configs",
                                  self.params['oauth_provider'])
         target_pdir = os.path.join(self.directory, "deployment",
@@ -592,6 +610,12 @@ class JupyterLabDeployment(object):
         """
         ck = os.urandom(16).hex() + ";" + os.urandom(16).hex()
         self.params['crypto_key'] = ck
+
+    def _generate_random_pw(self, len=16):
+        """Generate a random string for use as a password.
+        """
+        charset = string.letters + string.digits
+        return ''.join(random.choice(charset) for x in range(len))
 
     def _logcmd(self, cmd):
         """Convenience function to display actual subprocess command run.
@@ -795,6 +819,7 @@ class JupyterLabDeployment(object):
     def _create_resources(self):
         with self.kubecontext():
             self._create_gke_cluster()
+            self._create_database_instance()
             self._create_database()
             sys.exit(1)
             if self.enable_logging:
@@ -845,9 +870,108 @@ class JupyterLabDeployment(object):
             #  so run it under _waitfor()
             self._waitfor(self._create_namespace, delay=1, tries=15)
 
+    def _create_database_instance(self):
+        if self.existing_database_instance:
+            return
+        rc = self._run_gcloud(["sql", "instances", "create",
+                              self.params['kubernetes_cluster_name']],
+                              capture=True)
+        if rc.stdout:
+            result = yaml.load(rc.stdout.decode('utf-8'))
+            self.database = {}
+            self.database["connectionName"] = result["connectionName"]
+            for ips in result["ipAddresses"]:
+                if ips["type"] == "PRIMARY":
+                    self.database["ipAddress"] = ips["ipAddress"]
+                    break
+        self._create_db_service_account()
+
+    def _delete_database_instance(self):
+        if self.existing_database_instance:
+            return
+        self._delete_db_service_account()
+        
     def _create_database(self):
-        pass
+        if self.existing_database:
+            return
+        self._run_gcloud(["sql", "databases", "create",
+                          self.params['kubernetes_cluster_namespace'],
+                          "-i", self.params['kubernetes_cluster_name']])
+
+    def _delete_database(self):
+        if self.existing_database:
+            return
+        self._run_gcloud(["sql", "databases", "delete",
+                          self.params['kubernetes_cluster_namespace'],
+                          "-i", self.params['kubernetes_cluster_name']])
+
+    def _create_db_service_account(self):
+        sa_name = self.params["kubernetes_cluster_name"] + "-db-sa"
+        rc = self._run_gcloud(["iam", "service-accounts", "create",
+                               sa_name, "--display-name", sa_name],
+                              capture=True)
+        if rc.stdout:
+            result = yaml.load(rc.stdout.decode('utf-8'))
+            uid = result['uniqueId']
+            email = result['email']
+            self.database['sa'] = {}
+            self.database['sa']['email'] = email
+            self.database['sa']['uid'] = uid
+            self._bind_db_service_account()
+            self._create_sql_instance_credentials()
+            self._create_db_credentials()
+
+    def _delete_db_service_account(self):
+        self._delete_db_credentials()
+        self._delete_sql_instance_credentials()
+        project = self.params['gke_project']
+        saname = self.params['kubernetes_cluster_namespace'] + "-db-sa"
+        email = saname + "@" + project + ".iam.gserviceaccount.com"
+        self.run_gcloud(["iam", "service-accounts", "delete", email])
+
+    def _bind_db_service_account(self):
+        uid = self.database['sa']['uid']
+        self._run_gcloud(["iam", "service-accounts",
+                          "add-iam-policy-binding",
+                          uid,
+                          "--member='allAuthenticatedUsers'",
+                          "--role='roles/editor'"])
+
+    def _get_db_keys(self):
+        uid = self.database['sa']['uid']
+        keyh, keyf = tempfile.mkstemp()
+        keyh.close()
+        self._run_gcloud(["iam", "service-accounts", "keys", "create",
+                          keyf, "--iam-account", uid])
+        self.database['keyfile'] = keyf
+
+    def _create_sql_instance_credentials(self):
+        self._get_db_keys()
+        keyf = self.database['keyfile']
+        ns = self.params['kubernetes_cluster_namespace']
+        self._run(["kubectl", "create", "secret", "generic",
+                   "cloudsql-instance-credentials",
+                   "--from-file=credentials.json=%s" % keyf,
+                   "--namespace", ns])
+        os.remove(keyf)
+        self.database['keyfile'] = None
+        del self.database['keyfile']
+
+    def _delete_sql_instance_credentials(self):
+        self._run_kubectl_delete(["secret","cloudsql-instance-credentials"])
             
+    def _create_db_credentials(self):
+        pw = self.params['session_db_pw']
+        ns = self.params['kubernetes_cluster_namespace']
+        self._run(["kubectl", "create", "secret", "generic",
+                   "cloudsql-db-credentials",
+                   "--from-literal=username=proxyuser",
+                   "--from-literal=password=%s" % pw,
+                   "--namespace", ns])
+
+    def _delete_db_credentials(self):
+        self._run_kubectl_delete(["secret","cloudsql-db-credentials"])
+
     def _create_nginx_ingress_controller(self):
         ns = "ingress-nginx"
         self._create_named_namespace(ns)
@@ -1610,15 +1734,15 @@ def get_cli_options():
                                       "  Requires --existing-cluster."),
         action='store_true')
     pr.add_argument(
-        "--existing-database-server", help=("Do not create/destroy database " +
-                                            "server.  " +
+        "--existing-database-instance", help=("Do not create/destroy " +
+                                            "database instance.  " +
                                             "Respected for undeployment " +
                                             "as well."),
         action='store_true')
     pr.add_argument(
         "--existing-database", help=("Do not create/destroy database.  " +
                                      "Respected for undeployment as well.  " +
-                                     "Requires --existing-database-server."),
+                                     "Requires --existing-database-instance."),
         action='store_true')
 
     result = pr.parse_args()
@@ -1825,7 +1949,7 @@ def standalone_deploy(options):
     y_f = options.file
     e_c = options.existing_cluster
     e_d = options.existing_database
-    e_s = options.existing_database_server
+    e_i = options.existing_database_instance
     e_n = options.existing_namespace
     e_d = options.directory
     c_c = options.create_config
@@ -1838,7 +1962,7 @@ def standalone_deploy(options):
                                       existing_cluster=e_c,
                                       existing_namespace=e_n,
                                       existing_database=e_d,
-                                      existing_database_server=e_s,
+                                      existing_database_instance=e_i,
                                       directory=e_d,
                                       config_only=c_c,
                                       params=p_p,
@@ -1853,7 +1977,7 @@ def standalone_undeploy(options):
     y_f = options.file
     e_c = options.existing_cluster
     e_n = options.existing_namespace
-    e_s = options.existing_database_server
+    e_i = options.existing_database_instance
     e_d = options.existing_database
     p_p = None
     if "params" in options:
@@ -1861,7 +1985,7 @@ def standalone_undeploy(options):
     deployment = JupyterLabDeployment(yamlfile=y_f,
                                       existing_cluster=e_c,
                                       existing_namespace=e_n,
-                                      existing_database_server=e_s,
+                                      existing_database_instance=e_i,
                                       existing_database=e_d,
                                       params=p_p
                                       )

@@ -208,7 +208,7 @@ class JupyterLabDeployment(object):
         """
         rc = self._run(["kubectl", "-o", "yaml", "version"], capture=True)
         if rc.stdout:
-            result = yaml.load(rc.stdout.decode('utf-8'))
+            result = yaml.safe_load(rc.stdout.decode('utf-8'))
             cv = result["clientVersion"]
             vstr = cv["major"] + "." + cv["minor"] + ".0"
             if semver.match(vstr, "<1.10.0"):
@@ -224,7 +224,7 @@ class JupyterLabDeployment(object):
         """
         rc = self._run_gcloud(["container", "get-server-config"], capture=True)
         if rc.stdout:
-            result = yaml.load(rc.stdout.decode('utf-8'))
+            result = yaml.safe_load(rc.stdout.decode('utf-8'))
             defver = result["defaultClusterVersion"]
             if semver.match(defver, ">=1.10.0"):
                 return defver
@@ -238,7 +238,7 @@ class JupyterLabDeployment(object):
         cmd = "gcloud info --format yaml".split()
         rc = self._run(cmd, capture=True)
         if rc.returncode == 0:
-            gstruct = yaml.load(rc.stdout.decode('utf-8'))
+            gstruct = yaml.safe_load(rc.stdout.decode('utf-8'))
             acct = gstruct["config"]["account"]
             if not acct:
                 raise RuntimeError("gcloud not logged in; " +
@@ -282,7 +282,7 @@ class JupyterLabDeployment(object):
         """
         if not self.params:
             with open(self.yamlfile, 'r') as f:
-                self.params = yaml.load(f)
+                self.params = yaml.safe_load(f)
             for p in self.params:
                 if p not in PARAMETER_NAMES:
                     logging.warn("Unknown parameter '%s'!" % p)
@@ -346,16 +346,16 @@ class JupyterLabDeployment(object):
         if self._empty_param('gke_zone'):
             logging.info("Using default gke_zone '%s'." % DEFAULT_GKE_ZONE)
             self.params["gke_zone"] = DEFAULT_GKE_ZONE
-        self.param['gke_region'] = '-'.join(self.params["gke_zone"].
-                                            split('-')[:-1])
+        self.params['gke_region'] = '-'.join(self.params["gke_zone"].
+                                             split('-')[:-1])
         if not self._empty_param('gke_project'):
             logging.info("Using gke project '%s'." %
                          self.params["gke_project"])
         else:
-            rc = self._run_cloud(["config", "get-value", "project"],
-                                 capture=True)
+            rc = self._run(["gcloud", "config", "get-value", "project",
+                            "--format=yaml"], capture=True)
             if rc.stdout:
-                result = yaml.load(rc.stdout.decode('utf-8'))
+                result = yaml.safe_load(rc.stdout.decode('utf-8'))
                 if not result:
                     raise RuntimeError("gke_project not specified " +
                                        "and no default set.")
@@ -614,7 +614,7 @@ class JupyterLabDeployment(object):
     def _generate_random_pw(self, len=16):
         """Generate a random string for use as a password.
         """
-        charset = string.letters + string.digits
+        charset = string.ascii_letters + string.digits
         return ''.join(random.choice(charset) for x in range(len))
 
     def _logcmd(self, cmd):
@@ -684,6 +684,7 @@ class JupyterLabDeployment(object):
         """
         p = self.params
         # We do not yet know NFS_SERVER_IP_ADDRESS so leave it a template.
+        #  Same with DB_IDENTIFIER
         return tpl.render(CLUSTERNAME=p['kubernetes_cluster_name'],
                           OAUTH_CLIENT_ID=self.encode_value(
                               'oauth_client_id'),
@@ -760,6 +761,7 @@ class JupyterLabDeployment(object):
                               'firefly_container_cpu_limit'],
                           FIREFLY_MAX_JVM_SIZE=p['firefly_max_jvm_size'],
                           FIREFLY_ROUTE=p['firefly_route'],
+                          DB_IDENTIFIER='{{DB_IDENTIFIER}}',
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
 
@@ -774,6 +776,15 @@ class JupyterLabDeployment(object):
             src = os.path.join(directory, fnbase + "-%s-pv.yml" % m)
             tgt = os.path.join(directory, fnbase + "-%s-pv.template.yml" % m)
             os.rename(src, tgt)
+
+    def _rename_jupyterhub_template(self):
+        """We did not finish subsituting JupyterHub, because we need the
+        database identifier.
+        """
+        directory = os.path.join(self.directory, "deployment", "jupyterhub")
+        src = os.path.join(directory, "jld-hub-deployment.yml")
+        tgt = os.path.join(directory, "jld-hub-deployment.template-stage2.yml")
+        os.rename(src, tgt)
 
     def _save_deployment_yml(self):
         """Either save the input file we used, or synthesize one from our
@@ -821,7 +832,6 @@ class JupyterLabDeployment(object):
             self._create_gke_cluster()
             self._create_database_instance()
             self._create_database()
-            sys.exit(1)
             if self.enable_logging:
                 self._create_logging_components()
             if _empty(self.params, "external_fileserver_ip"):
@@ -836,6 +846,7 @@ class JupyterLabDeployment(object):
             self._create_tls_secrets()
             if self.enable_firefly:
                 self._create_firefly()
+            self._substitute_db_identifier()
             self._create_jupyterhub()
             if self.enable_landing_page:
                 self._create_landing_page()
@@ -872,12 +883,23 @@ class JupyterLabDeployment(object):
 
     def _create_database_instance(self):
         if self.existing_database_instance:
+            dbiname = self._get_db_instance_name()
+            self.params["database_instance_name"] = dbiname
             return
-        rc = self._run_gcloud(["sql", "instances", "create",
-                              self.params['kubernetes_cluster_name']],
-                              capture=True)
+        dbiname = self.params['kubernetes_cluster_name']
+        # Database name can't be reused for a week, hence the random
+        #  string appended.  Must meet naming rules.
+        randstr = self._generate_random_pw(len=8).lower()
+        firstc = randstr[0]
+        if firstc not in string.ascii_letters:
+            randstr = "d" + randstr[1:]
+        dbiname = dbiname + "-" + randstr
+        self.params["database_instance_name"] = dbiname
+        rc = self._run(["gcloud", "sql", "instances", "create",
+                        dbiname, "--format=yaml", "--region",
+                        self.params["gke_region"]], capture=True)
         if rc.stdout:
-            result = yaml.load(rc.stdout.decode('utf-8'))
+            result = yaml.safe_load(rc.stdout.decode('utf-8'))
             self.database = {}
             self.database["connectionName"] = result["connectionName"]
             for ips in result["ipAddresses"]:
@@ -886,67 +908,97 @@ class JupyterLabDeployment(object):
                     break
         self._create_db_service_account()
 
-    def _delete_database_instance(self):
+    def _destroy_database(self):
+        self._destroy_database_db()
+        self._destroy_database_instance()
+
+    def _destroy_database_instance(self):
         if self.existing_database_instance:
             return
-        self._delete_db_service_account()
-        self._run_gcloud(["sql", "instances", "delete",
-                          self.params['kubernetes_cluster_name'],
-                          "-q"])
+        self._destroy_db_service_account()
+        dbiname = self.params.get('database_instance_name')
+        if not dbiname:
+            dbiname = self._get_db_instance_name()
+        self._run(["gcloud", "sql", "instances", "delete", dbiname, "-q"])
+
+    def _get_db_instance_name(self):
+        rc = self._run(["gcloud", "sql", "instances", "list",
+                        "--format=yaml"], capture=True)
+        if rc.stdout:
+            result = yaml.safe_load_all(rc.stdout.decode('utf-8'))
+            prefix = self.params['kubernetes_cluster_name'] + "-"
+            inamesall = [x['name'] for x in result]
+            inames = [x for x in inamesall if x.startswith(prefix)]
+            estr = ("candidate database names starting with '%s' found" %
+                    prefix)
+            if len(inames) == 0:
+                raise RuntimeError("No %s." % estr)
+            if len(inames) > 1:
+                raise RuntimeError("Multiple %s: %s" % (estr, str(inames)))
+            return inames[0]
 
     def _create_database(self):
+        logging.info("Existing DB? %r" % self.existing_database)
         if self.existing_database:
             return
-        self._run_gcloud(["sql", "databases", "create",
-                          self.params['kubernetes_cluster_namespace'],
-                          "-i", self.params['kubernetes_cluster_name']])
+        self._run(["gcloud", "sql", "databases", "create",
+                   self.params['kubernetes_cluster_namespace'],
+                   "-i", self.params['database_instance_name']])
 
-    def _delete_database(self):
+    def _destroy_database_db(self):
         if self.existing_database:
             return
-        self._run_gcloud(["sql", "databases", "delete",
-                          self.params['kubernetes_cluster_namespace'],
-                          "-i", self.params['kubernetes_cluster_name'],
-                          "-q"])
+        dbiname = self._get_db_instance_name()
+        self.params['database_instance_name'] = dbiname
+        self._run(["gcloud", "sql", "databases", "delete",
+                   self.params['kubernetes_cluster_namespace'],
+                   "-i", dbiname, "-q"])
 
     def _create_db_service_account(self):
         sa_name = self.params["kubernetes_cluster_name"] + "-db-sa"
-        rc = self._run_gcloud(["iam", "service-accounts", "create",
-                               sa_name, "--display-name", sa_name],
-                              capture=True)
+        rc = self._run(["gcloud", "iam", "service-accounts", "create",
+                        sa_name, "--display-name", sa_name, "--format=yaml"],
+                       capture=True)
         if rc.stdout:
-            result = yaml.load(rc.stdout.decode('utf-8'))
+            result = yaml.safe_load(rc.stdout.decode('utf-8'))
             uid = result['uniqueId']
             email = result['email']
             self.database['sa'] = {}
             self.database['sa']['email'] = email
             self.database['sa']['uid'] = uid
             self._bind_db_service_account()
+            self._create_db_proxyuser()
             self._create_sql_instance_credentials()
             self._create_db_credentials()
 
-    def _delete_db_service_account(self):
-        self._delete_db_credentials()
-        self._delete_sql_instance_credentials()
+    def _destroy_db_service_account(self):
+        self._destroy_db_credentials()
+        self._destroy_sql_instance_credentials()
         project = self.params['gke_project']
-        saname = self.params['kubernetes_cluster_namespace'] + "-db-sa"
+        saname = self.params['kubernetes_cluster_name'] + "-db-sa"
         email = saname + "@" + project + ".iam.gserviceaccount.com"
-        self.run_gcloud(["iam", "service-accounts", "delete", email, "-q"])
+        self._run(["gcloud", "iam", "service-accounts", "delete", email, "-q"])
 
     def _bind_db_service_account(self):
         uid = self.database['sa']['uid']
-        self._run_gcloud(["iam", "service-accounts",
-                          "add-iam-policy-binding",
-                          uid,
-                          "--member='allAuthenticatedUsers'",
-                          "--role='roles/editor'"])
+        self._run(["gcloud", "iam", "service-accounts",
+                   "add-iam-policy-binding",
+                   uid,
+                   "--member=allAuthenticatedUsers",
+                   "--role=roles/editor"])
+
+    def _create_db_proxyuser(self):
+        self._run(["gcloud", "sql", "users", "create", "proxyuser",
+                   "cloudsqlproxy~%",
+                   "--instance=%s" % self.params['database_instance_name'],
+                   "--password=%s" % self.params['session_db_pw']])
 
     def _get_db_keys(self):
         uid = self.database['sa']['uid']
         keyh, keyf = tempfile.mkstemp()
-        keyh.close()
-        self._run_gcloud(["iam", "service-accounts", "keys", "create",
-                          keyf, "--iam-account", uid])
+        os.close(keyh)
+        self._run(["gcloud", "iam", "service-accounts", "keys", "create",
+                   keyf, "--iam-account", uid])
         self.database['keyfile'] = keyf
 
     def _create_sql_instance_credentials(self):
@@ -961,9 +1013,9 @@ class JupyterLabDeployment(object):
         self.database['keyfile'] = None
         del self.database['keyfile']
 
-    def _delete_sql_instance_credentials(self):
-        self._run_kubectl_delete(["secret","cloudsql-instance-credentials"])
-            
+    def _destroy_sql_instance_credentials(self):
+        self._run_kubectl_delete(["secret", "cloudsql-instance-credentials"])
+
     def _create_db_credentials(self):
         pw = self.params['session_db_pw']
         ns = self.params['kubernetes_cluster_namespace']
@@ -973,8 +1025,8 @@ class JupyterLabDeployment(object):
                    "--from-literal=password=%s" % pw,
                    "--namespace", ns])
 
-    def _delete_db_credentials(self):
-        self._run_kubectl_delete(["secret","cloudsql-db-credentials"])
+    def _destroy_db_credentials(self):
+        self._run_kubectl_delete(["secret", "cloudsql-db-credentials"])
 
     def _create_nginx_ingress_controller(self):
         ns = "ingress-nginx"
@@ -1065,7 +1117,7 @@ class JupyterLabDeployment(object):
         if rc.returncode:
             logging.warn("Disk '%s' indescribable.  Assuming removable.")
             return True
-        struct = yaml.load(rc.stdout.decode('utf-8'))
+        struct = yaml.safe_load(rc.stdout.decode('utf-8'))
         if "users" in struct:
             ulist = struct["users"]
             if ulist and len(ulist) > 0:
@@ -1176,7 +1228,7 @@ class JupyterLabDeployment(object):
                        check=False,
                        capture=True)
         if rc.stdout:
-            struct = yaml.load(rc.stdout.decode('utf-8'))
+            struct = yaml.safe_load(rc.stdout.decode('utf-8'))
             if not _empty(struct, "spec"):
                 return struct["spec"]["clusterIP"]
         return None
@@ -1191,7 +1243,7 @@ class JupyterLabDeployment(object):
                        check=False,
                        capture=True)
         if rc.stdout:
-            struct = yaml.load(rc.stdout.decode('utf-8'))
+            struct = yaml.safe_load(rc.stdout.decode('utf-8'))
             if not _empty(struct, "status"):
                 st = struct["status"]
                 if not _empty(st, "loadBalancer"):
@@ -1207,7 +1259,7 @@ class JupyterLabDeployment(object):
         logging.info("Getting pod names for '%s'." % depname)
         retval = []
         rc = self._run(["kubectl", "get", "pods", "-o", "yaml"], capture=True)
-        struct = yaml.load(rc.stdout.decode('utf-8'))
+        struct = yaml.safe_load(rc.stdout.decode('utf-8'))
         for pod in struct["items"]:
             name = pod["metadata"]["name"]
             if name.startswith(depname):
@@ -1224,7 +1276,7 @@ class JupyterLabDeployment(object):
                        capture=True, check=False)
         if rc.returncode != 0:
             return pv
-        struct = yaml.load(rc.stdout.decode('utf-8'))
+        struct = yaml.safe_load(rc.stdout.decode('utf-8'))
         if "spec" in struct and "volumeName" in struct["spec"]:
             pv = struct["spec"]["volumeName"]
         if pv:
@@ -1233,7 +1285,7 @@ class JupyterLabDeployment(object):
                            capture=True, check=False)
             if rc.returncode != 0:
                 return pv
-            struct = yaml.load(rc.stdout.decode('utf-8'))
+            struct = yaml.safe_load(rc.stdout.decode('utf-8'))
             if ("spec" in struct and "gcePersistentDisk" in struct["spec"]
                     and "pdName" in struct["spec"]["gcePersistentDisk"]):
                 disk = struct["spec"]["gcePersistentDisk"]["pdName"]
@@ -1374,6 +1426,7 @@ class JupyterLabDeployment(object):
 
     def _create_jupyterhub(self):
         logging.info("Creating JupyterHub")
+
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
         for c in ["jld-hub-service.yml", "jld-hub-physpvc.yml",
                   "jld-hub-secrets.yml", "jld-hub-serviceaccount.yml",
@@ -1387,6 +1440,24 @@ class JupyterLabDeployment(object):
                    "--from-file=%s" % os.path.join(cfdir, "%s.d" % cfnm)])
         self._run_kubectl_create(os.path.join(
             directory, "jld-hub-deployment.yml"))
+
+    def _substitute_db_identifier(self):
+        """Once we have the (internal) IP of the fileserver service, we
+        can substitute it into the deployment template, but that requires the
+        service to have been created first.
+        """
+        p = self.params
+        directory = os.path.join(self.directory, "deployment", "jupyterhub")
+        with open(os.path.join(directory,
+                               "jld-hub-deployment.template-stage2.yml"),
+                  "r") as fr:
+            db_identifier = (p['gke_project'] + ":" + p['gke_region'] + ":" +
+                             p['database_instance_name'])
+            tmpl = Template(fr.read())
+            out = tmpl.render(DB_IDENTIFIER=db_identifier)
+            ofn = "jld-hub-deployment.yml"
+            with open(os.path.join(directory, ofn), "w") as fw:
+                fw.write(out)
 
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
@@ -1526,6 +1597,7 @@ class JupyterLabDeployment(object):
             self._destroy_fs_keepalive()
             self._destroy_fileserver()
             self._destroy_logging_components()
+            self._destroy_database()
             self._destroy_gke_cluster()
             self._destroy_gke_disks()
 
@@ -1627,6 +1699,7 @@ class JupyterLabDeployment(object):
             self._copy_deployment_files()
             self._substitute_templates()
             self._rename_fileserver_templates()
+            self._rename_jupyterhub_template()
             self._save_deployment_yml()
 
     def deploy(self):
@@ -1739,9 +1812,9 @@ def get_cli_options():
         action='store_true')
     pr.add_argument(
         "--existing-database-instance", help=("Do not create/destroy " +
-                                            "database instance.  " +
-                                            "Respected for undeployment " +
-                                            "as well."),
+                                              "database instance.  " +
+                                              "Respected for undeployment " +
+                                              "as well."),
         action='store_true')
     pr.add_argument(
         "--existing-database", help=("Do not create/destroy database.  " +
@@ -1952,7 +2025,7 @@ def standalone_deploy(options):
     d_p = options.disable_prepuller
     y_f = options.file
     e_c = options.existing_cluster
-    e_d = options.existing_database
+    e_s = options.existing_database
     e_i = options.existing_database_instance
     e_n = options.existing_namespace
     e_d = options.directory
@@ -1961,11 +2034,14 @@ def standalone_deploy(options):
     p_p = None
     if "params" in options:
         p_p = options.params
+    import pprint
+    s = pprint.pformat(options)
+    logging.info("Options: %s" % s)
     deployment = JupyterLabDeployment(yamlfile=y_f,
                                       disable_prepuller=d_p,
                                       existing_cluster=e_c,
                                       existing_namespace=e_n,
-                                      existing_database=e_d,
+                                      existing_database=e_s,
                                       existing_database_instance=e_i,
                                       directory=e_d,
                                       config_only=c_c,
@@ -2008,6 +2084,7 @@ def standalone():
     except ImportError:
         logging.warn("No readline library found; no elaborate input editing.")
     options = get_cli_options()
+
     if options.undeploy:
         standalone_undeploy(options)
     else:

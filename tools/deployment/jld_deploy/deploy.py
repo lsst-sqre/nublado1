@@ -164,11 +164,13 @@ class JupyterLabDeployment(object):
     srcdir = None
     disklist = []
     _activedisk = None
+    _database = None
 
     def __init__(self, yamlfile=None, params=None, directory=None,
                  disable_prepuller=False, existing_cluster=False,
                  existing_namespace=False, existing_database_instance=False,
                  existing_database=False, config_only=False, temporary=False):
+        self.config_only = config_only
         self._check_executables(EXECUTABLES)
         if yamlfile:
             self.yamlfile = os.path.realpath(yamlfile)
@@ -181,7 +183,6 @@ class JupyterLabDeployment(object):
         if self.directory:
             self.directory = os.path.realpath(self.directory)
             self.temporary = False
-        self.config_only = config_only
         self.params = params
         if disable_prepuller:
             self.enable_prepuller = False
@@ -205,7 +206,13 @@ class JupyterLabDeployment(object):
     def _check_kubectl_version(self):
         """Make sure we have kubectl 1.10 or later; we need that for the
         landing page configuration to be stored as a binary ConfigMap.
+
+        If we are running configuration-only, no need to do this.
         """
+        if self.config_only:
+            logging.info("No need to check kubectl version for " +
+                         "config-only operation.")
+            return
         rc = self._run(["kubectl", "-o", "yaml", "version"], capture=True)
         if rc.stdout:
             result = yaml.safe_load(rc.stdout.decode('utf-8'))
@@ -234,6 +241,10 @@ class JupyterLabDeployment(object):
         """We also set the AWS zone id from this: if the hostname is not
         in an AWS hosted zone, we want to fail sooner rather than later.
         """
+        if self.config_only:
+            logging.info("No need to check authetication for config-only " +
+                         "operation.")
+            return
         logging.info("Checking authentication.")
         cmd = "gcloud info --format yaml".split()
         rc = self._run(cmd, capture=True)
@@ -536,7 +547,7 @@ class JupyterLabDeployment(object):
         if self._empty_param('session_db_url'):
             pw = self._generate_random_pw()
             ns = self.params["kubernetes_cluster_namespace"]
-            url = "mysql://proxyuser:" + pw + "@127.0.0.1/3306/" + ns
+            url = "mysql://proxyuser:" + pw + "@127.0.0.1:3306/" + ns
             self.params['session_db_url'] = url
             self.params['session_db_pw'] = pw
             # Used to be 'sqlite:////home/jupyter/jupyterhub.sqlite'
@@ -831,6 +842,7 @@ class JupyterLabDeployment(object):
         with self.kubecontext():
             self._create_gke_cluster()
             self._create_database_instance()
+            self._create_db_access_credentials()
             self._create_database()
             if self.enable_logging:
                 self._create_logging_components()
@@ -900,13 +912,12 @@ class JupyterLabDeployment(object):
                         self.params["gke_region"]], capture=True)
         if rc.stdout:
             result = yaml.safe_load(rc.stdout.decode('utf-8'))
-            self.database = {}
-            self.database["connectionName"] = result["connectionName"]
+            self._database = {}
+            self._database["connectionName"] = result["connectionName"]
             for ips in result["ipAddresses"]:
                 if ips["type"] == "PRIMARY":
-                    self.database["ipAddress"] = ips["ipAddress"]
+                    self._database["ipAddress"] = ips["ipAddress"]
                     break
-        self._create_db_service_account()
 
     def _destroy_database(self):
         self._destroy_database_db()
@@ -915,7 +926,7 @@ class JupyterLabDeployment(object):
     def _destroy_database_instance(self):
         if self.existing_database_instance:
             return
-        self._destroy_db_service_account()
+        self._destroy_db_access_credentials()
         dbiname = self.params.get('database_instance_name')
         if not dbiname:
             dbiname = self._get_db_instance_name()
@@ -954,7 +965,10 @@ class JupyterLabDeployment(object):
                    self.params['kubernetes_cluster_namespace'],
                    "-i", dbiname, "-q"])
 
-    def _create_db_service_account(self):
+    def _create_db_access_credentials(self):
+        if self._check_for_db_sa():
+            logging.info("Database service account already exists.")
+            return
         sa_name = self.params["kubernetes_cluster_name"] + "-db-sa"
         rc = self._run(["gcloud", "iam", "service-accounts", "create",
                         sa_name, "--display-name", sa_name, "--format=yaml"],
@@ -963,29 +977,52 @@ class JupyterLabDeployment(object):
             result = yaml.safe_load(rc.stdout.decode('utf-8'))
             uid = result['uniqueId']
             email = result['email']
-            self.database['sa'] = {}
-            self.database['sa']['email'] = email
-            self.database['sa']['uid'] = uid
-            self._bind_db_service_account()
+            self._database['sa'] = {}
+            self._database['sa']['email'] = email
+            self._database['sa']['uid'] = uid
+            self._bind_db_service()
             self._create_db_proxyuser()
             self._create_sql_instance_credentials()
             self._create_db_credentials()
 
-    def _destroy_db_service_account(self):
+    def _check_for_db_sa(self):
+        sa_email = (self.params["kubernetes_cluster_name"] + "-db-sa@" +
+                    self.params["gke_project"] + ".iam.gserviceaccount.com")
+        rc = self._run(["gcloud", "iam", "service-accounts", "describe",
+                        sa_email, "--format=yaml"], capture=True,
+                       check=False)
+        return (rc.returncode == 0)
+
+    def _destroy_db_access_credentials(self):
         self._destroy_db_credentials()
         self._destroy_sql_instance_credentials()
         project = self.params['gke_project']
         saname = self.params['kubernetes_cluster_name'] + "-db-sa"
-        email = saname + "@" + project + ".iam.gserviceaccount.com"
-        self._run(["gcloud", "iam", "service-accounts", "delete", email, "-q"])
+        if not self._database:
+            self._database = {}
+        if not self._database.get('sa'):
+            self._database['sa'] = {}
+        if not self._database['sa'].get('email'):
+            self._database['sa']['email'] = (saname + "@" + project +
+                                             ".iam.gserviceaccount.com")
+        email = self._database['sa']['email']
+        self._unbind_db_service()
+        self._run(["gcloud", "iam", "service-accounts", "delete", email, "-q"],
+                  check=False)
 
-    def _bind_db_service_account(self):
-        uid = self.database['sa']['uid']
-        self._run(["gcloud", "iam", "service-accounts",
-                   "add-iam-policy-binding",
-                   uid,
-                   "--member=allAuthenticatedUsers",
-                   "--role=roles/editor"])
+    def _manipulate_db_service_account(self, verb, check=True):
+        email = self._database['sa']['email']
+        project = self.params['gke_project']
+        self._run(["gcloud", "projects", verb,
+                   project, "--member", "serviceAccount:" + email,
+                   "--role=roles/cloudsql.editor"], check=check)
+
+    def _bind_db_service(self):
+        self._manipulate_db_service_account("add-iam-policy-binding")
+
+    def _unbind_db_service(self):
+        self._manipulate_db_service_account(
+            "remove-iam-policy-binding", check=False)
 
     def _create_db_proxyuser(self):
         self._run(["gcloud", "sql", "users", "create", "proxyuser",
@@ -994,24 +1031,24 @@ class JupyterLabDeployment(object):
                    "--password=%s" % self.params['session_db_pw']])
 
     def _get_db_keys(self):
-        uid = self.database['sa']['uid']
+        email = self._database['sa']['email']
         keyh, keyf = tempfile.mkstemp()
         os.close(keyh)
         self._run(["gcloud", "iam", "service-accounts", "keys", "create",
-                   keyf, "--iam-account", uid])
-        self.database['keyfile'] = keyf
+                   keyf, "--iam-account", email])
+        self._database['keyfile'] = keyf
 
     def _create_sql_instance_credentials(self):
         self._get_db_keys()
-        keyf = self.database['keyfile']
+        keyf = self._database['keyfile']
         ns = self.params['kubernetes_cluster_namespace']
         self._run(["kubectl", "create", "secret", "generic",
                    "cloudsql-instance-credentials",
                    "--from-file=credentials.json=%s" % keyf,
                    "--namespace", ns])
         os.remove(keyf)
-        self.database['keyfile'] = None
-        del self.database['keyfile']
+        self._database['keyfile'] = None
+        del self._database['keyfile']
 
     def _destroy_sql_instance_credentials(self):
         self._run_kubectl_delete(["secret", "cloudsql-instance-credentials"])

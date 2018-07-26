@@ -5,10 +5,13 @@ HOMEDIR=/home/${USER}
 if ! [ -d ${HOMEDIR} ]; then
     mkdir -p ${HOMEDIR}
 fi
-if ! [ -f ${HOMEDIR}/jupyterhub.sqlite ]; then
-    touch ${HOMEDIR}/jupyterhub.sqlite
+dbtype=$(echo ${SESSION_DB_URL} | cut -d ':' -f 1)
+if [ "${dbtype}" == "sqlite" ]; then
+    if ! [ -f ${HOMEDIR}/jupyterhub.sqlite ]; then
+        touch ${HOMEDIR}/jupyterhub.sqlite
+    fi
+    chmod 0600 ${HOMEDIR}/jupyterhub.sqlite
 fi
-chmod 0600 ${HOMEDIR}/jupyterhub.sqlite
 chown -R ${USER}:${GROUP} ${HOMEDIR}
 cd ${HOMEDIR}
 dbgflag=""

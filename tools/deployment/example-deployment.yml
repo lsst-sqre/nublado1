@@ -26,7 +26,7 @@ hostname: '{{FQDN}}'
 ### GKE parameters
 # gke_project: 'your-project-name'
 #  project defaults to your gcloud default project if not defined
-# gke_zone: 'us-central-1a'
+# gke_zone: 'us-central1-a'
 # gke_node_count: 3
 # gke_machine_type: 'n1-standard-2'
 # gke_default_local_volume_size_gigabytes: 200

@@ -170,11 +170,13 @@ RUN  source scl_source enable rh-python36 && \
           jupyter labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE"
+# Pin some versions so they work with JL 0.32.1
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       jlpm global add webpack && \
-      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+      git clone -b v0.9.1 \
+       https://github.com/jupyterhub/jupyterlab-hub.git && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone https://github.com/lsst-sqre/jupyterlab-lsstquery && \

@@ -152,7 +152,8 @@ RUN source scl_source enable rh-python36 && \
       git+https://github.com/lsst-sqre/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise ipyevents"
-ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews ipyevents"
+ENV LBXT="@jupyter-widgets/jupyterlab-manager"
+# @pyviz/jupyterlab_holoviews ipyevents"
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
@@ -166,7 +167,7 @@ RUN  source scl_source enable rh-python36 && \
       for l in $LBXT; do \
           jupyter labextension install ${l} --no-build; \
       done
-ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE"
+ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE pyviz_comms"
 #ENV tktbr="master"
 ENV tktbr="tickets/DM-14605"
 RUN  source scl_source enable rh-python36 && \
@@ -180,9 +181,11 @@ RUN  source scl_source enable rh-python36 && \
        https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone -b ${tktbr} \
        https://github.com/lsst-sqre/jupyterlab-lsstquery && \
+      git clone -b ${tktbr} \
+       https://github.com/lsst-sqre/pyviz_comms && \
       git clone -b jupyterlab_extension \
        https://github.com/lsst-sqre/RISE.git && \
-      for i in ${GITXT};  do \
+      for i in ${GITXT}; do \
           cd ${i} && \
           jupyter labextension link . --no-build && \
           jlpm install --unsafe-perm && \
@@ -208,6 +211,11 @@ RUN  source scl_source enable rh-python36 && \
       npm install --unsafe-perm && \
       npm run build && \
       jupyter labextension install --no-build
+#RUN  source scl_source enable rh-python36 && \
+#      cd  /usr/share/git/pyviz_comms && \
+#      npm install --unsafe-perm && \
+#      npm run build && \
+#      jupyter labextension install --no-build
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
@@ -237,6 +245,9 @@ RUN  source scl_source enable rh-python36 && \
       for l in ${LBXT} ${GITXT} jupyterlab_rise ipyaladin ; do \
           jupyter labextension enable ${l} ; \
       done
+RUN  source scl_source enable rh-python36 && \
+      jupyter labextension enable pyviz_comms && \
+      jupyter labexstension enable 
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
       jupyter lab clean && \

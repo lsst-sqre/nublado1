@@ -177,8 +177,10 @@ RUN  source scl_source enable rh-python36 && \
       jlpm global add webpack && \
       git clone -b v0.9.1 \
        https://github.com/jupyterhub/jupyterlab-hub.git && \
-      git clone -b da5f02a4348699a53b8c1d0b560da6aa2c96cd91 \
-       https://github.com/bokeh/jupyterlab_bokeh.git && \
+      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+      cd jupyterlab_bokeh && \
+      git checkout da5f02a4348699a53b8c1d0b560da6aa2c96cd91 && \
+      cd .. && \
       git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone https://github.com/lsst-sqre/jupyterlab-lsstquery && \
       git clone -b jupyterlab_extension \

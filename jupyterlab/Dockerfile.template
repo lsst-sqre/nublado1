@@ -80,7 +80,7 @@ RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
       pipenv \
-      nbdime \
+      'nbdime==1.0.1' \
       nbval \
       numpy \
       scipy \
@@ -111,7 +111,7 @@ RUN  source ${LOADSTACK} && \
         virtualenvwrapper \
         ipykernel \
         pipenv \
-        nbdime \
+        'nbdime==1.0.1' \
         nbval \
         pypandoc \
         astroquery \

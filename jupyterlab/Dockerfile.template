@@ -154,8 +154,8 @@ RUN source scl_source enable rh-python36 && \
       git+https://github.com/lsst-sqre/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise ipyevents"
-ENV LBXT="@jupyter-widgets/jupyterlab-manager"
-# @pyviz/jupyterlab_holoviews ipyevents"
+ENV LBXT="@jupyter-widgets/jupyterlab-manager ipyevents"
+# @pyviz/jupyterlab_holoviews
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
@@ -170,8 +170,8 @@ RUN  source scl_source enable rh-python36 && \
           jupyter labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE pyviz_comms"
-#ENV tktbr="master"
-ENV tktbr="tickets/DM-14605"
+ENV tktbr="master"
+#ENV tktbr="tickets/DM-14605"
 RUN  source scl_source enable rh-python36  && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
@@ -184,7 +184,7 @@ RUN  source scl_source enable rh-python36  && \
       git clone -b ${tktbr} \
        https://github.com/lsst-sqre/jupyterlab-lsstquery && \
       git clone -b ${tktbr} \
-       https://github.com/lsst-sqre/pyviz_comms && \
+       https://github.com/pyviz/pyviz_comms && \
       git clone -b jupyterlab_extension \
        https://github.com/lsst-sqre/RISE.git && \
       for i in ${GITXT}; do \

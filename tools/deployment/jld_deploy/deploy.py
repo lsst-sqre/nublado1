@@ -65,7 +65,7 @@ if sys.version_info < (3, 5):
 
 EXECUTABLES = ["gcloud", "kubectl", "aws"]
 DEFAULT_GKE_ZONE = "us-central1-a"
-DEFAULT_GKE_MACHINE_TYPE = "n1-standard-2"
+DEFAULT_GKE_MACHINE_TYPE = "n1-standard-4"
 DEFAULT_GKE_NODE_COUNT = 3
 DEFAULT_GKE_LOCAL_VOLUME_SIZE_GB = 200
 DEFAULT_VOLUME_SIZE_GB = 20
@@ -378,18 +378,29 @@ class JupyterLabDeployment(object):
         that can be defaulted.
         """
         self._get_cluster_info()
+        if self._empty_param('oauth_provider'):
+            self.params['oauth_provider'] = OAUTH_DEFAULT_PROVIDER
         if self._empty_param("allowed_groups"):
-            if not self._empty_param("oauth_provider"):
-                if self.params["oauth_provider"] == "cilogon":
-                    self.params["allowed_groups"] = self.params.get(
-                        "cilogon_group_whitelist")
-                else:
-                    self.params["allowed_groups"] = self.params.get(
-                        "github_organization_whitelist")
+            if self.params["oauth_provider"] == "cilogon":
+                self.params["allowed_groups"] = self.params.get(
+                    "cilogon_group_whitelist")
+            else:
+                self.params["allowed_groups"] = self.params.get(
+                    "github_organization_whitelist")
+        else:
+            if self.params["oauth_provider"] == OAUTH_DEFAULT_PROVIDER:
+                if self._empty_param("github_organization_whitelist"):
+                    self.params[
+                        "github_organization_whitelist"] = self.params.get(
+                            "allowed_groups")
+            else:
+                if self._empty_param("cilogon_group_whitelist"):
+                    self.params[
+                        "cilogon_group_whitelist"] = self.params.get(
+                            "allowed_groups")
         if self._any_empty(REQUIRED_PARAMETER_NAMES):
             raise ValueError("All parameters '%s' must be specified!" %
                              str(REQUIRED_PARAMETER_NAMES))
-        del self.params["allowed_groups"]
         if self._empty_param('volume_size_gigabytes'):
             logging.warn("Using default volume size: 20GiB")
             self.params["volume_size_gigabytes"] = DEFAULT_VOLUME_SIZE_GB
@@ -402,8 +413,6 @@ class JupyterLabDeployment(object):
         if self._empty_param('gke_local_volume_size_gigabytes'):
             self.params['gke_local_volume_size_gigabytes'] = \
                 DEFAULT_GKE_LOCAL_VOLUME_SIZE_GB
-        if self._empty_param('oauth_provider'):
-            self.params['oauth_provider'] = OAUTH_DEFAULT_PROVIDER
         if self.params['oauth_provider'] != OAUTH_DEFAULT_PROVIDER:
             if self._empty_param('github_organization_whitelist'):
                 # Not required if we aren't using GitHub.
@@ -929,10 +938,11 @@ class JupyterLabDeployment(object):
         self._destroy_db_access_credentials()
         dbiname = self.params.get('database_instance_name')
         if not dbiname:
-            dbiname = self._get_db_instance_name()
-        self._run(["gcloud", "sql", "instances", "delete", dbiname, "-q"])
+            dbiname = self._get_db_instance_name(check=False)
+        if dbiname:
+            self._run(["gcloud", "sql", "instances", "delete", dbiname, "-q"])
 
-    def _get_db_instance_name(self):
+    def _get_db_instance_name(self, check=True):
         rc = self._run(["gcloud", "sql", "instances", "list",
                         "--format=yaml"], capture=True)
         if rc.stdout:
@@ -943,8 +953,13 @@ class JupyterLabDeployment(object):
             estr = ("candidate database names starting with '%s' found" %
                     prefix)
             if len(inames) == 0:
-                raise RuntimeError("No %s." % estr)
+                if check:
+                    raise RuntimeError("No %s." % estr)
+                else:
+                    logging.error("No %s." % estr)
+                    return
             if len(inames) > 1:
+                # This is always fatal even if check is False
                 raise RuntimeError("Multiple %s: %s" % (estr, str(inames)))
             return inames[0]
 
@@ -959,7 +974,9 @@ class JupyterLabDeployment(object):
     def _destroy_database_db(self):
         if self.existing_database:
             return
-        dbiname = self._get_db_instance_name()
+        dbiname = self._get_db_instance_name(check=False)
+        if not dbiname:
+            return
         self.params['database_instance_name'] = dbiname
         self._run(["gcloud", "sql", "databases", "delete",
                    self.params['kubernetes_cluster_namespace'],
@@ -969,7 +986,7 @@ class JupyterLabDeployment(object):
         if self._check_for_db_sa():
             logging.info("Database service account already exists.")
             return
-        sa_name = self.params["kubernetes_cluster_name"] + "-db-sa"
+        sa_name = self.params["kubernetes_cluster_name"][:24] + "-db-sa"
         rc = self._run(["gcloud", "iam", "service-accounts", "create",
                         sa_name, "--display-name", sa_name, "--format=yaml"],
                        capture=True)
@@ -986,7 +1003,7 @@ class JupyterLabDeployment(object):
             self._create_db_credentials()
 
     def _check_for_db_sa(self):
-        sa_email = (self.params["kubernetes_cluster_name"] + "-db-sa@" +
+        sa_email = (self.params["kubernetes_cluster_name"][:24] + "-db-sa@" +
                     self.params["gke_project"] + ".iam.gserviceaccount.com")
         rc = self._run(["gcloud", "iam", "service-accounts", "describe",
                         sa_email, "--format=yaml"], capture=True,
@@ -997,7 +1014,7 @@ class JupyterLabDeployment(object):
         self._destroy_db_credentials()
         self._destroy_sql_instance_credentials()
         project = self.params['gke_project']
-        saname = self.params['kubernetes_cluster_name'] + "-db-sa"
+        saname = self.params['kubernetes_cluster_name'][:24] + "-db-sa"
         if not self._database:
             self._database = {}
         if not self._database.get('sa'):

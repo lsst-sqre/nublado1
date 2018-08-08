@@ -64,20 +64,18 @@ RUN  source scl_source enable rh-python36 && \
 #  jupyterlab and use that instead of "master".  That way we both stay
 #  current and don't have to update the Dockerfile every time a new release
 #  happens.
-# As of 02 July 2018, the current version is 0.33.0rc0, and
-#  holoviews doesn't work with it, so we are going to force 0.32.1 until
-#  this is resolved.
+# Josh Bode has a fix for a tornado change in 5.1.  Hence using his fork until
+#  nbserver merges his PR.
 RUN  source scl_source enable rh-python36 && \
       j=$(git ls-remote --tags "https://github.com/jupyterlab/jupyterlab" \
           | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' \
 	  | sort -n -t. -k1,1 -k2,2 -k3,3 | tail -n 1) && \
-      j="v0.32.1" && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/${j} \
       https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master \
-      https://github.com/jupyterhub/nbserverproxy/zipball/master
+      https://github.com/joshbode/nbserverproxy/zipball/master
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
@@ -138,24 +136,26 @@ RUN source scl_source enable rh-python36 && \
 # Install holoviews and datashader
 RUN source scl_source enable rh-python36 && \
       pip3 install \
-      https://github.com/ioam/holoviews/zipball/master \
+      git+https://github.com/ioam/holoviews/ \
       git+https://github.com/bokeh/datashader \
-      https://github.com/ioam/parambokeh/zipball/master && \
+      git+https://github.com/ioam/parambokeh/ && \
       source ${LOADSTACK} && \
       pip3 install \
-      https://github.com/ioam/holoviews/zipball/master \
+      git+https://github.com/ioam/holoviews/ \
       git+https://github.com/bokeh/datashader \
-      https://github.com/ioam/parambokeh/zipball/master
+      git+https://github.com/ioam/parambokeh/
 # Install RISE from jupyterlab_rise branch
+#  usually damianavila's
 RUN source scl_source enable rh-python36 && \
       pip3 install \
-      git+https://github.com/damianavila/RISE@jupyterlab_extension && \
+      git+https://github.com/lsst-sqre/RISE@jupyterlab_extension && \
       source ${LOADSTACK} && \
       pip3 install \
-      git+https://github.com/damianavila/RISE@jupyterlab_extension
+      git+https://github.com/lsst-sqre/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy nbdime"
 ENV NBXT="widgetsnbextension rise ipyevents"
-ENV LBXT="@jupyter-widgets/jupyterlab-manager @pyviz/jupyterlab_holoviews ipyevents"
+ENV LBXT="@jupyter-widgets/jupyterlab-manager ipyevents"
+# @pyviz/jupyterlab_holoviews
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
@@ -169,22 +169,24 @@ RUN  source scl_source enable rh-python36 && \
       for l in $LBXT; do \
           jupyter labextension install ${l} --no-build; \
       done
-ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE"
-# Pin some versions so they work with JL 0.32.1
-RUN  source scl_source enable rh-python36 && \
+ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE pyviz_comms"
+ENV tktbr="master"
+#ENV tktbr="tickets/DM-14605"
+RUN  source scl_source enable rh-python36  && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       jlpm global add webpack && \
-      git clone -b v0.9.1 \
-       https://github.com/jupyterhub/jupyterlab-hub.git && \
-      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
-      cd jupyterlab_bokeh && \
-      git checkout da5f02a4348699a53b8c1d0b560da6aa2c96cd91 && \
-      cd .. && \
-      git clone https://github.com/lsst-sqre/jupyterlab-savequit && \
-      git clone https://github.com/lsst-sqre/jupyterlab-lsstquery && \
+      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+      git clone -b ${tktbr} \
+       https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
+      git clone -b ${tktbr} \
+       https://github.com/lsst-sqre/jupyterlab-savequit && \
+      git clone -b ${tktbr} \
+       https://github.com/lsst-sqre/jupyterlab-lsstquery && \
+      git clone -b ${tktbr} \
+       https://github.com/pyviz/pyviz_comms && \
       git clone -b jupyterlab_extension \
-       https://github.com/damianavila/RISE.git && \
+       https://github.com/lsst-sqre/RISE.git && \
       for i in ${GITXT}; do \
           cd ${i} && \
           jupyter labextension link . --no-build && \
@@ -207,7 +209,7 @@ RUN  source scl_source enable rh-python36 && \
       cd js && \
       jupyter labextension install --no-build
 RUN  source scl_source enable rh-python36 && \
-      cd /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
+      cd  /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
       npm install --unsafe-perm && \
       npm run build && \
       jupyter labextension install --no-build
@@ -236,10 +238,17 @@ RUN   source scl_source enable rh-python36 && \
        jlpm install --unsafe-perm && \
        jlpm run build && \
        jupyter labextension enable jupyterlab_bokeh
+# Same for pyviz/holoviews
+RUN   source scl_source enable rh-python36 && \
+       cd /usr/share/git/pyviz_comms && \
+       jupyter labextension link . --no-build && \
+       npm install .
 RUN  source scl_source enable rh-python36 && \
       for l in ${LBXT} ${GITXT} jupyterlab_rise ipyaladin ; do \
           jupyter labextension enable ${l} ; \
       done
+RUN  source scl_source enable rh-python36 && \
+      jupyter labextension enable pyviz_comms
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
       jupyter lab clean && \

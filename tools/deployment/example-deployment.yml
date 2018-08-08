@@ -21,14 +21,14 @@ hostname: '{{FQDN}}'
 # kubernetes_cluster_name: '{{K8S_CLUSTER_NAME}}'
 #  cluster name defaults to hostname with dots changed to dashes.
 # kubernetes_cluster_namespace: '{{K8S_CLUSTER_NAMESPACE}}'
-#  namespace defaults to 'default' if not defined
+#  namespace defaults to the first component of the hostname if not defined.
 
 ### GKE parameters
 # gke_project: 'your-project-name'
 #  project defaults to your gcloud default project if not defined
 # gke_zone: 'us-central1-a'
 # gke_node_count: 3
-# gke_machine_type: 'n1-standard-2'
+# gke_machine_type: 'n1-standard-4'
 # gke_default_local_volume_size_gigabytes: 200
 
 ### Nginx TLS termination (required)

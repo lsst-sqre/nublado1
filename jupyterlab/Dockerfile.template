@@ -177,16 +177,14 @@ RUN  source scl_source enable rh-python36  && \
       cd /usr/share/git && \
       jlpm global add webpack && \
       git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-      git clone -b ${tktbr} \
-       https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
+      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+      git clone https://github.com/pyviz/pyviz_comms && \
+      git clone -b jupyterlab_extension \
+       https://github.com/lsst-sqre/RISE.git && \
       git clone -b ${tktbr} \
        https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone -b ${tktbr} \
        https://github.com/lsst-sqre/jupyterlab-lsstquery && \
-      git clone -b ${tktbr} \
-       https://github.com/pyviz/pyviz_comms && \
-      git clone -b jupyterlab_extension \
-       https://github.com/lsst-sqre/RISE.git && \
       for i in ${GITXT}; do \
           cd ${i} && \
           jupyter labextension link . --no-build && \

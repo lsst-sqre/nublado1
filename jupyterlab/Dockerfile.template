@@ -64,8 +64,6 @@ RUN  source scl_source enable rh-python36 && \
 #  jupyterlab and use that instead of "master".  That way we both stay
 #  current and don't have to update the Dockerfile every time a new release
 #  happens.
-# Josh Bode has a fix for a tornado change in 5.1.  Hence using his fork until
-#  nbserver merges his PR.
 RUN  source scl_source enable rh-python36 && \
       j=$(git ls-remote --tags "https://github.com/jupyterlab/jupyterlab" \
           | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' \
@@ -75,7 +73,7 @@ RUN  source scl_source enable rh-python36 && \
       https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master \
-      https://github.com/joshbode/nbserverproxy/zipball/master
+      https://github.com/jupyterhub/nbserverproxy/zipball/master
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \

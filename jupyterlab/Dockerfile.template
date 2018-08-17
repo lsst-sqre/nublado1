@@ -168,8 +168,8 @@ RUN  source scl_source enable rh-python36 && \
           jupyter labextension install ${l} --no-build; \
       done
 ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE pyviz_comms"
-ENV tktbr="master"
-#ENV tktbr="tickets/DM-14605"
+#ENV tktbr="master"
+ENV tktbr="tickets/DM-14605"
 RUN  source scl_source enable rh-python36  && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \

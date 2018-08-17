@@ -177,6 +177,9 @@ RUN  source scl_source enable rh-python36  && \
       cd /usr/share/git && \
       jlpm global add webpack && \
       git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
+        cd jupyterlab-hub && \
+	git checkout 70f95cd6655fd9fa53303c25b3f1b16cb69231c2 && \
+	cd .. && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
       git clone https://github.com/pyviz/pyviz_comms && \
       git clone -b jupyterlab_extension \

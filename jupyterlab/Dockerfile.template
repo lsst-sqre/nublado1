@@ -177,13 +177,11 @@ RUN  source scl_source enable rh-python36  && \
       cd /usr/share/git && \
       jlpm global add webpack && \
       git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-        cd jupyterlab-hub && \
-	git checkout 70f95cd6655fd9fa53303c25b3f1b16cb69231c2 && \
-	cd .. && \
-      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
       git clone https://github.com/pyviz/pyviz_comms && \
       git clone -b jupyterlab_extension \
        https://github.com/lsst-sqre/RISE.git && \
+      git clone -b ${tktbr} \
+       https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
       git clone -b ${tktbr} \
        https://github.com/lsst-sqre/jupyterlab-savequit && \
       git clone -b ${tktbr} \
@@ -193,7 +191,7 @@ RUN  source scl_source enable rh-python36  && \
           jupyter labextension link . --no-build && \
           jlpm install --unsafe-perm && \
           jlpm run build && \
-          cd .. ;\
+          cd .. ; \
       done
 RUN source scl_source enable rh-python36 && \
      cd /usr/share/git/jupyterlab-lsstquery && \

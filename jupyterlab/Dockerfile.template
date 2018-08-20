@@ -64,10 +64,12 @@ RUN  source scl_source enable rh-python36 && \
 #  jupyterlab and use that instead of "master".  That way we both stay
 #  current and don't have to update the Dockerfile every time a new release
 #  happens.
+# We pin by forcing the tag at those times when master is broken.
 RUN  source scl_source enable rh-python36 && \
       j=$(git ls-remote --tags "https://github.com/jupyterlab/jupyterlab" \
           | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' \
 	  | sort -n -t. -k1,1 -k2,2 -k3,3 | tail -n 1) && \
+      j="v0.33.12" && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/${j} \
       https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \

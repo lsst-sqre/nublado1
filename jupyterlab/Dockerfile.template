@@ -79,7 +79,6 @@ RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
       pipenv \
-      nbdime \
       nbval \
       numpy \
       scipy \
@@ -100,8 +99,6 @@ RUN  source scl_source enable rh-python36 && \
       ginga
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
-RUN  source scl_source enable rh-python36 && \
-      python3 $(which nbdime) config-git --enable --system
 # scipy/pandas/numpy/astropy/matplotlib all already there
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
@@ -110,7 +107,6 @@ RUN  source ${LOADSTACK} && \
         virtualenvwrapper \
         ipykernel \
         pipenv \
-        nbdime \
         nbval \
         pypandoc \
         astroquery \
@@ -151,7 +147,7 @@ RUN source scl_source enable rh-python36 && \
       source ${LOADSTACK} && \
       pip3 install \
       git+https://github.com/lsst-sqre/RISE@jupyterlab_extension
-ENV SVXT="jupyterlab nbserverproxy nbdime"
+ENV SVXT="jupyterlab nbserverproxy"
 ENV NBXT="widgetsnbextension rise ipyevents"
 ENV LBXT="@jupyter-widgets/jupyterlab-manager ipyevents"
 # @pyviz/jupyterlab_holoviews

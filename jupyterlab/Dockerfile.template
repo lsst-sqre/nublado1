@@ -139,6 +139,13 @@ RUN source scl_source enable rh-python36 && \
       git+https://github.com/ioam/holoviews/ \
       git+https://github.com/bokeh/datashader \
       git+https://github.com/ioam/parambokeh/
+# Install Vaex
+RUN source scl_source enable rh-python36 && \
+      pip3 install vaex-core vaex-viz vaex-server vaex-hdf5 vaex-astro \
+       vaex-distributed vaex-jupyter && \
+      source ${LOADSTACK} && \
+      pip3 install vaex-core vaex-viz vaex-server vaex-hdf5 vaex-astro \
+       vaex-distributed vaex-jupyter
 # Install RISE from jupyterlab_rise branch
 #  usually damianavila's
 RUN source scl_source enable rh-python36 && \

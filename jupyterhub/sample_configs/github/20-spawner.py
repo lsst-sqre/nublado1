@@ -110,7 +110,11 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         optform += "          </td>\n          <td valign=\"top\">\n"
         checked = False
         sizemap = self._sizemap
-        defaultsize = "small"  # use the second smallest as default
+        sizes = list(sizemap.keys())
+        size_index = int(os.environ.get('SIZE_INDEX')) or 1
+        if size_index >= len(sizes):
+            size_index = 1
+        defaultsize = sizes[size_index]
         for size in sizemap:
             optform += "            "
             optform += " <input type=\"radio\" name=\"size\""

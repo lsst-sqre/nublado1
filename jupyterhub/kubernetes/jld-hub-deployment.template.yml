@@ -69,6 +69,8 @@ spec:
               value: '{{FIREFLY_ROUTE}}'
             - name: AUTO_REPO_URLS
               value: '{{AUTO_REPO_URLS}}'
+            - name: SIZE_INDEX
+              value: '{{SIZE_INDEX}}'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:

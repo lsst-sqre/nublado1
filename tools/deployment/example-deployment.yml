@@ -131,11 +131,13 @@ allowed_groups:
 #  extremely minimal guarantee) the guaranteed memory and CPU are
 #  1/lab_size_range, so if you ask for, e.g., 2 CPU and 4096 MB you are
 #  guaranteed you get at least half a CPU and 1024 MB reseved, and can
-#  allocate up to 2 CPU/4096 MB.
+#  allocate up to 2 CPU/4096 MB.  By default the second smallest one is
+#  preselected.
 #
 # tiny_max_cpu: 0.5
 # mb_per_cpu: 2048
 # lab_size_range: 4.0
+# size_index: 1
 
 ### Idle timeout for reaping user containers
 # should be a string, and should be number of seconds.  Default is 12

@@ -18,6 +18,7 @@ TINY_CPU_MAX=${TINY_CPU_MAX:-"0.5"}
 HUB_ROUTE=${HUB_ROUTE:-"/nb/"}
 FIREFLY_ROUTE=${FIREFLY_ROUTE:-"/firefly/"}
 AUTO_REPO_URLS=${AUTO_REPO_URLS:-""}
+SIZE_INDEX=${SIZE_INDEX:-"1"}
 if [ -z "${DB_IDENTIFIER}" ]; then
     if [ -z "${GKE_PROJECT}" ]; then
        GKE_PROJECT=$(gcloud config list core/project --format json | \
@@ -53,4 +54,5 @@ sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{DB_IDENTIFIER}}/${DB_IDENTIFIER}/g" \
     -e "s|{{HUB_ROUTE}}|${HUB_ROUTE}|g" \
     -e "s|{{FIREFLY_ROUTE}}|${FIREFLY_ROUTE}|g" \
+    -e "s|{{SIZE_INDEX}}|${SIZE_INDEX}|g" \
     ${DEPYAMLTPL} > ${DEPYAML}

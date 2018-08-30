@@ -98,7 +98,8 @@ RUN  source scl_source enable rh-python36 && \
       paramnb \
       ginga \
       bqplot \
-      ipyvolume
+      ipyvolume \
+      tables
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 # scipy/pandas/numpy/astropy/matplotlib all already there
@@ -122,7 +123,8 @@ RUN  source ${LOADSTACK} && \
         paramnb \
         ginga \
         bqplot \
-        ipyvolume
+        ipyvolume \
+        tables
 RUN  source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
 # Install jupyterlabutils

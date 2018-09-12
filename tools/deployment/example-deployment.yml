@@ -159,7 +159,7 @@ allowed_groups:
 # firefly_max_jvm_size: '3584M'
 # firefly_container_mem_limit: '4G'
 # firefly_container_cpu_limit: '3.0'
-# firefly_uid: '56993'
+# firefly_uid: '91'
 
 ### Gets you more verbose Hub logging
 # debug: 'true'

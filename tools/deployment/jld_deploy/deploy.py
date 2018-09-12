@@ -483,7 +483,7 @@ class JupyterLabDeployment(object):
         if self._empty_param('firefly_max_jvm_size'):
             self.params['firefly_max_jvm_size'] = '3584M'
         if self._empty_param('firefly_uid'):
-            self.params['firefly_uid'] = '56993'
+            self.params['firefly_uid'] = '91'
         # More defaults
         if self._empty_param('auto_repo_urls'):
             self.params['auto_repo_urls'] = \

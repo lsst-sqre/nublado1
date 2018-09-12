@@ -13,6 +13,8 @@ spec:
         - name: "firefly"
           imagePullPolicy: "Always"
           image: "ipac/firefly:lsst-dev"
+          securityContext:
+            runAsUser: {{FIREFLY_UID}}
           volumeMounts:
             - name: jld-fileserver-scratch
               mountPath: /scratch
@@ -28,7 +30,7 @@ spec:
               value: 'FALSE'
             - name: FIREFLY_OPTS
               value: "-Dvisualize.fits.search.path=/scratch/firefly"
-            - name: FIREFLY_WORK_DIR
+            - name: FIREFLY_SHARED_WORK_DIR
               value: "/scratch/firefly/workarea"
             - name: MAX_JVM_SIZE
               value: {{FIREFLY_MAX_JVM_SIZE}}

@@ -108,6 +108,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "firefly_container_mem_limit",
     "firefly_container_cpu_limit",
     "firefly_max_jvm_size",
+    "firefly_uid",
     "prepuller_image_list",
     "prepuller_no_scan",
     "prepuller_repo",
@@ -481,6 +482,8 @@ class JupyterLabDeployment(object):
             self.params['firefly_container_cpu_limit'] = '3.0'
         if self._empty_param('firefly_max_jvm_size'):
             self.params['firefly_max_jvm_size'] = '3584M'
+        if self._empty_param('firefly_uid'):
+            self.params['firefly_uid'] = '56993'
         # More defaults
         if self._empty_param('auto_repo_urls'):
             self.params['auto_repo_urls'] = \
@@ -785,6 +788,7 @@ class JupyterLabDeployment(object):
                           FIREFLY_CONTAINER_CPU_LIMIT=p[
                               'firefly_container_cpu_limit'],
                           FIREFLY_MAX_JVM_SIZE=p['firefly_max_jvm_size'],
+                          FIREFLY_UID=p['firefly_uid'],
                           FIREFLY_ROUTE=p['firefly_route'],
                           DB_IDENTIFIER='{{DB_IDENTIFIER}}',
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',

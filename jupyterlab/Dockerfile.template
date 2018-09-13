@@ -75,6 +75,7 @@ RUN  source scl_source enable rh-python36 && \
       https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master \
       https://github.com/jupyterhub/nbserverproxy/zipball/master
+#      https://github.com/jupyter/notebook/zipball/master \      
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
@@ -99,7 +100,8 @@ RUN  source scl_source enable rh-python36 && \
       ginga \
       bqplot \
       ipyvolume \
-      tables
+      tables \
+      papermill
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 # scipy/pandas/numpy/astropy/matplotlib all already there
@@ -124,7 +126,8 @@ RUN  source ${LOADSTACK} && \
         ginga \
         bqplot \
         ipyvolume \
-        tables
+        tables \
+        papermill
 RUN  source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
 # Install jupyterlabutils
@@ -162,7 +165,7 @@ RUN source scl_source enable rh-python36 && \
       git+https://github.com/lsst-sqre/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy"
 ENV NBXT="widgetsnbextension rise ipyevents"
-ENV LBXT="@jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs"
+ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs"
 # @pyviz/jupyterlab_holoviews
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \

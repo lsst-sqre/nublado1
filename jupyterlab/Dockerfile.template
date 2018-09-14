@@ -101,33 +101,37 @@ RUN  source scl_source enable rh-python36 && \
       bqplot \
       ipyvolume \
       tables \
-      papermill
+      papermill \
+      "dask[complete]" \
+      dask-kubernetes
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 # scipy/pandas/numpy/astropy/matplotlib all already there
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
      pip install --upgrade pip \
-        setuptools \
-        virtualenvwrapper \
-        ipykernel \
-        pipenv \
-        nbval \
-        pypandoc \
-        astroquery \
-        ipywidgets \
-        ipyevents \
-        bokeh \
-        pyarrow \
-        cloudpickle \
-        ipympl \
-        fastparquet \
-        paramnb \
-        ginga \
-        bqplot \
-        ipyvolume \
-        tables \
-        papermill
+      setuptools \
+      virtualenvwrapper \
+      ipykernel \
+      pipenv \
+      nbval \
+      pypandoc \
+      astroquery \
+      ipywidgets \
+      ipyevents \
+      bokeh \
+      pyarrow \
+      cloudpickle \
+      ipympl \
+      fastparquet \
+      paramnb \
+      ginga \
+      bqplot \
+      ipyvolume \
+      tables \
+      papermill \
+      "dask[complete]" \
+      dask-kubernetes
 RUN  source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
 # Install jupyterlabutils
@@ -165,7 +169,7 @@ RUN source scl_source enable rh-python36 && \
       git+https://github.com/lsst-sqre/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy"
 ENV NBXT="widgetsnbextension rise ipyevents"
-ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs"
+ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension"
 # @pyviz/jupyterlab_holoviews
 RUN  source scl_source enable rh-python36 && \
       for s in $SVXT; do \
@@ -311,7 +315,7 @@ COPY git-credentials /etc/skel/.git-credentials
 COPY user_setups /etc/skel/notebooks/.user_setups
 COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
-      prepuller.sh \
+      prepuller.sh lsstwrapdask.bash \
       ${jl}/
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \

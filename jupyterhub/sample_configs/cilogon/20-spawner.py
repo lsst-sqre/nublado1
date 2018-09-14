@@ -205,10 +205,6 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         #  so let's give it a big timeout
         self.http_timeout = 60 * 15
         self.start_timeout = 60 * 15
-        # The spawned containers need to be able to talk to the hub through
-        #  the proxy!
-        self.hub_connect_port = int(os.environ['JLD_HUB_SERVICE_PORT'])
-        self.hub_connect_ip = os.environ['JLD_HUB_SERVICE_HOST']
         # We are running the Lab at the far end, not the old Notebook
         self.default_url = '/lab'
         self.singleuser_image_pull_policy = 'Always'
@@ -234,6 +230,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                               image_spec)
                 size = self.user_options.get('size')
                 if size:
+                    self.log.info("Sizemap: %r" % self._sizemap)
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
@@ -312,22 +309,22 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                 continue
             self.volumes.extend([
                 {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname}}])
+                 "persistentVolumeClaim": {"claimName": volname,
+                                           "accessModes": "ReadWriteMany"}}])
             self.volume_mounts.extend([
                 {"mountPath": "/" + vol,
-                 "name": volname,
-                 "accessModes": ["ReadWriteMany"]}])
+                 "name": volname}])
         for vol in ["datasets"]:
             volname = "jld-fileserver-" + vol
             if volname in already_vols:
                 continue
             self.volumes.extend([
                 {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname}}])
+                 "persistentVolumeClaim": {"claimName": volname,
+                                           "accessModes": "ReadOnlyMany"}}])
             self.volume_mounts.extend([
                 {"mountPath": "/" + vol,
-                 "name": volname,
-                 "accessModes": ["ReadOnlyMany"]}])
+                 "name": volname}])
         self.log.debug("Volumes: %s" % json.dumps(self.volumes,
                                                   indent=4,
                                                   sort_keys=True))

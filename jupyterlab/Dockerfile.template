@@ -265,6 +265,7 @@ RUN  source scl_source enable rh-python36 && \
       jupyter labextension enable pyviz_comms
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
+      npm cache clean && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.

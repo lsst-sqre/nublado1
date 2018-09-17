@@ -6,5 +6,8 @@
     "terminado_settings": {
       "shell_command": [ "/bin/bash", "-i" ]
     }
+  },
+  "MappingKernelManager": {
+    "cull_connected": true
   }
 }

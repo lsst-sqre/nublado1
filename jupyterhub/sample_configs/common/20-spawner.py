@@ -332,6 +332,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                                                         indent=4,
                                                         sort_keys=True))
         self.image_spec = image_spec
+        if os.getenv('ALLOW_DASK_SPAWN'):
+            self.service_account = 'jld-dask'
 
         # The return is from the superclass
 

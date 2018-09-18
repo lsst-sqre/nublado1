@@ -111,7 +111,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         checked = False
         sizemap = self._sizemap
         sizes = list(sizemap.keys())
-        size_index = int(os.environ.get('SIZE_INDEX')) or 1
+        si = os.environ.get('SIZE_INDEX') or '1'
+        size_index = int(si)
         if size_index >= len(sizes):
             size_index = 1
         defaultsize = sizes[size_index]
@@ -230,7 +231,6 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                               image_spec)
                 size = self.user_options.get('size')
                 if size:
-                    self.log.info("Sizemap: %r" % self._sizemap)
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
@@ -332,6 +332,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                                                         indent=4,
                                                         sort_keys=True))
         self.image_spec = image_spec
+        if os.getenv('ALLOW_DASK_SPAWN'):
+            self.service_account = 'jld-dask'
 
         # The return is from the superclass
 

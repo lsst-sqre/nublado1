@@ -136,6 +136,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "mb_per_cpu",
     "lab_size_range",
     "auto_repo_urls",
+    "allow_dask_spawn",
     "size_index",
     "hub_route",
     "firefly_route",
@@ -488,6 +489,8 @@ class JupyterLabDeployment(object):
         if self._empty_param('auto_repo_urls'):
             self.params['auto_repo_urls'] = \
                 'https://github.com/lsst-sqre/notebook-demo'
+        if self._empty_param('allow_dask_spawn'):
+            self.params['allow_dask_spawn'] = ''  # Empty is correct
         if self._empty_param('size_index'):
             self.params['size_index'] = '1'
         return
@@ -778,6 +781,7 @@ class JupyterLabDeployment(object):
                           MB_PER_CPU=p['mb_per_cpu'],
                           LAB_SIZE_RANGE=p['lab_size_range'],
                           AUTO_REPO_URLS=p['auto_repo_urls'],
+                          ALLOW_DASK_SPAWN=p['allow_dask_spawn'],
                           SIZE_INDEX=p['size_index'],
                           HUB_ROUTE=p['hub_route'],
                           FIREFLY_ADMIN_PASSWORD=self.encode_value(
@@ -1494,7 +1498,8 @@ class JupyterLabDeployment(object):
         for c in ["jld-hub-service.yml", "jld-hub-physpvc.yml",
                   "jld-hub-secrets.yml", "jld-hub-serviceaccount.yml",
                   "jld-hub-role.yml", "jld-hub-rolebinding.yml",
-                  "jld-hub-ingress.yml"]:
+                  "jld-hub-ingress.yml", "jld-dask-serviceaccount.yml",
+                  "jld-dask-role.yml", "jld-dask-rolebinding.yml"]:
             self._run_kubectl_create(os.path.join(directory, c))
         cfdir = os.path.join(directory, "config")
         cfnm = "jupyterhub_config"
@@ -1525,7 +1530,10 @@ class JupyterLabDeployment(object):
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
         pv = self._get_pv_and_disk_from_pvc("jld-hub-physpvc")
-        items = [["ingress", "jld-hub"],
+        items = [["rolebinding", "jld-dask"],
+                 ["role", "jld-dask"],
+                 ["serviceaccount", "jld-dask"],
+                 ["ingress", "jld-hub"],
                  ["deployment", "jld-hub"],
                  ["configmap", "jld-hub-config"],
                  ["rolebinding", "jld-hub"],
@@ -1829,6 +1837,10 @@ def get_cli_options():
     desc += ("The 'auto_repo_urls' parameter, if supplied, is a list of " +
              "'git clone' URLs;\nat startup time, these repositories will " +
              "be synchronized and the 'prod'\nbranch brought up to date.\n\n")
+    desc += ("The 'allow_dask_spawn' parameter, if supplied and set to a " +
+             "non-empty string, will allow user containers to spawn " +
+             "additional pods; this is intended to allow them to " +
+             "manipulate dask workers.\n\n")
     desc += ("The 'size_index' parameter, if supplied, is the index of " +
              "the default image size--usually '1' indicating the " +
              "second-smallest.\n\n")

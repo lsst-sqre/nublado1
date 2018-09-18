@@ -10,7 +10,8 @@ RUN  yum -y install \
       git sudo \
       python-devel http-parser nodejs perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      ack screen tmux tree vim-enhanced emacs-nox
+      ack screen tmux tree vim-enhanced emacs-nox \
+      graphviz
 # Python 3.6, tkinter, and git: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum -y install rh-git29 rh-python36-python-tkinter \
@@ -103,7 +104,8 @@ RUN  source scl_source enable rh-python36 && \
       tables \
       papermill \
       "dask[complete]" \
-      dask-kubernetes
+      dask-kubernetes \
+      graphviz
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
 # scipy/pandas/numpy/astropy/matplotlib all already there
@@ -131,7 +133,8 @@ RUN  source ${LOADSTACK} && \
       tables \
       papermill \
       "dask[complete]" \
-      dask-kubernetes
+      dask-kubernetes \
+      graphviz
 RUN  source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
 # Install jupyterlabutils
@@ -266,6 +269,7 @@ RUN  source scl_source enable rh-python36 && \
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
       npm cache clean && \
+      npm install -g webpack-cli && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.
@@ -316,7 +320,7 @@ COPY git-credentials /etc/skel/.git-credentials
 COPY user_setups /etc/skel/notebooks/.user_setups
 COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
-      prepuller.sh lsstwrapdask.bash \
+      prepuller.sh lsstwrapdask.bash dask_worker.template.yml \
       ${jl}/
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \

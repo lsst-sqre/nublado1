@@ -23,7 +23,7 @@ function clear_dotlocal() {
     fi
 }
 
-function copy_etc_skel {
+function copy_etc_skel() {
     es="/etc/skel"
     for i in $(find ${es}); do
 	if [ "${i}" == "${es}" ]; then
@@ -35,6 +35,13 @@ function copy_etc_skel {
 	    cp -a ${i} ${hb}
 	fi
     done
+}
+
+function start_dask_worker() {
+    cmd='/opt/lsst/software/jupyterlab/lsstwrapdask.bash'
+    echo "Starting dask worker: ${cmd}"
+    exec ${cmd}
+    exit 0 # Not reached
 }
 
 # Set DEBUG to a non-empty value to turn on debugging
@@ -83,19 +90,16 @@ if [ -n "${JLD_HUB_SERVICE_HOST}" ]; then
     JUPYTERHUB_API_URL=${jh_api}
 fi
 export JUPYTERHUB_API_URL
-# Run idle culler.
-if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
-       [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
-    touch ${HOME}/idleculler/culler.output && \
-	nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
-              ${HOME}/idleculler/culler.output 2>&1 &
-fi
 # Set Firefly URL and landing page
 host_url=$(echo ${EXTERNAL_URL} | cut -d '/' -f 1-3)
 FIREFLY_ROUTE=${FIREFLY_ROUTE:-"/firefly/"}
 FIREFLY_URL="${host_url}${FIREFLY_ROUTE}"
 FIREFLY_HTML="slate.html"
 export FIREFLY_URL FIREFLY_HTML
+if [ -n "${DASK_WORKER}" ]; then
+    start_dask_worker
+    exit 0 # Not reached
+fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \
@@ -104,15 +108,22 @@ if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"
 fi
 echo "JupyterLab command: '${cmd}'"
+# Run idle culler.
+if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
+   [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
+     touch ${HOME}/idleculler/culler.output && \
+       nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
+             ${HOME}/idleculler/culler.output 2>&1 &
+fi
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
     while : ; do
-	${cmd}
+        ${cmd}
         d=$(date)
         echo "${d}: sleeping."
         sleep 60
     done
-else
-    # Start Lab
-    exec ${cmd}
+    exit 0 # Not reached
 fi
+# Start Lab
+exec ${cmd}

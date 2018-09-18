@@ -1,0 +1,55 @@
+kind: Pod
+metadata:
+  labels:
+    dask: ok
+spec:
+  restartPolicy: Never
+  containers:
+  - image: {{JUPYTER_IMAGE_SPEC}}
+    imagePullPolicy: Always
+    args: [ /opt/lsst/software/jupyterlab/lablauncher.bash ]
+    name: dask
+    env:
+      - name: DASK_WORKER
+        value: 'true'
+      - name: DEBUG
+        value: {{DEBUG}}
+      - name: EXTERNAL_GROUPS
+        value: {{EXTERNAL_GROUPS}}
+      - name: EXTERNAL_UID
+        value: {{EXTERNAL_UID}}
+      - name: JUPYTERHUB_USER
+        value: {{JUPYTERHUB_USER}}
+    resources:
+      limits:
+        cpu: {{CPU_LIMIT}}
+        memory: {{MEM_LIMIT}}
+      requests:
+        cpu: {{CPU_GUARANTEE}}
+        memory: "{{MEM_GUARANTEE}}M"
+    volumeMounts:
+      - name: jld-fileserver-home
+        mountPath: /home
+      - name: jld-fileserver-scratch
+        mountPath: /scratch
+      - name: jld-fileserver-project
+        mountPath: /project
+      - name: jld-fileserver-datasets
+        mountPath: /datasets
+  volumes:
+    - name: jld-fileserver-home
+      persistentVolumeClaim:
+        claimName: jld-fileserver-home
+        accessMode: ReadWriteMany
+    - name: jld-fileserver-scratch
+      persistentVolumeClaim:
+         claimName: jld-fileserver-scratch
+         accessMode: ReadWriteMany
+    - name: jld-fileserver-project
+      persistentVolumeClaim:
+         claimName: jld-fileserver-project
+         accessMode: ReadWriteMany
+    - name: jld-fileserver-datasets
+      persistentVolumeClaim:
+         claimName: jld-fileserver-datasets
+         accessMode: ReadOnlyMany

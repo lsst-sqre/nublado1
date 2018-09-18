@@ -319,7 +319,7 @@ COPY git-credentials /etc/skel/.git-credentials
 COPY user_setups /etc/skel/notebooks/.user_setups
 COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
-      prepuller.sh lsstwrapdask.bash \
+      prepuller.sh lsstwrapdask.bash dask_worker.template.yml \
       ${jl}/
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \

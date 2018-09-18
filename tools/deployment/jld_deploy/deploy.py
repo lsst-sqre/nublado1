@@ -1498,7 +1498,8 @@ class JupyterLabDeployment(object):
         for c in ["jld-hub-service.yml", "jld-hub-physpvc.yml",
                   "jld-hub-secrets.yml", "jld-hub-serviceaccount.yml",
                   "jld-hub-role.yml", "jld-hub-rolebinding.yml",
-                  "jld-hub-ingress.yml"]:
+                  "jld-hub-ingress.yml", "jld-dask-serviceaccount.yml",
+                  "jld-dask-role.yml", "jld-dask-rolebinding.yml"]:
             self._run_kubectl_create(os.path.join(directory, c))
         cfdir = os.path.join(directory, "config")
         cfnm = "jupyterhub_config"
@@ -1529,7 +1530,10 @@ class JupyterLabDeployment(object):
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
         pv = self._get_pv_and_disk_from_pvc("jld-hub-physpvc")
-        items = [["ingress", "jld-hub"],
+        items = [["rolebinding", "jld-dask"],
+                 ["role", "jld-dask"],
+                 ["serviceaccount", "jld-dask"],
+                 ["ingress", "jld-hub"],
                  ["deployment", "jld-hub"],
                  ["configmap", "jld-hub-config"],
                  ["rolebinding", "jld-hub"],

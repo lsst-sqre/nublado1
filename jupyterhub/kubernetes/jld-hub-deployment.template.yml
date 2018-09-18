@@ -33,6 +33,10 @@ spec:
             # Set to non-empty value to enable debugging.
             - name: DEBUG
               value: '{{DEBUG}}'
+            # If set, enables running lab containers with k8s privileges
+            #  to start/stop/list containers (to spawn dask worker pods)
+            - name: ALLOW_DASK_SPAWN
+              value: '{{ALLOW_DASK_SPAWN}}'
             # Set to customize what repo and what images to scan.
             - name: LAB_REPO_HOST
               value: '{{LAB_REPO_HOST}}'

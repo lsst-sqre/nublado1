@@ -89,6 +89,9 @@ allowed_groups:
 #  - {{AUTO_REPO_URL_1}}
 #  - {{AUTO_REPO_URL_2}}
 
+### Allow Lab containers to spawn dask workers (dangerous for now)
+# allow_dask_spawn: 'true'
+
 ### Parameters for which image or set of images is prepulled.
 # For a single image, use prepuller_image_list and no_scan.
 #  prepuller_image_list:

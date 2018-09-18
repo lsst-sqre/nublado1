@@ -269,6 +269,7 @@ RUN  source scl_source enable rh-python36 && \
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
       npm cache clean && \
+      npm install -g webpack-cli && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.

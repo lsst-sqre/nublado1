@@ -35,7 +35,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
     working_dir = None
     lifecycle_hooks = {}  # This one will be useful someday.
     init_containers = []
-    service_account = 'jld-dask'
+    service_account = None
     extra_container_config = None
     extra_pod_config = None
     extra_containers = []
@@ -332,7 +332,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                                                         indent=4,
                                                         sort_keys=True))
         self.image_spec = image_spec
-        self.service_account = 'jld-dask'
+        if os.getenv('ALLOW_DASK_SPAWN'):
+            self.service_account = 'jld-dask'
 
         # The return is from the superclass
 

@@ -20,7 +20,7 @@ function create_dask_yml() {
     mkdir -p "${HOME}/dask"
     local debug="\'\'"
     if [ -n "${DEBUG}" ]; then
-	debug=${DEBUG}
+        debug=${DEBUG}
     fi
     sed -e "s|{{JUPYTER_IMAGE_SPEC}}|${JUPYTER_IMAGE_SPEC}|" \
         -e "s/{{EXTERNAL_GROUPS}}/${EXTERNAL_GROUPS}/" \
@@ -30,7 +30,7 @@ function create_dask_yml() {
         -e "s/{{MEM_LIMIT}}/${MEM_LIMIT}/" \
         -e "s/{{CPU_GUARANTEE}}/${CPU_GUARANTEE}/" \
         -e "s/{{MEM_GUARANTEE}}/${MEM_GUARANTEE}/" \
-	-e "s/{{DEBUG}}/${debug}/" \
+        -e "s/{{DEBUG}}/${debug}/" \
         /opt/lsst/software/jupyterlab/dask_worker.template.yml \
         > "${HOME}/dask/dask_worker.yml"
 }

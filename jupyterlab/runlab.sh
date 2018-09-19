@@ -96,8 +96,6 @@ cd ${HOME}
 # Do /etc/skel copy (in case we didn't provision homedir but still need to
 #  populate it)
 copy_etc_skel
-# Create dask worker yml
-create_dask_yml
 # Fetch/update magic notebook.
 . /opt/lsst/software/jupyterlab/refreshnb.sh
 # Replace API URL with service address if it exists
@@ -121,6 +119,9 @@ export FIREFLY_URL FIREFLY_HTML
 if [ -n "${DASK_WORKER}" ]; then
     start_dask_worker
     exit 0 # Not reached
+else
+    # Create dask worker yml if we are a Lab and not a worker
+    create_dask_yml
 fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \

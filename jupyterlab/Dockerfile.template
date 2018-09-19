@@ -73,10 +73,8 @@ RUN  source scl_source enable rh-python36 && \
       pip3 install \
       https://github.com/jupyterlab/jupyterlab/zipball/${j} \
       https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
-      https://github.com/jupyter/notebook/zipball/master \
       https://github.com/jupyterhub/jupyterhub/zipball/master \
       https://github.com/jupyterhub/nbserverproxy/zipball/master
-#      https://github.com/jupyter/notebook/zipball/master \      
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade virtualenv virtualenvwrapper \
       ipykernel \
@@ -269,7 +267,6 @@ RUN  source scl_source enable rh-python36 && \
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
       npm cache clean && \
-      npm install -g webpack-cli && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.

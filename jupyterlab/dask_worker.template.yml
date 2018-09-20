@@ -20,6 +20,10 @@ spec:
         value: {{EXTERNAL_UID}}
       - name: JUPYTERHUB_USER
         value: {{JUPYTERHUB_USER}}
+      - name: CPU_LIMIT
+        value: {{CPU_LIMIT}}
+      - name: MEM_LIMIT
+        value: {{MEM_LIMIT}}
     resources:
       limits:
         cpu: {{CPU_LIMIT}}

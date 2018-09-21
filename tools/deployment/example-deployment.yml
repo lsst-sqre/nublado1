@@ -147,6 +147,12 @@ allowed_groups:
 # hours.
 # lab_idle_timeout: '43200'
 
+### Restrict nodes
+# If restrict_lab_nodes is set, labs will only spawn on nodes tagged
+# with "jupyterlab: ok"; restrict_dask_nodes means dask needs "dask: ok"
+# restrict_lab_nodes: 'true'
+# restrict_dask_nodes: 'true'
+
 ### Optional for ELK logging
 # beats_cert: '/path/to/beats_cert.pem'
 # beats_ca: '/path/to/beats_ca.pem'

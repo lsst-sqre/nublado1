@@ -37,6 +37,12 @@ spec:
             #  to start/stop/list containers (to spawn dask worker pods)
             - name: ALLOW_DASK_SPAWN
               value: '{{ALLOW_DASK_SPAWN}}'
+            # If set, restricts lab or dask to run on containers with
+            #  labels 'jupyterlab: ok' or 'dask: ok'
+            - name: RESTRICT_LAB_NODES
+              value: '{{RESTRICT_LAB_NODES}}'
+            - name: RESTRICT_DASK_NODES
+              value: '{{RESTRICT_DASK_NODES}}'
             # Set to customize what repo and what images to scan.
             - name: LAB_REPO_HOST
               value: '{{LAB_REPO_HOST}}'

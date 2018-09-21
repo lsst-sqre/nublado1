@@ -22,6 +22,7 @@ function create_dask_yml() {
     if [ -n "${DEBUG}" ]; then
         debug=${DEBUG}
     fi
+    dw="${HOME}/dask/dask_worker.yml"
     sed -e "s|{{JUPYTER_IMAGE_SPEC}}|${JUPYTER_IMAGE_SPEC}|" \
         -e "s/{{EXTERNAL_GROUPS}}/${EXTERNAL_GROUPS}/" \
         -e "s/{{EXTERNAL_UID}}/${EXTERNAL_UID}/" \
@@ -32,7 +33,14 @@ function create_dask_yml() {
         -e "s/{{MEM_GUARANTEE}}/${MEM_GUARANTEE}/" \
         -e "s/{{DEBUG}}/${debug}/" \
         /opt/lsst/software/jupyterlab/dask_worker.template.yml \
-        > "${HOME}/dask/dask_worker.yml"
+        > "${dw}"
+    if [ -n "${RESTRICT_DASK_NODES}" ]; then
+        mv ${dw} ${dw}.unrestricted
+        sed -e "s/# nodeSelector:/nodeSelector:/" \
+            -e "s/#   dask: ok/  dask: ok/" \
+            ${dw}.unrestricted > ${dw} && \
+        rm ${dw}.unrestricted
+    fi
 }
 
 function clear_dotlocal() {

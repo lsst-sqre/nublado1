@@ -140,6 +140,8 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "size_index",
     "hub_route",
     "firefly_route",
+    "restrict_lab_nodes",
+    "restrict_dask_nodes",
     "debug"]
 MTPTS = ["home", "scratch", "project", "datasets", "software"]
 
@@ -424,8 +426,11 @@ class JupyterLabDeployment(object):
             if self._empty_param('cilogon_group_whitelist'):
                 # Not required if we aren't using CILogon.
                 self.params['cilogon_group_whitelist'] = ["dummy"]
-        if self._empty_param('debug'):
-            self.params['debug'] = ''  # Empty is correct
+        # Some parameters default to empty
+        for default_empty in ['debug', 'allow_dask_spawn',
+                              'restrict_lab_nodes', 'restrict_dask_nodes']:
+            if self._empty_param(default_empty):
+                self.params[default_empty] = ''  # Empty is correct
         # Rely on defaults by setting environment in prepuller to
         #  empty for unused parameters
         for pname in ['prepuller_image_list', 'prepuller_no_scan',
@@ -489,8 +494,6 @@ class JupyterLabDeployment(object):
         if self._empty_param('auto_repo_urls'):
             self.params['auto_repo_urls'] = \
                 'https://github.com/lsst-sqre/notebook-demo'
-        if self._empty_param('allow_dask_spawn'):
-            self.params['allow_dask_spawn'] = ''  # Empty is correct
         if self._empty_param('size_index'):
             self.params['size_index'] = '1'
         return
@@ -794,6 +797,8 @@ class JupyterLabDeployment(object):
                           FIREFLY_MAX_JVM_SIZE=p['firefly_max_jvm_size'],
                           FIREFLY_UID=p['firefly_uid'],
                           FIREFLY_ROUTE=p['firefly_route'],
+                          RESTRICT_DASK_NODES=p['restrict_dask_nodes'],
+                          RESTRICT_LAB_NODES=p['restrict_lab_nodes'],
                           DB_IDENTIFIER='{{DB_IDENTIFIER}}',
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )

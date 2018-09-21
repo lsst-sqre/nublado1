@@ -280,6 +280,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         idle_timeout = int(os.getenv('LAB_IDLE_TIMEOUT') or 43200)
         if idle_timeout > 0 and 'JUPYTERLAB_IDLE_TIMEOUT' not in pod_env:
             pod_env['JUPYTERLAB_IDLE_TIMEOUT'] = str(idle_timeout)
+        if os.getenv('RESTRICT_DASK_NODES'):
+            pod_env['RESTRICT_DASK_NODES'] = "true"
         oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
         endstr = "/hub/oauth_callback"
         if oauth_callback and oauth_callback.endswith(endstr):

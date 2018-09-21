@@ -9,6 +9,8 @@ spec:
     imagePullPolicy: Always
     args: [ /opt/lsst/software/jupyterlab/lablauncher.bash ]
     name: dask
+    # nodeSelector:
+    #   dask: ok
     env:
       - name: DASK_WORKER
         value: 'true'

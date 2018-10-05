@@ -20,6 +20,9 @@ conf="${jhdir}/config/jupyterhub_config.py"
 if [ -n "${DEBUG}" ]; then
     dbgflag="--debug "
 fi
+if [ -f "/home/jupyter/jupyterhub-proxy.pid" ]; then
+    rm /home/jupyter/jupyterhub-proxy.pid
+fi
 #upgdb="--upgrade-db"
 upgdb=""
 source scl_source enable rh-python36

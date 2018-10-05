@@ -30,7 +30,6 @@ class LSSTSpawner(kubespawner.KubeSpawner):
     extra_labels = []
     extra_annotations = []
     image_pull_secrets = None
-    node_selector = None
     privileged = False
     working_dir = None
     lifecycle_hooks = {}  # This one will be useful someday.

@@ -105,6 +105,7 @@ RUN  source scl_source enable rh-python36 && \
       papermill \
       "dask[complete]" \
       dask-kubernetes \
+      nclib \
       graphviz
 RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
        awk '{print $1}' > /root/jupyterlab.commit
@@ -134,6 +135,7 @@ RUN  source ${LOADSTACK} && \
       papermill \
       "dask[complete]" \
       dask-kubernetes \
+      nclib \
       graphviz
 RUN  source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'

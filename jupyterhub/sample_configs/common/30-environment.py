@@ -33,6 +33,6 @@ c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
 k8s_svc_address = os.environ.get('JLD_HUB_SERVICE_HOST') or public_ips()[0]
 c.JupyterHub.hub_connect_url = "http://" + k8s_svc_address + ":8081" + \
                                hub_route
-
-if os.environ.get('RESTRICT_LAB_NODES'):
-    c.LSSTSpawner.node_selector = {"jupyterlab": "ok"}
+# Add node selector
+if os.getenv('RESTRICT_LAB_NODES'):
+    c.KubeSpawner.node_selector.update({'jupyterlab': 'ok'})

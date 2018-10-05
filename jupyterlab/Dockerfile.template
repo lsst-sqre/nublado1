@@ -96,6 +96,7 @@ RUN  source scl_source enable rh-python36 && \
       datashader \
       ipyaladin \
       jupyterlab_lsstquery \
+      nclib \
       graphviz
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -137,6 +138,7 @@ RUN  source ${LOADSTACK} && \
       vaex-jupyter \
       ipyaladin \
       jupyterlab_lsstquery \
+      nclib \
       graphviz
 # Numpy must be installed before vaex
 RUN  source scl_source enable rh-python36 && \

@@ -58,27 +58,14 @@ RUN cd /tmp && \
     rm -rf /tmp/${FN} /tmp/install-tl*
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
-# Get our bleeding edge versions first, and *then* pick up other things.
-#  Saves us a little installation.
-# Extension building is strange and depends on the released version, so
-#  we will use git ls-remote to determine the most recent tag for
-#  jupyterlab and use that instead of "master".  That way we both stay
-#  current and don't have to update the Dockerfile every time a new release
-#  happens.
-# We pin by forcing the tag at those times when master is broken.
-#  0.34.9: 29 Sep 2018
 RUN  source scl_source enable rh-python36 && \
-      j=$(git ls-remote --tags "https://github.com/jupyterlab/jupyterlab" \
-          | awk '{print $2}' | grep -v '{}' | awk -F"/" '{print $3}' \
-	  | sort -n -t. -k1,1 -k2,2 -k3,3 | tail -n 1) && \
-      j="v0.34.9" && \
-      pip3 install \
-      https://github.com/jupyterlab/jupyterlab/zipball/${j} \
-      https://github.com/jupyterlab/jupyterlab_launcher/zipball/master \
-      https://github.com/jupyterhub/jupyterhub/zipball/master \
-      https://github.com/jupyterhub/nbserverproxy/zipball/master
-RUN  source scl_source enable rh-python36 && \
-      pip3 install --upgrade virtualenv virtualenvwrapper \
+      pip3 install --upgrade \
+      jupyterlab \
+      jupyterlab_server \
+      jupyterhub \
+      nbserverproxy \
+      virtualenv \
+      virtualenvwrapper \
       ipykernel \
       pipenv \
       nbval \
@@ -105,13 +92,19 @@ RUN  source scl_source enable rh-python36 && \
       papermill \
       "dask[complete]" \
       dask-kubernetes \
+      "holoviews[recommended]" \
+      datashader \
+      ipyaladin \
+      jupyterlab_lsstquery \
       graphviz
-RUN  git ls-remote https://github.com/jupyterlab/jupyterlab.git master | \
-       awk '{print $1}' > /root/jupyterlab.commit
-# scipy/pandas/numpy/astropy/matplotlib all already there
+# scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
      pip install --upgrade pip \
+      jupyterlab \
+      jupyterlab_server \
+      jupyterhub \
+      nbserverproxy \
       setuptools \
       virtualenvwrapper \
       ipykernel \
@@ -134,138 +127,50 @@ RUN  source ${LOADSTACK} && \
       papermill \
       "dask[complete]" \
       dask-kubernetes \
+      "holoviews[recommended]" \
+      datashader \
+      vaex-core \
+      vaex-viz \
+      vaex-server \
+      vaex-hdf5 vaex-astro \
+      vaex-distributed \
+      vaex-jupyter \
+      ipyaladin \
+      jupyterlab_lsstquery \
       graphviz
+# Numpy must be installed before vaex
+RUN  source scl_source enable rh-python36 && \
+      pip3 install --upgrade \
+       vaex-core \
+       vaex-viz \
+       vaex-server \
+       vaex-hdf5 vaex-astro \
+       vaex-distributed \
+       vaex-jupyter
 RUN  source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
-# Install jupyterlabutils
-RUN source scl_source enable rh-python36 && \
-      pip3 install \
-      https://github.com/lsst-sqre/jupyterlabutils/zipball/master && \
-      source ${LOADSTACK} && \
-      pip3 install \
-      https://github.com/lsst-sqre/jupyterlabutils/zipball/master
-# Install holoviews and datashader
-RUN source scl_source enable rh-python36 && \
-      pip3 install \
-      git+https://github.com/ioam/holoviews/ \
-      git+https://github.com/bokeh/datashader \
-      git+https://github.com/ioam/parambokeh/ && \
-      source ${LOADSTACK} && \
-      pip3 install \
-      git+https://github.com/ioam/holoviews/ \
-      git+https://github.com/bokeh/datashader \
-      git+https://github.com/ioam/parambokeh/
-# Install Vaex
-RUN source scl_source enable rh-python36 && \
-      pip3 install vaex-core vaex-viz vaex-server vaex-hdf5 vaex-astro \
-       vaex-distributed vaex-jupyter && \
-      source ${LOADSTACK} && \
-      pip3 install vaex-core vaex-viz vaex-server vaex-hdf5 vaex-astro \
-       vaex-distributed vaex-jupyter
-# Install RISE from jupyterlab_rise branch
-#  usually damianavila's
-RUN source scl_source enable rh-python36 && \
-      pip3 install \
-      git+https://github.com/lsst-sqre/RISE@jupyterlab_extension && \
-      source ${LOADSTACK} && \
-      pip3 install \
-      git+https://github.com/lsst-sqre/RISE@jupyterlab_extension
 ENV SVXT="jupyterlab nbserverproxy"
-ENV NBXT="widgetsnbextension rise ipyevents"
-ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension"
-# @pyviz/jupyterlab_holoviews
-RUN  source scl_source enable rh-python36 && \
-      for s in $SVXT; do \
-          jupyter serverextension enable ${s} --py --sys-prefix ; \
-      done
-RUN  source scl_source enable rh-python36 && \
-      for n in $NBXT; do \
-          jupyter nbextension install ${n} --py --sys-prefix ; \
-          jupyter nbextension enable ${n} --py  --sys-prefix ; \
-      done
-RUN  source scl_source enable rh-python36 && \
-      for l in $LBXT; do \
-          jupyter labextension install ${l} --no-build; \
-      done
-ENV GITXT="jupyterlab-hub jupyterlab-savequit jupyterlab_bokeh jupyterlab-lsstquery RISE pyviz_comms"
+ENV NBXT="widgetsnbextension ipyevents"
+ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension @pyviz/jupyterlab_holoviews jupyterlab_bokeh @jupyterlab-hubextension @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery"
 ENV tktbr="master"
-#ENV tktbr="tickets/DM-14605"
-RUN  source scl_source enable rh-python36  && \
-      mkdir -p /usr/share/git && \
-      cd /usr/share/git && \
-      jlpm global add webpack && \
-      git clone https://github.com/jupyterhub/jupyterlab-hub.git && \
-      git clone https://github.com/pyviz/pyviz_comms && \
-      git clone -b jupyterlab_extension \
-       https://github.com/lsst-sqre/RISE.git && \
-      git clone -b ${tktbr} \
-       https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
-      git clone -b ${tktbr} \
-       https://github.com/lsst-sqre/jupyterlab-savequit && \
-      git clone -b ${tktbr} \
-       https://github.com/lsst-sqre/jupyterlab-lsstquery && \
-      for i in ${GITXT}; do \
-          cd ${i} && \
-          jupyter labextension link . --no-build && \
-          jlpm install --unsafe-perm && \
-          jlpm run build && \
-          cd .. ; \
-      done
-RUN source scl_source enable rh-python36 && \
-     cd /usr/share/git/jupyterlab-lsstquery && \
-     pip install -e . && \
-     jupyter serverextension enable jupyterlab_lsstquery --py --sys-prefix
+# Install ipyaladin extension
 RUN  source scl_source enable rh-python36 && \
       mkdir -p /usr/share/git && \
       cd /usr/share/git && \
-      git clone https://github.com/cds-astro/ipyaladin.git && \
+      git clone https://github.com/cds-astro/ipyaladin && \
       cd ipyaladin/js && \
       npm install --unsafe-perm && \
       cd .. && \
       pip install -e . && \
       cd js && \
       jupyter labextension install --no-build
-RUN  source scl_source enable rh-python36 && \
-      cd  /usr/share/git/RISE/jupyterlab/jupyterlab_rise && \
-      npm install --unsafe-perm && \
-      npm run build && \
-      jupyter labextension install --no-build
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 COPY eups.patch ${jl}/
-# Patch eups if it needs patching -- that is, is it prior to 2.1.4?
-RUN  source ${LOADSTACK} && \
-     eups="/opt/lsst/software/stack/eups/current/bin/eups" && \
-     e_ver=$(${eups} --version | cut -d ':' -f 2 | cut -c 2- ) && \
-     e_maj=$(echo ${e_ver} | cut -d '.' -f 1 ) && \
-     e_min=$(echo ${e_ver} | cut -d '.' -f 2 ) && \
-     e_pat=$(echo ${e_ver} | cut -d '.' -f 3 ) && \
-     if [ "${e_maj}" -lt 2 ] || [ "${e_min}" -lt 1 ] || \
-      [ ${e_pat} -lt 4 ]; then \
-         cd $(dirname "${eups}") ; \
-         patch < ${jl}/eups.patch ; \
-     fi
-RUN source ${LOADSTACK} && \
-      cd /usr/share/git/ipyaladin && \
-      pip install -e .
-# Get bleeding-edge bokeh labextension into Lab environment
-RUN   source scl_source enable rh-python36 && \
-       cd /usr/share/git/jupyterlab_bokeh && \
-       jupyter labextension link . --no-build && \
-       jlpm install --unsafe-perm && \
-       jlpm run build && \
-       jupyter labextension enable jupyterlab_bokeh
-# Same for pyviz/holoviews
-RUN   source scl_source enable rh-python36 && \
-       cd /usr/share/git/pyviz_comms && \
-       jupyter labextension link . --no-build && \
-       npm install .
 RUN  source scl_source enable rh-python36 && \
-      for l in ${LBXT} ${GITXT} jupyterlab_rise ipyaladin ; do \
+      for l in ${LBXT} ${GITXT} pyviz_comms ipyaladin ; do \
           jupyter labextension enable ${l} ; \
       done
-RUN  source scl_source enable rh-python36 && \
-      jupyter labextension enable pyviz_comms
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  source scl_source enable rh-python36 && \
       npm cache clean && \

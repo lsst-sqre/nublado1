@@ -5,29 +5,31 @@ RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 RUN  yum install -y epel-release man man-pages
 RUN  yum repolist
-RUN  yum -y  upgrade
+RUN  yum -y upgrade
 RUN  yum -y install \
       git sudo \
       python-devel http-parser nodejs perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox \
-      graphviz
+      graphviz geos-devel
 # Python 3.6, tkinter, and git: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum -y install rh-git29 rh-python36-python-tkinter \
       rh-python36
 # Install git-lfs repo and then git-lfs
-RUN  curl -s \
-      https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh \
-      -o /tmp/script.rpm.sh && \
+RUN  S="script.rpm.sh" && \
+      curl -s \
+       https://packagecloud.io/install/repositories/github/git-lfs/${S} \
+       -o /tmp/script.rpm.sh && \
       bash /tmp/script.rpm.sh && \
       rm /tmp/script.rpm.sh && \
       yum -y install git-lfs && \
       source scl_source enable rh-git29 && \
       git lfs install
+RUN  mkdir -p /usr/share/git
 # Install Hub
 RUN  cd /tmp && \
-     V="2.2.9" && \
+     V="2.5.1" && \
      FN="hub-linux-amd64-${V}" && \
      F="${FN}.tgz" && \
      URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
@@ -36,26 +38,62 @@ RUN  cd /tmp && \
      tar xpfz ${F} && \
      install -m 0755 ${FN}/bin/hub /usr/bin && \
      rm -rf ${F} ${FN}
+# Install Snappy
+# First we need a newer cmake
+RUN  cd /tmp && \
+      V="3.12.3" && \
+      FN="cmake-${V}-Linux-x86_64" && \
+      F="${FN}.tar.gz" && \
+      UV="$(echo ${V} | cut -d '.' -f 1-2)" && \
+      URL="https://cmake.org/files/v${UV}/${F}" && \
+      cmd="curl -L ${URL} -o ${F}" && \
+      ${cmd} && \
+      cd /usr/local && \
+      tar xvz --strip-components=1 -f /tmp/${F} && \
+      cd /tmp && \
+      rm -rf ${F} ${FN}
+# Now we can build Snappy
+RUN  cd /usr/share/git && \
+      V="1.1.7" && \
+      git clone -b ${V} https://github.com/google/snappy && \
+      cd snappy && \
+      git checkout -b ${V} && \
+      mkdir build && \
+      cd build && \
+      cmake -DBUILD_SHARED_LIBS=1 ../ && \
+      make && \
+      make install
+# Install newer Proj
+RUN  cd /usr/share/git && \
+      V="5.2.0" && \
+      git clone -b ${V} https://github.com/OSGeo/proj.4.git && \
+      cd proj.4 && \
+      git checkout -b ${V} && \
+      mkdir build && \
+      cd build && \
+      cmake ../ && \
+      cmake --build . && \
+      make install
 # Install Pandoc
-RUN cd /tmp && \
-     V="2.2.1" && \
-     FN="pandoc-${V}-linux" && \
-     F="${FN}.tar.gz" && \
-     URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
-     cmd="curl -L ${URL} -o ${F}" && \
-     ${cmd} && \
-     tar xvfz ${F} -C /usr --strip-components=1 && \
-     rm -rf ${F}
+RUN  cd /tmp && \
+      V="2.3.1" && \
+      FN="pandoc-${V}-linux" && \
+      F="${FN}.tar.gz" && \
+      URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
+      cmd="curl -L ${URL} -o ${F}" && \
+      ${cmd} && \
+      tar xvfz ${F} -C /usr --strip-components=1 && \
+      rm -rf ${F}
 # Install minimal LaTeX from TexLive
 COPY texlive.profile /tmp
-RUN cd /tmp && \
-    FN="install-tl-unx.tar.gz" && \
-    wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
-    tar xvpfz ${FN} && \
-    ./install-tl-*/install-tl --repository \
-     http://ctan.math.washington.edu/tex-archive/systems/texlive/tlnet \
-     --profile /tmp/texlive.profile && \
-    rm -rf /tmp/${FN} /tmp/install-tl*
+RUN  cd /tmp && \
+      FN="install-tl-unx.tar.gz" && \
+      wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
+      tar xvpfz ${FN} && \
+      ./install-tl-*/install-tl --repository \
+        http://ctan.math.illinois.edu/systems/texlive/tlnet \
+        --profile /tmp/texlive.profile && \
+      rm -rf /tmp/${FN} /tmp/install-tl*
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
 RUN  source scl_source enable rh-python36 && \
@@ -97,50 +135,55 @@ RUN  source scl_source enable rh-python36 && \
       ipyaladin \
       jupyterlab_lsstquery \
       nclib \
+      python-snappy \
+      cython \
       graphviz
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
-     pip install --upgrade pip \
-      jupyterlab \
-      jupyterlab_server \
-      jupyterhub \
-      nbserverproxy \
-      setuptools \
-      virtualenvwrapper \
-      ipykernel \
-      pipenv \
-      nbval \
-      pypandoc \
-      astroquery \
-      ipywidgets \
-      ipyevents \
-      bokeh \
-      pyarrow \
-      cloudpickle \
-      ipympl \
-      fastparquet \
-      paramnb \
-      ginga \
-      bqplot \
-      ipyvolume \
-      tables \
-      papermill \
-      "dask[complete]" \
-      dask-kubernetes \
-      "holoviews[recommended]" \
-      datashader \
-      vaex-core \
-      vaex-viz \
-      vaex-server \
-      vaex-hdf5 vaex-astro \
-      vaex-distributed \
-      vaex-jupyter \
-      ipyaladin \
-      jupyterlab_lsstquery \
-      nclib \
-      graphviz
-# Numpy must be installed before vaex
+      pip install --upgrade pip \
+       jupyterlab \
+       jupyterlab_server \
+       jupyterhub \
+       nbserverproxy \
+       setuptools \
+       virtualenvwrapper \
+       ipykernel \
+       pipenv \
+       nbval \
+       pypandoc \
+       astroquery \
+       ipywidgets \
+       ipyevents \
+       bokeh \
+       pyarrow \
+       cloudpickle \
+       ipympl \
+       fastparquet \
+       paramnb \
+       ginga \
+       bqplot \
+       ipyvolume \
+       tables \
+       papermill \
+       "dask[complete]" \
+       dask-kubernetes \
+       "holoviews[recommended]" \
+       datashader \
+       vaex-core \
+       vaex-viz \
+       vaex-server \
+       vaex-hdf5 vaex-astro \
+       vaex-distributed \
+       vaex-jupyter \
+       ipyaladin \
+       jupyterlab_lsstquery \
+       nclib \
+       python-snappy \
+       cython \
+       graphviz
+# Numpy must be installed before vaex and Cython must be installed before
+#  cartopy
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade \
        vaex-core \
@@ -148,16 +191,39 @@ RUN  source scl_source enable rh-python36 && \
        vaex-server \
        vaex-hdf5 vaex-astro \
        vaex-distributed \
-       vaex-jupyter
-RUN  source ${LOADSTACK} && \
+       vaex-jupyter \
+       cartopy
+RUN  source scl_source enable rh-python36 && \
+      pip3 install --upgrade \
+       cartopy
+RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
-ENV SVXT="jupyterlab nbserverproxy"
+ENV SVXT="jupyterlab nbserverproxy jupyterlab_lsstquery"
 ENV NBXT="widgetsnbextension ipyevents"
-ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension @pyviz/jupyterlab_holoviews jupyterlab_bokeh @jupyterlab-hubextension @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery"
+ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery"
+# @pyviz/jupyterlab_holoviews, @jupyterlab/hub-extension, and
+#  jupyterlab_bokeh not updated yet
 ENV tktbr="master"
+ENV  jl=/opt/lsst/software/jupyterlab
+RUN  mkdir -p ${jl}
+RUN  source scl_source enable rh-python36 && \
+      set -e && \
+      for s in $SVXT; do \
+          jupyter serverextension enable ${s} --py --sys-prefix ; \
+      done
+RUN  source scl_source enable rh-python36 && \
+      set -e && \
+      for n in $NBXT; do \
+          jupyter nbextension install ${n} --py --sys-prefix && \
+          jupyter nbextension enable ${n} --py  --sys-prefix ; \
+      done
+RUN  source scl_source enable rh-python36 && \
+     set -e && \
+     for l in ${LBXT}; do \
+         jupyter labextension install ${l} --no-build ; \
+     done
 # Install ipyaladin extension
 RUN  source scl_source enable rh-python36 && \
-      mkdir -p /usr/share/git && \
       cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
       cd ipyaladin/js && \
@@ -166,11 +232,27 @@ RUN  source scl_source enable rh-python36 && \
       pip install -e . && \
       cd js && \
       jupyter labextension install --no-build
-ENV  jl=/opt/lsst/software/jupyterlab
-RUN  mkdir -p ${jl}
-COPY eups.patch ${jl}/
+# Install holoviews from source until npm is updated.
+# Install jupyterlab-hub and jupyterlab_bokeh from SQuaRE-maintained versions
+#  until upstream is updated.
 RUN  source scl_source enable rh-python36 && \
-      for l in ${LBXT} ${GITXT} pyviz_comms ipyaladin ; do \
+      gitxt="pyviz_comms jupyterlab-hub jupyterlab_bokeh" && \
+      cd /usr/share/git && \
+      git clone https://github.com/pyviz/pyviz_comms && \
+      git clone https://github.com/lsst-sqre/jupyterlab-hub && \
+      git clone https://github.com/lsst-sqre/jupyterlab_bokeh && \
+      set -e && \
+      for d in ${gitxt}; do \
+          cd ${d} ; \
+          jlpm install --unsafe-perm ; \
+          jlpm run build ; \
+          jupyter labextension install --no-build ; \
+          cd .. ; \
+      done
+RUN  source scl_source enable rh-python36 && \
+      gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
+      set -e && \
+      for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
 ENV  NODE_OPTIONS=--max-old-space-size=4096
@@ -188,8 +270,9 @@ RUN  groupadd -g 768 jupyter && \
 # errors on startup....but also radically slows down startup, by about
 # three minutes.
      mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
+     set -e && \
      for i in /usr/share/git ${u}/staging; do \
-         chgrp -R jupyter ${i} ; \
+         chgrp -R jupyter ${i} && \
          chmod -R g+w ${i} ; \
      done
 # More TeX stuff we need for PDF export
@@ -202,17 +285,19 @@ RUN  PATH=/usr/local/texlive/2018/bin/x86_64-linux:${PATH} && \
      tlmgr install xetex && \
      ln -s /usr/local/texlive/2018/bin/x86_64-linux/xelatex \
            /usr/local/texlive/2018/bin/x86_64-linux/bibtex \
-	   /usr/bin
+           /usr/bin
 # Custom local files
 COPY local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \
      local08-virtualenvwrapper.sh \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
-     for i in local*; do \
-         ln ${i} $(basename ${i} .sh).csh ; \
-     done
-RUN  for i in notebooks WORK DATA idleculler ; do \
+      set -e && \
+      for i in local*; do \
+          ln ${i} $(basename ${i} .sh).csh ; \
+      done
+RUN  set -e && \
+     for i in notebooks WORK DATA idleculler ; do \
         mkdir -p /etc/skel/${i} ; \
      done
 COPY lsst_kernel.json \

@@ -94,50 +94,52 @@ RUN  cd /tmp && \
         http://ctan.math.illinois.edu/systems/texlive/tlnet \
         --profile /tmp/texlive.profile && \
       rm -rf /tmp/${FN} /tmp/install-tl*
+# Get newer setuptools before Python packages
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
+# Nbserverproxy with subprotocols fix has not been pushed to PyPi yet
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade \
-      jupyterlab \
-      jupyterlab_server \
-      jupyterhub \
-      nbserverproxy \
-      virtualenv \
-      virtualenvwrapper \
-      ipykernel \
-      pipenv \
-      nbval \
-      numpy \
-      scipy \
-      pandas \
-      astropy \
-      pypandoc \
-      ipyevents \
-      ipywidgets \
-      matplotlib \
-      astroquery \
-      healpy \
-      bokeh \
-      pyarrow \
-      cloudpickle \
-      ipympl \
-      fastparquet \
-      paramnb \
-      ginga \
-      bqplot \
-      ipyvolume \
-      tables \
-      papermill \
-      "dask[complete]" \
-      dask-kubernetes \
-      "holoviews[recommended]" \
-      datashader \
-      ipyaladin \
-      jupyterlab_lsstquery \
-      nclib \
-      python-snappy \
-      cython \
-      graphviz
+       jupyterlab \
+       jupyterlab_server \
+       jupyterhub \
+       git+https://github.com/jupyterhub/nbserverproxy \
+       virtualenv \
+       virtualenvwrapper \
+       ipykernel \
+       pipenv \
+       nbval \
+       numpy \
+       scipy \
+       pandas \
+       astropy \
+       pypandoc \
+       ipyevents \
+       ipywidgets \
+       matplotlib \
+       astroquery \
+       healpy \
+       bokeh \
+       pyarrow \
+       cloudpickle \
+       ipympl \
+       fastparquet \
+       paramnb \
+       ginga \
+       bqplot \
+       ipyvolume \
+       tables \
+       papermill \
+       "dask[complete]" \
+       dask-kubernetes \
+       "holoviews[recommended]" \
+       datashader \
+       ipyaladin \
+       jupyterlab_lsstquery \
+       nclib \
+       python-snappy \
+       cython \
+       graphviz
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
@@ -145,7 +147,7 @@ RUN  source ${LOADSTACK} && \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
-       nbserverproxy \
+       git+https://github.com/jupyterhub/nbserverproxy \
        setuptools \
        virtualenvwrapper \
        ipykernel \
@@ -193,17 +195,18 @@ RUN  source scl_source enable rh-python36 && \
        vaex-distributed \
        vaex-jupyter \
        cartopy
-RUN  source scl_source enable rh-python36 && \
+RUN  source ${LOADSTACK} && \
       pip3 install --upgrade \
        cartopy
+# Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
+# Install our extensions
 ENV SVXT="jupyterlab nbserverproxy jupyterlab_lsstquery"
 ENV NBXT="widgetsnbextension ipyevents"
-ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery"
-# @pyviz/jupyterlab_holoviews, @jupyterlab/hub-extension, and
-#  jupyterlab_bokeh not updated yet
-ENV tktbr="master"
+ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery @pyviz/jupyterlab_pyviz"
+# jupyterlab/hub-extension and jupyterlab_bokeh not updated yet
+# ENV tktbr="master"
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 RUN  source scl_source enable rh-python36 && \
@@ -222,7 +225,7 @@ RUN  source scl_source enable rh-python36 && \
      for l in ${LBXT}; do \
          jupyter labextension install ${l} --no-build ; \
      done
-# Install ipyaladin extension
+# Install ipyaladin extension from source until npm is updated.
 RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
@@ -232,15 +235,17 @@ RUN  source scl_source enable rh-python36 && \
       pip install -e . && \
       cd js && \
       jupyter labextension install --no-build
-# Install holoviews from source until npm is updated.
-# Install jupyterlab-hub and jupyterlab_bokeh from SQuaRE-maintained versions
-#  until upstream is updated.
+# Install jupyterlab-hub from source until npm is updated.
+# Install jupyterlab_bokeh from PR until it is merged/published to npm.
 RUN  source scl_source enable rh-python36 && \
-      gitxt="pyviz_comms jupyterlab-hub jupyterlab_bokeh" && \
+      gitxt="jupyterlab-hub jupyterlab_bokeh" && \
       cd /usr/share/git && \
-      git clone https://github.com/pyviz/pyviz_comms && \
-      git clone https://github.com/lsst-sqre/jupyterlab-hub && \
-      git clone https://github.com/lsst-sqre/jupyterlab_bokeh && \
+      git clone https://github.com/jupyterhub/jupyterlab-hub && \
+      git clone https://github.com/bokeh/jupyterlab_bokeh && \
+      cd jupyterlab_bokeh && \
+      git fetch origin pull/57/head:jl035 && \
+      git checkout jl035 && \
+      cd .. && \
       set -e && \
       for d in ${gitxt}; do \
           cd ${d} ; \

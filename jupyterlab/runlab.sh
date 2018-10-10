@@ -80,6 +80,8 @@ fi
 if [ -n "${CLEAR_DOTLOCAL}" ]; then
     clear_dotlocal
 fi
+# Add paths
+source /etc/profile.d/local05-path.sh
 # Set up SCLs
 source /etc/profile.d/local06-scl.sh
 # Set GitHub configuration

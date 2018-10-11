@@ -204,7 +204,11 @@ RUN source ${LOADSTACK} && \
 # Install our extensions
 ENV SVXT="jupyterlab nbserverproxy jupyterlab_lsstquery"
 ENV NBXT="widgetsnbextension ipyevents"
-ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery @pyviz/jupyterlab_pyviz"
+ENV LBXT="@jupyterlab/celltags @jupyterlab/jupyterlab-tocl \
+          @jupyter-widgets/jupyterlab-manager \
+          @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
+          @pyviz/jupyterlab_pyviz \
+          bqplot  dask-labextension ipyevents ipyvolume jupyter-threejs"
 # jupyterlab/hub-extension and jupyterlab_bokeh not updated yet
 # ENV tktbr="master"
 ENV  jl=/opt/lsst/software/jupyterlab

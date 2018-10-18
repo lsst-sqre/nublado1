@@ -209,9 +209,9 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
           @pyviz/jupyterlab_pyviz \
-          bqplot dask-labextension ipyevents ipyvolume jupyter-threejs"
-# jupyterlab/hub-extension and jupyterlab_bokeh not updated yet
-# ENV tktbr="master"
+          bqplot dask-labextension ipyevents ipyvolume jupyter-threejs \
+          jupyterlab_bokeh"
+# jupyterlab/hub-extension not updated yet
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 RUN  source scl_source enable rh-python36 && \
@@ -241,16 +241,10 @@ RUN  source scl_source enable rh-python36 && \
       cd js && \
       jupyter labextension install --no-build
 # Install jupyterlab-hub from source until npm is updated.
-# Install jupyterlab_bokeh from PR until it is merged/published to npm.
 RUN  source scl_source enable rh-python36 && \
-      gitxt="jupyterlab-hub jupyterlab_bokeh" && \
+      gitxt="jupyterlab-hub" && \
       cd /usr/share/git && \
       git clone https://github.com/jupyterhub/jupyterlab-hub && \
-      git clone https://github.com/bokeh/jupyterlab_bokeh && \
-      cd jupyterlab_bokeh && \
-      git fetch origin pull/57/head:jl035 && \
-      git checkout jl035 && \
-      cd .. && \
       set -e && \
       for d in ${gitxt}; do \
           cd ${d} ; \

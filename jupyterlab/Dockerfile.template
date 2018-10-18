@@ -97,13 +97,12 @@ RUN  cd /tmp && \
 # Get newer setuptools before Python packages
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
-# Nbserverproxy with subprotocols fix has not been pushed to PyPi yet
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
-       git+https://github.com/jupyterhub/nbserverproxy \
+       nbserverproxy \
        virtualenv \
        virtualenvwrapper \
        ipykernel \
@@ -139,7 +138,8 @@ RUN  source scl_source enable rh-python36 && \
        nclib \
        python-snappy \
        cython \
-       graphviz
+       graphviz \
+       jupyterlabutils
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
@@ -147,7 +147,7 @@ RUN  source ${LOADSTACK} && \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
-       git+https://github.com/jupyterhub/nbserverproxy \
+       nbserverproxy \
        setuptools \
        virtualenvwrapper \
        ipykernel \
@@ -183,7 +183,8 @@ RUN  source ${LOADSTACK} && \
        nclib \
        python-snappy \
        cython \
-       graphviz
+       graphviz \
+       jupyterlabutils
 # Numpy must be installed before vaex and Cython must be installed before
 #  cartopy
 RUN  source scl_source enable rh-python36 && \
@@ -204,7 +205,11 @@ RUN source ${LOADSTACK} && \
 # Install our extensions
 ENV SVXT="jupyterlab nbserverproxy jupyterlab_lsstquery"
 ENV NBXT="widgetsnbextension ipyevents"
-ENV LBXT="@jupyterlab/celltags @jupyter-widgets/jupyterlab-manager ipyevents bqplot ipyvolume jupyter-threejs dask-labextension @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery @pyviz/jupyterlab_pyviz"
+ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
+          @jupyter-widgets/jupyterlab-manager \
+          @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
+          @pyviz/jupyterlab_pyviz \
+          bqplot dask-labextension ipyevents ipyvolume jupyter-threejs"
 # jupyterlab/hub-extension and jupyterlab_bokeh not updated yet
 # ENV tktbr="master"
 ENV  jl=/opt/lsst/software/jupyterlab

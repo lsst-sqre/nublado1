@@ -13,7 +13,8 @@ DASK_LOCAL_DIR="${TMPDIR}/$(hostname)"
 mkdir -p ${DASK_LOCAL_DIR}
 
 source ${LOADSTACK}
-exec dask-worker --nthreads ${DASK_THREADS} --no-bokeh \
-     --memory-limit ${DASK_MEM_LIMIT} --death-timeout ${DASK_DEATH_TIMEOUT} \
+exec dask-worker --nthreads ${DASK_THREADS} \
+     --memory-limit ${DASK_MEM_LIMIT} \
+     --death-timeout ${DASK_DEATH_TIMEOUT} \
      --local-directory ${DASK_LOCAL_DIR}
 

@@ -308,15 +308,20 @@ COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst/kernel.json
 COPY motd /etc/motd
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-COPY 20_jupytervars /etc/sudoers.d/
+COPY 20_jupytervars 30_provisionator /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
 COPY gitconfig /etc/skel/.gitconfig
 COPY git-credentials /etc/skel/.git-credentials
 COPY user_setups /etc/skel/notebooks/.user_setups
 COPY lsst_kernel.json selfculler.py \
-      lsstlaunch.bash lablauncher.bash runlab.sh refreshnb.sh \
-      prepuller.sh lsstwrapdask.bash dask_worker.template.yml \
+      lsstlaunch.bash runlab.sh refreshnb.sh \
+      prepuller.sh provisionator.bash \
+      lsstwrapdask.bash dask_worker.template.yml \
       ${jl}/
+RUN  mkdir ${jl}/prov
+COPY prov/addlabuser.bash prov/changestagingid.bash \
+     prov/writeusersudoer.bash \
+     ${jl}/prov/
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \
       's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \
@@ -327,10 +332,13 @@ RUN  sed -i -e \
      if [ -d /home/lsst ]; then \
          mv /home/lsst /home/lsst_lcl ; \
      fi
+RUN  groupadd -g 769 provisionator
+RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
+WORKDIR /tmp
+USER provisionator
 ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
-WORKDIR /tmp
-CMD [ "/opt/lsst/software/jupyterlab/lablauncher.bash" ]
+CMD [ "/opt/lsst/software/jupyterlab/provisionator.bash" ]
 LABEL description="LSST Science Platform Notebook Aspect: {{IMAGE_NAME}}" \
        name="{{IMAGE_NAME}}" \
        version="{{VERSION}}"

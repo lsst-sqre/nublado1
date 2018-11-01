@@ -7,7 +7,7 @@ function usage() {
 
 function write_user_sudoer() {
     local username=$1
-    local sudoers="/etc/sudoers.d/88-jupyter"
+    local sudoers="/etc/sudoers.d/88_jupyter"
     local jldir="/opt/lsst/software/jupyterlab"
     l="provisionator ALL = (${username}) NOPASSWD: ${jldir}/runlab.sh"
     echo "${l}" > ${sudoers}
@@ -15,7 +15,7 @@ function write_user_sudoer() {
 
 username=$1
 shift
-if [ -z "${username}" ] || [ -n "${1}"] ; then
+if [ -z "${username}" ] || [ -n "$1" ] ; then
     usage
     exit 2
 fi

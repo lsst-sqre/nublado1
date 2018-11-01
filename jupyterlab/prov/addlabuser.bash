@@ -7,7 +7,6 @@ function usage() {
     echo 1>&2 " GROUPS: group1:gid1,group2:gid2,..."
 }
 
-
 function add_group() {
     # If the group exists already, use that.
     # If it doesn't exist but the group id is in use, use a system-
@@ -36,6 +35,7 @@ function add_group() {
 function add_lab_user() {
     # Already in sudo context
     #  variables should have been populated during argument parsing
+    add_groups
     adduser ${username} -d ${homedir} -c '' -N -g ${username} ${nuid} \
       ${suppgrp} ${makedir} -s ${default_shell}
 }
@@ -135,3 +135,4 @@ homedir="${homedirs}/${username}"
 if [ -e "${homedir}" ]; then
     makedir="-M"
 fi
+add_lab_user

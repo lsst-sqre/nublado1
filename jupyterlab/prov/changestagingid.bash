@@ -20,7 +20,7 @@ function change_staging_id() {
 
 username=$1
 shift
-if [ -z "${username}" ] || [ -n "${1}"] ; then
+if [ -z "${username}" ] || [ -n "$1" ] ; then
     usage
     exit 2
 fi

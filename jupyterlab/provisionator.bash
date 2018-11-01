@@ -58,7 +58,7 @@ function purge_docker_vars() {
 ## Begin mainline code. ##
 U_NAME="${JUPYTERHUB_USER}"
 JLDIR="/opt/lsst/software/jupyterlab"
-PROVDIR="${JLDIR}/provisioning"
+PROVDIR="${JLDIR}/prov"
 user_sudo=""
 
 if [ $(id -u) -eq 0 ]; then

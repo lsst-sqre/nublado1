@@ -82,4 +82,4 @@ if [ -n "${U_NAME}" ]; then
     user_sudo="/bin/sudo -E -u ${U_NAME} "
 fi
 forget_extraneous_vars
-exec ${user_sudo} ${TOPDIR}/software/jupyterlab/runlab.sh
+exec ${user_sudo} ${JLDIR}/runlab.sh

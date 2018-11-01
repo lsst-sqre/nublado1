@@ -69,10 +69,18 @@ fi
 U_NAME="${JUPYTERHUB_USER}"
 JLDIR="/opt/lsst/software/jupyterlab"
 PROVDIR="${JLDIR}/prov"
+PUSER="provisionator"
 user_sudo=""
 
 if [ $(id -u) -eq 0 ]; then
-    echo 1>&2 "Warning: running as UID 0"
+    echo 1>&2 "Warning: running as UID 0."
+    id ${PUSER} 2>&1 >/dev/null
+    rc=$?
+    if [ "${rc}" -eq 0 ]; then
+	echo 1>&2 "Attempting restart as provisioning user."
+	exec /bin/sudo -u ${PUSER} -E \
+	     /opt/lsst/software/jupyterlab/provisionator.bash
+    fi
 fi
 if [ -z "${U_NAME}" ]; then
     echo 1>&2 "Warning: no target user name."

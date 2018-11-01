@@ -7,11 +7,8 @@ import os
 from urllib.error import HTTPError
 from kubespawner.objects import make_pod
 from tornado import gen
-# https://github.com/lsst-sqre/jupyterhubutils
-try:
-    from jupyterhubutils import ScanRepo
-except ImportError:
-    from jupyterutils import ScanRepo
+# https://github.com/lsst-sqre/jupyterutils
+from jupyterutils import ScanRepo
 
 # Spawn the pod with custom settings retrieved via token additional scope.
 

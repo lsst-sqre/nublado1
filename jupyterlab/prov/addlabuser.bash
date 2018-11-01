@@ -79,8 +79,10 @@ function add_group() {
     groupadd ${gopt} ${gname}
 }
 
-
 ## Begin mainline code. ##
+if [ -n "${DEBUG}" ]; then
+    set -x
+fi
 homedirs="/home"
 default_shell="/bin/bash"
 suppgrp="-G jupyter"

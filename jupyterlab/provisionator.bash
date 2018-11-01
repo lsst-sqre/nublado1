@@ -17,9 +17,9 @@ function setup_user() {
 	fi
 	change_staging_id="${sudo} ${PROVDIR}/changestagingid.bash ${U_NAME}"
 	write_user_sudoer="${sudo} ${PROVDIR}/writeusersudoer.bash ${U_NAME}"
-	${user_provisioning}
-	${change_staging_id}
-	${write_user_sudoer}
+	${user_provisioning} || debug_pause
+	${change_staging_id} || debug_pause
+	${write_user_sudoer} || debug_pause
     fi
 }
 
@@ -55,7 +55,17 @@ function purge_docker_vars() {
     unset ${purge}
 }
 
+function debug_pause() {
+    if [ -n "${DEBUG}" ]; then
+	echo 1>&2 "Previous command failed.  Debug_pause in effect."
+	sleep 600
+    fi
+}
+
 ## Begin mainline code. ##
+if [ -n "${DEBUG}" ]; then
+    set -x
+fi
 U_NAME="${JUPYTERHUB_USER}"
 JLDIR="/opt/lsst/software/jupyterlab"
 PROVDIR="${JLDIR}/prov"

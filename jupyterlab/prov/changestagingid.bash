@@ -18,6 +18,10 @@ function change_staging_id() {
         chown ${username} "${stagedir}"
 }
 
+## Begin mainline code. ##
+if [ -n "${DEBUG}" ]; then
+    set -x
+fi
 username=$1
 shift
 if [ -z "${username}" ] || [ -n "$1" ] ; then

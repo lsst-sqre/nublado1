@@ -178,6 +178,7 @@ RUN  source ${LOADSTACK} && \
        vaex-hdf5 vaex-astro \
        vaex-distributed \
        vaex-jupyter \
+       vaex-arrow \
        ipyaladin \
        jupyterlab_lsstquery \
        nclib \
@@ -195,6 +196,7 @@ RUN  source scl_source enable rh-python36 && \
        vaex-hdf5 vaex-astro \
        vaex-distributed \
        vaex-jupyter \
+       vaex-arrow \
        cartopy
 RUN  source ${LOADSTACK} && \
       pip3 install --upgrade \

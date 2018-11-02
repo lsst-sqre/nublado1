@@ -4,10 +4,13 @@ metadata:
     dask: ok
 spec:
   restartPolicy: Never
+  securityContext:
+    runAsUser: 769
+    runAsGroup: 769
   containers:
   - image: {{JUPYTER_IMAGE_SPEC}}
     imagePullPolicy: Always
-    args: [ /opt/lsst/software/jupyterlab/lablauncher.bash ]
+    args: [ /opt/lsst/software/jupyterlab/provisionator.bash ]
     name: dask
     # nodeSelector:
     #   dask: ok

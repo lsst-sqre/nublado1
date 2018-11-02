@@ -7,9 +7,11 @@ import os
 from urllib.error import HTTPError
 from kubespawner.objects import make_pod
 from tornado import gen
-# https://github.com/lsst-sqre/jupyterutils
-from jupyterutils import ScanRepo
-
+# https://github.com/lsst-sqre/jupyterhubutils, used to be jupyterutils
+try:
+    from jupyterhubutils import ScanRepo
+except ImportError:
+    from jupyterutils import ScanRepo
 # Spawn the pod with custom settings retrieved via token additional scope.
 
 
@@ -18,12 +20,10 @@ class LSSTSpawner(kubespawner.KubeSpawner):
     auth_state."""
 
     _sizemap = {}
-    # Generally bad practice, but we do this in order to provision a user
-    #  with correct, globally-unique UID/GID in the container, and then we
-    #  sudo to that user before starting the jupyter server.  Do not attempt
-    #  this at home.
-    uid = 0
-    gid = 0
+    # In our LSST setup, there is a "provisionator" user, uid/gid 769,
+    #  that is who we should start as.
+    uid = 769
+    gid = 769
     # The fields need to be defined; we don't use them.
     fs_gid = None
     supplemental_gids = []
@@ -347,7 +347,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             image_pull_secret=self.image_pull_secrets,
             node_selector=self.node_selector,
             run_as_uid=uid,
-            #            run_as_gid=gid,
+            run_as_gid=gid,
             fs_gid=fs_gid,
             supplemental_gids=supplemental_gids,
             run_privileged=self.privileged,

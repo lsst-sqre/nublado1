@@ -1,5 +1,8 @@
 FROM {{BASE_IMAGE}}:{{TAG_PREFIX}}{{TAG}}
 USER root
+# If we don't have locales set correctly, the pip install pieces can fail.
+ENV  LANG=en_US.UTF-8
+ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
@@ -106,7 +109,7 @@ RUN  source scl_source enable rh-python36 && \
        nbserverproxy \
        virtualenv \
        virtualenvwrapper \
-       "pyshp>=1.1.4,<2.0.0" \
+       pyshp \
        ipykernel \
        pipenv \
        nbval \
@@ -152,7 +155,7 @@ RUN  source ${LOADSTACK} && \
        nbserverproxy \
        setuptools \
        virtualenvwrapper \
-       "pyshp>=1.1.4,<2.0.0" \
+       pyshp \
        ipykernel \
        pipenv \
        nbval \
@@ -341,8 +344,6 @@ RUN  groupadd -g 769 provisionator
 RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
 WORKDIR /tmp
 USER provisionator
-ENV  LANG=en_US.UTF-8
-ENV  LC_ALL=en_US.UTF-8
 CMD [ "/opt/lsst/software/jupyterlab/provisionator.bash" ]
 LABEL description="LSST Science Platform Notebook Aspect: {{IMAGE_NAME}}" \
        name="{{IMAGE_NAME}}" \

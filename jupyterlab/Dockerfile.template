@@ -97,6 +97,7 @@ RUN  cd /tmp && \
 # Get newer setuptools before Python packages
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
+# Pyshp 2.0.0 introduces Unicode error 05112018
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade \
        jupyterlab \
@@ -105,6 +106,7 @@ RUN  source scl_source enable rh-python36 && \
        nbserverproxy \
        virtualenv \
        virtualenvwrapper \
+       "pyshp>=1.1.4,<2.0.0" \
        ipykernel \
        pipenv \
        nbval \
@@ -150,6 +152,7 @@ RUN  source ${LOADSTACK} && \
        nbserverproxy \
        setuptools \
        virtualenvwrapper \
+       "pyshp>=1.1.4,<2.0.0" \
        ipykernel \
        pipenv \
        nbval \

@@ -567,9 +567,11 @@ class JupyterLabDeployment(object):
         else:
             self.enable_logging = True
         if self._empty_param('session_db_url'):
+            # cloudsql isn't working correctly yet
             pw = self._generate_random_pw()
-            ns = self.params["kubernetes_cluster_namespace"]
-            url = "mysql://proxyuser:" + pw + "@127.0.0.1:3306/" + ns
+            # ns = self.params["kubernetes_cluster_namespace"]
+            # url = "mysql://proxyuser:" + pw + "@127.0.0.1:3306/" + ns
+            url = "sqlite:////home/jupyter/jupyterhub.sqlite"
             self.params['session_db_url'] = url
             self.params['session_db_pw'] = pw
             # Used to be 'sqlite:////home/jupyter/jupyterhub.sqlite'
@@ -868,9 +870,11 @@ class JupyterLabDeployment(object):
     def _create_resources(self):
         with self.kubecontext():
             self._create_gke_cluster()
-            self._create_database_instance()
-            self._create_db_access_credentials()
-            self._create_database()
+            # Cloud SQL isn't working yet.
+            if False:
+                self._create_database_instance()
+                self._create_db_access_credentials()
+                self._create_database()
             if self.enable_logging:
                 self._create_logging_components()
             if _empty(self.params, "external_fileserver_ip"):
@@ -1524,6 +1528,8 @@ class JupyterLabDeployment(object):
         with open(os.path.join(directory,
                                "jld-hub-deployment.template-stage2.yml"),
                   "r") as fr:
+            if not p.get('database_instance_name'):
+                p['database_instance_name'] = "dummy"
             db_identifier = (p['gke_project'] + ":" + p['gke_region'] + ":" +
                              p['database_instance_name'])
             tmpl = Template(fr.read())
@@ -1577,7 +1583,6 @@ class JupyterLabDeployment(object):
 
     def _destroy_tls_secrets(self):
         logging.info("Destroying TLS secrets")
-        directory = os.path.join(self.directory, "deployment", "tls")
         self._run_kubectl_delete(["secret", "tls"])
 
     def _create_dns_record(self):
@@ -1673,7 +1678,9 @@ class JupyterLabDeployment(object):
             self._destroy_fs_keepalive()
             self._destroy_fileserver()
             self._destroy_logging_components()
-            self._destroy_database()
+            # CloudSQL doesn't work yet.
+            if False:
+                self._destroy_database()
             self._destroy_gke_cluster()
             self._destroy_gke_disks()
 

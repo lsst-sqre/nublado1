@@ -143,35 +143,38 @@ spec:
               mountPath: /home/jupyter
             - name: jld-hub-config
               mountPath: /opt/lsst/software/jupyterhub/config
+        #
+        # This is for CloudSQL and does not work correctly yet.
+        #
         # Change DB_IDENTIFIER here to include your GCP
         # project, the region of your Cloud SQL instance and the name
         # of your Cloud SQL instance. The format is
         # $PROJECT:$REGION:$INSTANCE
-        - name: cloudsql-proxy
-          image: gcr.io/cloudsql-docker/gce-proxy
-          imagePullPolicy: "Always"
-          command: ["/cloud_sql_proxy",
-                    "-instances={{DB_IDENTIFIER}}=tcp:3306",
-                    "-credential_file=/secrets/cloudsql/credentials.json"]
-          volumeMounts:
-            - name: cloudsql-instance-credentials
-              mountPath: /secrets/cloudsql
-              readOnly: true
-          env:
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: cloudsql-db-credentials
-                  key: username
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: cloudsql-db-credentials
-                  key: password
+        # - name: cloudsql-proxy
+        #  image: gcr.io/cloudsql-docker/gce-proxy
+        #  imagePullPolicy: "Always"
+        #  command: ["/cloud_sql_proxy",
+        #            "-instances={{DB_IDENTIFIER}}=tcp:3306",
+        #            "-credential_file=/secrets/cloudsql/credentials.json"]
+        #  volumeMounts:
+        #    - name: cloudsql-instance-credentials
+        #      mountPath: /secrets/cloudsql
+        #      readOnly: true
+        #  env:
+        #    - name: DB_USER
+        #      valueFrom:
+        #        secretKeyRef:
+        #          name: cloudsql-db-credentials
+        #          key: username
+        #    - name: DB_PASSWORD
+        #      valueFrom:
+        #        secretKeyRef:
+        #          name: cloudsql-db-credentials
+        #          key: password
       volumes:
-        - name: cloudsql-instance-credentials
-          secret:
-            secretName: cloudsql-instance-credentials
+        #- name: cloudsql-instance-credentials
+        #  secret:
+        #    secretName: cloudsql-instance-credentials
         - name: jld-hub-home-jupyter
           persistentVolumeClaim:
            claimName: jld-hub-physpvc

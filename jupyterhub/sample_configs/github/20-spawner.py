@@ -2,10 +2,11 @@
 """
 import datetime
 import json
-import kubespawner
+# import kubespawner
+from kubespawner.objects import make_pod
+import namespacedkubespawner
 import os
 from urllib.error import HTTPError
-from kubespawner.objects import make_pod
 from tornado import gen
 # https://github.com/lsst-sqre/jupyterhubutils, used to be jupyterutils
 try:
@@ -15,7 +16,8 @@ except ImportError:
 # Spawn the pod with custom settings retrieved via token additional scope.
 
 
-class LSSTSpawner(kubespawner.KubeSpawner):
+class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
+    # class LSSTSpawner(kubespawner.KubeSpawner):
     """Spawner to use our custom environment settings as reflected through
     auth_state."""
 
@@ -38,6 +40,9 @@ class LSSTSpawner(kubespawner.KubeSpawner):
     extra_container_config = None
     extra_pod_config = None
     extra_containers = []
+    service_account = None
+    if os.getenv("ALLOW_DASK_SPAWN"):
+        service_account = "jld-dask"
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -195,9 +200,13 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         # The above was from the superclass.
         # This part is our custom LSST stuff.
 
+        if os.getenv("ALLOW_DASK_SPAWN"):
+            self.service_account = 'jld-dask'
+
         pod_name = self.pod_name
-        image_spec = (self.singleuser_image_spec or os.getenv("LAB_IMAGE")
-                      or "lsstsqre/jld-lab:latest")
+        image_spec = (self.image_spec or
+                      os.getenv("LAB_IMAGE") or
+                      "lsstsqre/jld-lab:latest")
         image_name = image_spec
         size = None
         image_size = None
@@ -207,7 +216,6 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         self.start_timeout = 60 * 15
         # We are running the Lab at the far end, not the old Notebook
         self.default_url = '/lab'
-        self.singleuser_image_pull_policy = 'Always'
         self.image_pull_policy = 'Always'
         clear_dotlocal = False
         if self.user_options:
@@ -256,7 +264,7 @@ class LSSTSpawner(kubespawner.KubeSpawner):
             cpu_guar = float(image_size["cpu"] / size_range)
         self.mem_guarantee = mem_guar
         self.cpu_guarantee = cpu_guar
-        self.singleuser_image_spec = image_spec
+        self.image_spec = image_spec
         s_idx = image_spec.find('/')
         c_idx = image_spec.find(':')
         tag = "latest"
@@ -299,8 +307,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
         #  /project
         #  /scratch
         #  /datasets
-        # Where software and datasets are read/only and the others are
-        #  read/write
+        # Where datasets is read/only and the others are read/write
+
         already_vols = []
         if self.volumes:
             already_vols = [x["name"] for x in self.volumes]
@@ -333,10 +341,8 @@ class LSSTSpawner(kubespawner.KubeSpawner):
                                                         indent=4,
                                                         sort_keys=True))
         self.image_spec = image_spec
-        if os.getenv('ALLOW_DASK_SPAWN'):
-            self.service_account = 'jld-dask'
 
-        # The return is from the superclass
+        # The return is from the superclass.
 
         return make_pod(
             name=self.pod_name,

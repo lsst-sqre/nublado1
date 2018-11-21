@@ -21,8 +21,8 @@ RUN  source scl_source enable rh-python36 && \
        jupyterhub \
        oauthenticator \
        jupyterhubutils \
-       jupyterhub-kubespawner \
-       namespacedkubespawner
+       jupyterhub-kubespawner  \
+       https://github.com/lsst-sqre/namespacedkubespawner/zipball/master
 RUN  source scl_source enable rh-python36 && \
       jupyter serverextension enable --py \
       jupyterlab --sys-prefix

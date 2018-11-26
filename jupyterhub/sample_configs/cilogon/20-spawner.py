@@ -289,6 +289,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             pod_env['JUPYTERLAB_IDLE_TIMEOUT'] = str(idle_timeout)
         if os.getenv('RESTRICT_DASK_NODES'):
             pod_env['RESTRICT_DASK_NODES'] = "true"
+        if os.getenv('LAB_NODEJS_MAX_MEM'):
+            pod_env['NODE_OPTIONS'] = ("--max-old-space-size=" +
+                                       os.getenv('LAB_NODEJS_MAX_MEM'))
         oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
         endstr = "/hub/oauth_callback"
         if oauth_callback and oauth_callback.endswith(endstr):

@@ -132,6 +132,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_mem_limit",
     "lab_cpu_guarantee",
     "lab_mem_guarantee",
+    "lab_nodejs_max_mem",
     "tiny_cpu_max",
     "mb_per_cpu",
     "lab_size_range",
@@ -455,6 +456,8 @@ class JupyterLabDeployment(object):
             self.params['lab_idle_timeout'] = "43200"  # string, not int
         if self._empty_param('lab_mem_limit'):
             self.params['lab_mem_limit'] = "3G"
+        if self._empty_param('lab_nodejs_max_mem'):
+            self.params['lab_nodejs_max_mem'] = "4096"
         if self._empty_param('lab_cpu_limit'):
             self.params['lab_cpu_limit'] = "2.0"
         if self._empty_param('lab_mem_guarantee'):
@@ -782,6 +785,7 @@ class JupyterLabDeployment(object):
                           LAB_CPU_LIMIT=p['lab_cpu_limit'],
                           LAB_MEM_GUARANTEE=p['lab_mem_guarantee'],
                           LAB_CPU_GUARANTEE=p['lab_cpu_guarantee'],
+                          LAB_NODEJS_MAX_MEM=p['lab_nodejs_max_mem'],
                           TINY_MAX_CPU=p['tiny_max_cpu'],
                           MB_PER_CPU=p['mb_per_cpu'],
                           LAB_SIZE_RANGE=p['lab_size_range'],

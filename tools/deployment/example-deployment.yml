@@ -142,6 +142,13 @@ allowed_groups:
 # lab_size_range: 4.0
 # size_index: 1
 
+### Node.js memory size
+# This is the maximum size in megabytes that node.js is allowed to
+# consume.  For complex Jupyter environments it may need to be increased
+# from the default of 4096.  Should be a string.
+#
+# lab_nodejs_max_mem: '4096'
+
 ### Idle timeout for reaping user containers
 # should be a string, and should be number of seconds.  Default is 12
 # hours.

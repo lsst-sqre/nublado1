@@ -43,6 +43,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     service_account = None
     if os.getenv("ALLOW_DASK_SPAWN"):
         service_account = "jld-dask"
+    # Change some defaults.
+    delete_namespace_on_stop = True
+    duplicate_nfs_pvs_to_namespace = True
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -344,10 +347,15 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                                                         indent=4,
                                                         sort_keys=True))
         self.image_spec = image_spec
+        self.log.debug("Image spec: %s" % json.dumps(image_spec,
+                                                     indent=4,
+                                                     sort_keys=True))
+        self.log.debug("Pod env: %s" % json.dumps(pod_env,
+                                                  indent=4,
+                                                  sort_keys=True))
+        self.log.debug("About to run make_pod()")
 
-        # The return is from the superclass.
-
-        return make_pod(
+        pod = make_pod(
             name=self.pod_name,
             cmd=real_cmd,
             port=self.port,
@@ -380,6 +388,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             extra_pod_config=self.extra_pod_config,
             extra_containers=self.extra_containers,
         )
+        self.log.debug("Got back pod: %r", pod)
+        return pod
 
     def options_from_form(self, formdata=None):
         options = None

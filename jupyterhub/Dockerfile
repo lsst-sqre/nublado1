@@ -22,7 +22,7 @@ RUN  source scl_source enable rh-python36 && \
        oauthenticator \
        jupyterhubutils \
        jupyterhub-kubespawner \
-       https://github.com/lsst-sqre/namespacedkubespawner/zipball/tickets/DM-16527
+       namespacedkubespawner
 RUN  source scl_source enable rh-python36 && \
       jupyter serverextension enable --py \
       jupyterlab --sys-prefix

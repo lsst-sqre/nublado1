@@ -22,7 +22,7 @@ RUN  source scl_source enable rh-python36 && \
        oauthenticator \
        jupyterhubutils \
        jupyterhub-kubespawner \
-       https://github.com/lsst-sqre/namespacedkubespawner/zipball/master
+       namespacedkubespawner
 RUN  source scl_source enable rh-python36 && \
       jupyter serverextension enable --py \
       jupyterlab --sys-prefix
@@ -42,5 +42,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="jupyterlab demo: jupyterhub" \
              name="lsstsqre/jld-hub" \
-	     version="0.9.6"
+	     version="0.9.7"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

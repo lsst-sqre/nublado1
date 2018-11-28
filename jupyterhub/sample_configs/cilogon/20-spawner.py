@@ -46,6 +46,11 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     # Change some defaults.
     delete_namespace_on_stop = True
     duplicate_nfs_pvs_to_namespace = True
+    # To add quota support:
+    #  set enable_namespace_quotas = True
+    # and then add a method:
+    #  self.get_resource_quota_spec()
+    #   which should return a kubernetes.client.V1ResourceQuotaSpec
 
     def _options_form_default(self):
         # Make options form by scanning container repository

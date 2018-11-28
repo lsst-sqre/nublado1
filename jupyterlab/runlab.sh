@@ -99,7 +99,7 @@ if [ ${rc} -ne 0 ]; then
     git lfs install
 fi
 # Bump up node max storage to allow rebuild
-NODE_OPTIONS=--max-old-space-size=4096
+NODE_OPTIONS=${NODE_OPTIONS:-"--max-old-space-size=6144"}
 export NODE_OPTIONS
 sync
 cd ${HOME}

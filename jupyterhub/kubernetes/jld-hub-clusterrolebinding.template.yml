@@ -5,7 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: jld-hub
-  apiGroup: rbac.authorization.k8s.io
+  namespace: {{CLUSTER_IDENTIFIER}}
 roleRef:
   kind: ClusterRole
   name: jld-hub

@@ -18,9 +18,9 @@ image-spawner options menu, you may find it useful.
 ## Overview
 
 The Jupyter Lab Demo is an environment that runs in a Kubernetes
-cluster.  It provides GitHub OAuth2 authentication, authorization via
-GitHub organization membership, a JupyterHub portal, and
-spawned-on-demand JupyterLab containers.  It can also, optionally,
+cluster.  It provides GitHub or CILogon OAuth2 authentication,
+authorization via GitHub organization membership, a JupyterHub portal,
+and spawned-on-demand JupyterLab containers.  It can also, optionally,
 include a filebeat configuration to log to a remote ELK stack, an image
 prepuller to speed startup even in an environment with heavy Lab image
 churn, and an IPAC Firefly server.
@@ -112,12 +112,6 @@ manual deployment.
   primary organization you want to grant access to.  The `homepage URL`
   is simply the HTTPS endpoint of the DNS record, and the callback URL
   appends `/hub/oauth_callback` to that.
-
-* The `jupyterhub/sample_configs` directory also contains a
-  configuration to use `cilogon.org` with the NCSA identity provider.
-  If you want to use that as-is you can link the configuration directory
-  to it rather than to the GitHub sample config.  It can serve as a
-  model for using a different identity provider.
 
 * These instructions and templates generally assume Google Container
   Engine.  If you are using a different Kubernetes provider, you will
@@ -463,10 +457,14 @@ customization on your part.
   pods using Role-Based Access Control: `kubectl create -f
   jld-hub-serviceaccount.yml`.
   
-* Create a Role and a RoleBinding by copying `jld-hub-role.template.yml`
-  and `jld-hub-rolebinding.template.yml` to working files, substituting
-  the namespace.  Create each of those with `kubectl -f` run against the
-  working file.
+* Create a ClusterRole (the Hub needs the ability to manipulate
+  namespaces and pods and quotas in multiple namespaces): `kubectl
+  create -f jld-hub-clusterrole.yml`.
+  
+* Create a ClusterRoleBinding by copying
+  `jld-hub-clusterrolebinding.template.yml` to a working file,
+  substituting the namespace.  Create it with `kubectl -f` run against
+  the working file.
 
 * Next, create the Persistent Volume Claim: `kubectl create -f
   jld-hub-physpvc.yml`.  The Hub needs some persistent storage so its
@@ -509,14 +507,17 @@ customization on your part.
 * Set up your deployment environment by editing the environment
   variables in `jld-hub-deployment.yml`.
 
-  1. Set the environment variable
+  1. Set the environment variable `OAUTH_PROVIDER` to one of `github` or
+    `cilogon`, depending on which provider you want to use.
+
+  2. Set the environment variable
     `K8S_CONTEXT` to the context in which your deployment is running
     (`kubectl config current-context` will give you that information).
 	
-  2. If you changed the namespace, put the current namespace in the
+  3. If you changed the namespace, put the current namespace in the
      environment variable `K8S_NAMESPACE`.
 	 
-  3. If you have a repository containing a container image with multiple
+  4. If you have a repository containing a container image with multiple
      tags you wish to present as container options, you should set
      `LAB_SELECTOR_TITLE` to the title of the spawner options form,
      `LAB_REPO_HOST` to the hostname of the Docker container repository,
@@ -529,13 +530,9 @@ customization on your part.
 
 * Edit the configuration in `jupyterhub_config/jupyterhub_config.d` if
   you want to.
-  - In the default configuration, the GitHub authenticator (from
-    `sample_configs`) is used.
   - The files in the configuration directory are sourced in lexical sort
     order; typically they are named with a two-digit priority as a
     prefix.  Lower numbers are loaded first.
-  - The preamble and spawner are common across CILogon and GitHub, but
-    the authenticator and environment differ.
   - In the GitHub authenticator, we subclass GitHubOAuthenticator to set
     container properties from our environment and, crucially, from
     additional properties (GitHub organization membership and email
@@ -545,10 +542,13 @@ customization on your part.
   - If you're using CILogon, the setup is quite similar; scope, the
     authenticator skin, and the identity provider to use are all set as
     configurable properties of the authenticator class.
-  - In the spawner class (identical between GitHub and CILogon), we
-    subclass KubeSpawner to build a dynamic list of kernels (current as
-    of user login time) and then do additional launch-time setup,
-    largely around changing the pod name to incorporate the username.
+  - Which of the GitHub or CILogon authenticator classes to use is
+    determined by the value of the `OAUTH_PROVIDER` environment
+    variable.
+  - In the spawner class, we subclass NamespacedKubeSpawner to build a
+    dynamic list of kernels (current as of user login time) and then do
+    additional launch-time setup, to spawn the user pod into a
+    user-specific namespace.
 
 * Deploy the file using the `redeploy` script, which will create
   the `ConfigMap` resource from the JupyterHub configuration, and then
@@ -580,7 +580,8 @@ page.  Specifically, to mimic the LSP site, the Hub route should be
 
 JupyterLab is launched from the Hub.
 
-* Each user gets a new pod, with a home directory on shared storage.
+* Each user gets a new pod, with a home directory on shared storage, in
+  a namespace unique to that user.
 
 * With GitHub as the authentication source, the username is the GitHub
   user name, the UID is the GitHub ID number, and the groups are created
@@ -588,10 +589,8 @@ JupyterLab is launched from the Hub.
   their IDs.
 
 * Git will be preconfigured with a token that allows authenticated
-  HTTPS pushes, and with the user's name and primary email.
-  
-* The CILogon authenticator will eventually have similar features, but
-  those have not yet been fully developed.
+  HTTPS pushes, and with the user's name and primary email, assuming
+  that the GitHub authenticator is in use.
 
 ## Using the Service
 

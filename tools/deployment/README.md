@@ -10,8 +10,7 @@ true.
 - The domain name is hosted within AWS Route 53.
 - Authentication is done via OAuth against GitHub, and GitHub
   organization membership is used to determine access control.
-- Authentication via OAuth against NCSA/CILogon is also supported,
-  but these instructions assume the GitHub route.
+- Authentication via OAuth against NCSA/CILogon is also supported.
 
 Here are the steps you need to perform:
 

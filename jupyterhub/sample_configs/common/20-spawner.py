@@ -21,7 +21,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     """Spawner to use our custom environment settings as reflected through
     auth_state."""
 
+    # A couple of fields to use when constructing a custom spawner form
     _sizemap = {}
+    sizelist = ["tiny", "small", "medium", "large"]
     # In our LSST setup, there is a "provisionator" user, uid/gid 769,
     #  that is who we should start as.
     uid = 769
@@ -51,6 +53,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     # and then add a method:
     #  self.get_resource_quota_spec()
     #   which should return a kubernetes.client.V1ResourceQuotaSpec
+    enable_namespace_quotas = True
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -148,7 +151,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         return optform
 
     def _make_sizemap(self):
-        sizes = ["tiny", "small", "medium", "large"]
+        sizes = self.sizelist
         tiny_cpu = os.environ.get('TINY_MAX_CPU') or 0.5
         if type(tiny_cpu) is str:
             tiny_cpu = float(tiny_cpu)
@@ -412,6 +415,43 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             if ('clear_dotlocal' in formdata and formdata['clear_dotlocal']):
                 options['clear_dotlocal'] = True
         return options
+
+    def get_resource_quota_spec(self):
+        '''We're going to return a resource quota spec that allows a max of
+        25 (chosen arbitrarily) of the largest-size machines available to
+        the user.
+
+        Note that you could get a lot fancier, and check the user group
+        memberships to determine what class a user belonged to, or some other
+        more-sophisticated-than-one-size-fits-all quota mechanism.
+        '''
+        self.log.info("Entering get_resource_quota_spec()")
+        from kubernetes.client import V1ResourceQuotaSpec
+        sizes = self.sizelist
+        max_machines = 25 + 1  # Arbitrary (the 25 is intended to represent
+        # the number of dask machines, and the 1 is the lab )
+        big_multiplier = 2 ** (len(sizes) - 1)
+        self.log.info("Max machines %r, multiplier %r" % (max_machines,
+                                                          big_multiplier))
+        tiny_cpu = os.environ.get('TINY_MAX_CPU') or 0.5
+        if type(tiny_cpu) is str:
+            tiny_cpu = float(tiny_cpu)
+        mem_per_cpu = os.environ.get('MB_PER_CPU') or 2048
+        if type(mem_per_cpu) is str:
+            mem_per_cpu = int(mem_per_cpu)
+        self.log.info("Tiny CPU: %r, Mem per cpu: %r" %
+                      (tiny_cpu, mem_per_cpu))
+        total_cpu = max_machines * big_multiplier * tiny_cpu
+        total_mem = str(int(total_cpu * mem_per_cpu + 0.5)) + "Mi"
+        total_cpu = str(int(total_cpu + 0.5))
+
+        self.log.info("Determined quota sizes: CPU %r, mem %r" % (
+            total_cpu, total_mem))
+        qs = V1ResourceQuotaSpec(
+            hard={"limits.cpu": total_cpu,
+                  "limits.memory": total_mem})
+        self.log.info("Resource quota spec: %r" % qs)
+        return qs
 
 
 c.JupyterHub.spawner_class = LSSTSpawner

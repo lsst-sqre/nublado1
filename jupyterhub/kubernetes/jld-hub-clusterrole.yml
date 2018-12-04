@@ -5,7 +5,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["pods","events", "namespaces", "serviceaccounts",
-  "persistentvolumeclaims", "persistentvolumes"]
+  "persistentvolumeclaims", "persistentvolumes", "resourcequotas"]
   verbs: ["get", "list", "create", "watch", "delete"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings"]

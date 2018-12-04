@@ -3,6 +3,7 @@ if [ -z "${DEPYAMLTPL}" ]; then
     DEPYAMLTPL="kubernetes/jld-hub-deployment.template.yml"
 fi
 DEPYAML="kubernetes/jld-hub-deployment.yml"
+OAUTH_PROVIDER=${OAUTH_PROVIDER:-"github"}
 LAB_SELECTOR_TITLE=${LAB_SELECTOR_TITLE:-"LSST Stack Selector"}
 LAB_REPO_HOST=${LAB_REPO_HOST:-"hub.docker.com"}
 LAB_REPO_OWNER=${LAB_REPO_OWNER:-"lsstsqre"}
@@ -41,6 +42,7 @@ if [ -z "${DB_IDENTIFIER}" ]; then
 fi
 
 sed -e "s/{{DEBUG}}/${DEBUG}/g" \
+    -e "s/{{OAUTH_PROVIDER}}/${OAUTH_PROVIDER}/g" \
     -e "s/{{ALLOW_DASK_SPAWN}}/${ALLOW_DASK_SPAWN}/g" \
     -e "s/{{LAB_IMAGE}}/${LAB_IMAGE}/g" \
     -e "s/{{LAB_SELECTOR_TITLE}}/${LAB_SELECTOR_TITLE}/g" \

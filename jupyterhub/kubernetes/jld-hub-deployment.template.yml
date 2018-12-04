@@ -33,6 +33,9 @@ spec:
             # Set to non-empty value to enable debugging.
             - name: DEBUG
               value: '{{DEBUG}}'
+            # One of "github" or "cilogon"
+            - name: OAUTH_PROVIDER
+              value: '{{OAUTH_PROVIDER}}'
             # If set, enables running lab containers with k8s privileges
             #  to start/stop/list containers (to spawn dask worker pods)
             - name: ALLOW_DASK_SPAWN

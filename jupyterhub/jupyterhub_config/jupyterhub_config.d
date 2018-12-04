@@ -1,1 +1,1 @@
-../sample_configs/github
+../sample_configs

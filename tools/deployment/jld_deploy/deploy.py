@@ -608,10 +608,9 @@ class JupyterLabDeployment(object):
         self._copy_oauth_provider()
 
     def _copy_oauth_provider(self):
-        """Copy the right set of config files, based on oauth_provider.
+        """Copy the sample configs into place.
         """
-        configdir = os.path.join(self.srcdir, "jupyterhub", "sample_configs",
-                                 self.params['oauth_provider'])
+        configdir = os.path.join(self.srcdir, "jupyterhub", "sample_configs")
         target_pdir = os.path.join(self.directory, "deployment",
                                    "jupyterhub", "config")
         os.makedirs(target_pdir, exist_ok=True)
@@ -724,6 +723,8 @@ class JupyterLabDeployment(object):
         # We do not yet know NFS_SERVER_IP_ADDRESS so leave it a template.
         #  Same with DB_IDENTIFIER
         return tpl.render(CLUSTERNAME=p['kubernetes_cluster_name'],
+                          OAUTH_PROVIDER=self.encode_value(
+                              'oauth_provider'),
                           OAUTH_CLIENT_ID=self.encode_value(
                               'oauth_client_id'),
                           OAUTH_SECRET=self.encode_value(

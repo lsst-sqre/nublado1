@@ -367,7 +367,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             name=self.pod_name,
             cmd=real_cmd,
             port=self.port,
-            image_spec=self.image_spec,
+            image=self.image_spec,
             image_pull_policy=self.image_pull_policy,
             image_pull_secret=self.image_pull_secrets,
             node_selector=self.node_selector,
@@ -395,6 +395,14 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             extra_container_config=self.extra_container_config,
             extra_pod_config=self.extra_pod_config,
             extra_containers=self.extra_containers,
+            node_affinity_preferred=self.node_affinity_preferred,
+            node_affinity_required=self.node_affinity_required,
+            pod_affinity_preferred=self.pod_affinity_preferred,
+            pod_affinity_required=self.pod_affinity_required,
+            pod_anti_affinity_preferred=self.pod_anti_affinity_preferred,
+            pod_anti_affinity_required=self.pod_anti_affinity_required,
+            priority_class_name=self.priority_class_name,
+            logger=self.log,
         )
         self.log.debug("Got back pod: %r", pod)
         return pod

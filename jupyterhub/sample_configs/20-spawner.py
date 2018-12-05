@@ -159,15 +159,17 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if type(mem_per_cpu) is str:
             mem_per_cpu = int(mem_per_cpu)
         cpu = tiny_cpu
-        sizemap = {}
         for sz in sizes:
             mem = mem_per_cpu * cpu
-            sizemap[sz] = {"cpu": cpu,
-                           "mem": mem}
+            self._sizemap[sz] = {"cpu": cpu,
+                                 "mem": mem}
             desc = sz.title() + " (%.2f CPU, %dM RAM)" % (cpu, mem)
-            sizemap[sz]["desc"] = desc
+            self._sizemap[sz]["desc"] = desc
             cpu = cpu * 2
-        self._sizemap = sizemap
+        # Clean up if list of sizes changed.
+        for esz in self._sizemap:
+            if esz not in sizes:
+                del self._sizemap[esz]
 
     @property
     def options_form(self):
@@ -404,7 +406,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             priority_class_name=self.priority_class_name,
             logger=self.log,
         )
-        self.log.debug("Got back pod: %r", pod)
         return pod
 
     def options_from_form(self, formdata=None):

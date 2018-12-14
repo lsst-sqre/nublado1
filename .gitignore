@@ -56,3 +56,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Terraform
+.terraform
+*.tfstate
+*.tfstate.backup

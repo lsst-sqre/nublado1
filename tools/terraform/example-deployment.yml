@@ -1,0 +1,181 @@
+### JupyterLabDemo deployment data
+### Kubernetes parameters
+
+### Hostname (required)
+# Hostname must be fully-qualified and externally accessible for OAuth
+# callback
+hostname: '{{FQDN}}'
+
+### Routes
+# hub_route: '/nb/'
+# firefly_route: '/firefly/'
+# If hub_route is '/', the landing page will not be installed; otherwise
+#  it will.
+
+### OAuth Provider
+# oauth_provider: '{{OAUTH_PROVIDER}}'
+#  oauth_provider must be one of 'github' or 'cilogon'.
+#  It defaults to 'github'.
+
+### Kubernetes cluster details 
+# kubernetes_cluster_name: '{{K8S_CLUSTER_NAME}}'
+#  cluster name defaults to hostname with dots changed to dashes.
+# kubernetes_cluster_namespace: '{{K8S_CLUSTER_NAMESPACE}}'
+#  namespace defaults to the first component of the hostname if not defined.
+
+### GKE parameters
+# gke_project: 'your-project-name'
+#  project defaults to your gcloud default project if not defined
+# gke_zone: 'us-central1-a'
+# gke_node_count: 3
+# gke_machine_type: 'n1-standard-4'
+# gke_default_local_volume_size_gigabytes: 200
+
+### Nginx TLS termination (required)
+tls_cert: '/path/to/cert.pem'
+tls_key:  '/path/to/key.pem'
+tls_root_chain: '/path/to/chain.pem'
+# If tls_dhparam is not set, it will be generated on the fly.
+#  This can be very slow.
+# tls_dhparam: '/path/to/dhparam.pem'
+# dhparam_bits defaults to 2048; it is only used if tls_dhparam is
+# unset.
+# dhparam_bits: 2048
+
+### Fileserver specification
+# This obviously depends on your use case.  Must be an integer at least
+#  1, and GKE caps default volume size at 500.  If you have no idea, go
+#  with 20 (the default).  You can get larger volumes if you apply to
+#  get your limits raised, which is usually a very quick process.
+# volume_size_gigabytes: 20
+# Or you can just specify an external fileserver, if you have one:
+# external_fileserver_ip: '192.168.10.22'
+
+### GitHub OAuth application data (required)
+oauth_client_id: '{{OAUTH_CLIENT_ID}}'
+oauth_secret: '{{OAUTH_SECRET}}'
+
+### Allowed groups (required)
+allowed_groups:
+  - '{{ALLOWED_GROUP_1}}'
+  - '{{ALLOWED_GROUP_2}}'
+
+### Or use these directly
+#github_organization_whitelist:
+#  - '{{GITHUB_ORG_1}}'
+#  - '{{GITHUB_ORG_2}}'
+#cilogon_group_whitelist:
+#  - '{{CILOGON_GROUP_1}}'
+#  - '{{CILOGON_GROUP_2}}'
+
+### Forbidden groups (optional)
+# forbidden_groups:
+#   - '{{FORBIDDEN_GROUP_1}}'
+#   - '{{FORBIDDEN_GROUP_2}}'
+#github_organization_denylist:
+#  - '{{GITHUB_FORBIDDEN_ORG_1}}'
+#  - '{{GITHUB_FORBIDDEN_ORG_2}}'
+#cilogon_group_denylist:
+#  - '{{CILOGON_FORBIDDEN_GROUP_1}}'
+#  - '{{CILOGON_FORBIDDEN_GROUP_2}}'
+
+
+### Session storage location.  Any SQLAlchemy URL will work.
+# session_db_url: 'sqlite:////home/jupyter/jupyterhub.sqlite'
+
+### Auto repo URLs.  Any URLs here will be checked out with git at
+# container start.
+# auto_repo_urls:
+#  - {{AUTO_REPO_URL_1}}
+#  - {{AUTO_REPO_URL_2}}
+
+### Allow Lab containers to spawn dask workers (dangerous for now)
+# allow_dask_spawn: 'true'
+
+### Parameters for which image or set of images is prepulled.
+# For a single image, use prepuller_image_list and no_scan.
+#  prepuller_image_list:
+#  - 'lsstsqre/jld-lab:latest'
+#  prepuller_no_scan: 'true'
+# To scan a repo, specify some or all of a repo/owner/image combo
+#  and the tags will be parsed at login time
+# The values shown are the defaults.
+#  prepuller_repo: 'hub.docker.com'
+#  prepuller_owner: 'lsstsqre'
+#  prepuller_image_name: 'jld-lab'
+# This controls number of daily/weekly/release images to prepull.
+# This requires a tag format like LSST/DM uses.
+#  prepuller_dailies: '3'
+#  prepuller_weekies: '2'
+#  prepuller_releases: '1'
+# For private Docker repos, maybe you need to set the port or turn off TLS.
+#  prepuller_port: '443'
+#  prepuller_insecure: ''
+# These should not normally need changing.
+#  prepuller_sort_field: 'comp_ts'
+#  prepuller_command: 'echo "Prepuller complete on $(hostname) at $(date)"'
+# In normal operation, namespace will be set from the container itself.
+#  prepuller_namespace: 'jld_namespace'
+
+### Parameters for images presented in the Hub menu
+# Unless you are trying to annoy your users, these should probably match
+#  the values above.
+# If you only want a single lab image, set lab_image
+#  lab_image: 'lsstsqre/jld-lab:latest'
+# As with the prepuller, if you want to scan a repo for tags...
+#  lab_repo_host: 'hub.docker.com'
+#  lab_repo_owner: 'lsstsqre'
+#  lab_repo_name: 'jld-lab'
+
+### Image size parameters
+# By default you get four image sizes, "tiny", "small", "medium", and
+#  "large".  Each one is twice the size (memory and CPU) of the previous
+#  one.  The size range specifies that (except for tiny, which has an
+#  extremely minimal guarantee) the guaranteed memory and CPU are
+#  1/lab_size_range, so if you ask for, e.g., 2 CPU and 4096 MB you are
+#  guaranteed you get at least half a CPU and 1024 MB reseved, and can
+#  allocate up to 2 CPU/4096 MB.  By default the second smallest one is
+#  preselected.
+#
+# tiny_max_cpu: 0.5
+# mb_per_cpu: 2048
+# lab_size_range: 4.0
+# size_index: 1
+
+### Node.js memory size
+# This is the maximum size in megabytes that node.js is allowed to
+# consume.  For complex Jupyter environments it may need to be increased
+# from the default of 4096.  Should be a string.
+#
+# lab_nodejs_max_mem: '4096'
+
+### Idle timeout for reaping user containers
+# should be a string, and should be number of seconds.  Default is 12
+# hours.
+# lab_idle_timeout: '43200'
+
+### Restrict nodes
+# If restrict_lab_nodes is set, labs will only spawn on nodes tagged
+# with "jupyterlab: ok"; restrict_dask_nodes means dask needs "dask: ok"
+# restrict_lab_nodes: 'true'
+# restrict_dask_nodes: 'true'
+
+### Optional for ELK logging
+# beats_cert: '/path/to/beats_cert.pem'
+# beats_ca: '/path/to/beats_ca.pem'
+# beats_key: '/path/to/beats_key.pem'
+# shipper_name: 'jld'
+# rabbitmq_pan_password: 'rmqpw'
+# rabbitmq_target_host: 'rabbitmq'
+# rabbitmq_target_vhost: 'jld'
+
+### Optional for firefly
+# firefly_admin_password: 'firefly'
+# firefly_replicas: '1'
+# firefly_max_jvm_size: '3584M'
+# firefly_container_mem_limit: '4G'
+# firefly_container_cpu_limit: '3.0'
+# firefly_uid: '91'
+
+### Gets you more verbose Hub logging
+# debug: 'true'

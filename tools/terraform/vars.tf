@@ -22,29 +22,17 @@ variable "tls_dir" {
 # How do I default these to be the filename appended to tls_dir if tls_dir is
 #  set?
 
-variable "tls_cert" {
-  description = "Local path to TLS certificate cert.pem"
-  default = "${var.tls_dir}/cert.pem"
-}
-
-variable "tls_key" {
-  description = "Local path to secret key key.pem"
-  default = "${var.tls_dir}/key.pem"  
-}
-
-variable "tls_root_chain" {
-  description = "Local path to root certificate chain chain.pem"
-  default = "${var.tls_dir}/chain.pem"  
-}
-
-variable "tls_dhparam" {
-  description = "Local path to Diffie-Hellman parameter file dhparam.pem.  If not set it will be generated on the fly, which can be very slow."
-  default = "${var.tls_dir}/dhparam.pem"  
+locals {
+  # TLS files
+  "tls_cert" = "${var.tls_dir}/cert.pem"
+  "tls_key" = "${var.tls_dir}/key.pem"
+  "tls_root_chain" = "${var.tls_dir}/chain.pem"
+  "tls_dhparam" = "${var.tls_dir}/dhparam.pem"
 }
 
 variable "dhparam_bits" {
   description = "Size of DH parameters; only used if dhparam.pem is generated."
-  dparam_bits = 2048
+  default = 2048
 }
 
 variable "hub_route" {
@@ -64,14 +52,9 @@ variable "oauth_provider" {
 
 /* Kubernetes parameters (derived from hostname) */
 
-variable "kubernetes_cluster_name" {
-  description = "Name of kubernetes cluster."
-  default=${replace(var.hostname,".","-")}
-}
-
-variable "kubernetes_cluster_namespace" {
-  description = "Namespace for JupyterHub and infrastructure components"
-  default = [${split(".",var.hostname)}][0]
+locals {
+  "kubernetes_cluster_name" = "${replace(var.hostname,".","-")}"
+  "kubernetes_cluster_namespace" = "[${split(".",var.hostname)}][0]"
 }
 
 /* GKE parameters */
@@ -80,9 +63,13 @@ variable "gke_project" {
   description ="GKE project to install under"
 }
 
-variable "gke_zone" {
-  description = "GCE zone of kubernetes nodes"
-  default = "us-central1-a"
+variable "gke_region" {
+  description = "GCE region of kubernetes nodes"
+  default = "us-central1"
+}
+
+locals {
+  "gke_zone" = "${var.gke_region}-a"
 }
 
 variable "gke_node_count" {
@@ -130,28 +117,18 @@ variable "allowed_groups" {
 
 # We have both of these in preparation for chained authentication flows.
 
-variable "github_allowed_organizations" {
-  description = "GitHub organizations allowed to log in"
-  default = "${var.oauth_provider == "github" ? var.allowed_groups : "dummy" }"
-}
-
-variable "cilogon_allowed_groups" {
-  description = "CILogon groups allowed to log in"
-  default = "${var.oauth_provider == "cilogon" ? var.allowed_groups : "dummy" }"
+locals {
+  "github_allowed_organizations" = "${var.oauth_provider == "github" ? var.allowed_groups : "dummy" }"
+  "cilogon_allowed_groups" = "${var.oauth_provider == "cilogon" ? var.allowed_groups : "dummy" }"
 }
 
 variable "forbidden_groups" {
   description = "List of groups forbidden from using Jupyter"
 }
 
-variable "github_forbidden_organizations" {
-  description = "List of GitHub organizations forbidden from using Jupyter"
-  default = "${var.oauth_provider == "github" ? var.forbidden_groups : "dummy" }"  
-}
-
-variable "cilogon_forbidden_groups" {
-  description = "List of CILogon groups forbidden from using Jupyter"
-  default = "${var.oauth_provider == "cilogon" ? var.forbidden_groups : "dummy" }"    
+locals {
+  "github_forbidden_organizations" = "${var.oauth_provider == "github" ? var.forbidden_groups : "dummy" }"
+  "cilogon_forbidden_groups" = "${var.oauth_provider == "cilogon" ? var.forbidden_groups : "dummy" }"
 }
 
 /* Session Database params */
@@ -214,7 +191,7 @@ variable "prepuller_releases" {
 
 variable "prepuller_port" {
   description = "Port number on image repository"
-  default = '443'
+  default = "443"
 }
 
 variable "prepuller_insecure" {
@@ -233,9 +210,8 @@ variable "prepuller_command" {
   default = "echo \"Prepuller complete on $(hostname) at $(date)\""
 }
 
-variable "prepuller_namespace" {
-  description = "Namespace for running prepuller"
-  default = ${var.kubernetes_cluster_namespace}
+locals {
+  prepuller_namespace = "${local.kubernetes_cluster_namespace}"
 }
 
 /* Parameters for images presented in the Hub menu
@@ -252,19 +228,10 @@ variable "lab_image" {
 
 /* As with the prepuller, if you want to scan a repo for tags... */
 
-variable "lab_repo_host" {
-  description = "Host to use to scan for images for menu"
-  default = ${var.prepuller_repo}
-}
-
-variable "lab_repo_owner" {
-  description = "Owner of images presented in menu"
-  default = ${var.prepuller_owner}
-}
-
-variable "lab_repo_name" {
-  description = "Name of image scanned for tags to present in menu"
-  default = ${var.prepuller_image_name}
+locals {
+  "lab_repo_host" = "${var.prepuller_repo}"
+  "lab_repo_owner" = "${var.prepuller_owner}"
+  "lab_repo_name" = "${var.prepuller_image_name}"
 }
 
 /* Image size parameters
@@ -343,38 +310,15 @@ variable "enable_elk" {
   default = false
 }
 
-variable "beats_cert" {
-  description = "Path to filebeat certificate (PEM format)"
-  default = "${var.tls_dir}/beat_cert.pem"
-}
 
-variable "beats_ca" {
-  description = "Path to filebeat CA certificate (PEM format)"
-  default = "${var.tls_dir}/beat_ca.pem"  
-}
-
-variable "beats_key" {
-  description = "Path to filebeat secret key (PEM format)"
-  default = "${var.tls_dir}/beat_key.pem"
-}
-
-variable "shipper_name" {
-  description = "Name for log shipper"
-  default = "${var.kubernetes_cluster_namespace}"
-}
-
-variable "rabbitmq_pan_password" {
-  description = "Password for rabbitmq"
-  default = "changeme"
-}
-
-variable "rabbitmq_target_host" {
-  description = "Hostname of rabbitmq receiver"
-  default = "rabbitmq"
-}
-variable "rabbitmq_target_vhost" {
-  description = "Virtual hostname for rabbitmq receiver (top-level exchange)"
-  default = "${var.kubernetes_cluster_namespace}"
+locals {
+  "beats_cert" = "${var.tls_dir}/beat_cert.pem" 
+  "beats_ca" = "${var.tls_dir}/beat_ca.pem"
+  "beats_key" = "${var.tls_dir}/beat_key.pem"
+  "shipper_name" = "${local.kubernetes_cluster_namespace}"
+  "rabbitmq_pan_password" = "changeme"
+  "rabbitmq_target_host" = "rabbitmq"
+  "rabbitmq_target_vhost" = "${local.kubernetes_cluster_namespace}"
 }
 
 /* Optional variables for firefly.  Set replicas > 0 to enable */

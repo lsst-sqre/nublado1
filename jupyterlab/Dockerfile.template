@@ -100,7 +100,6 @@ RUN  cd /tmp && \
 # Get newer setuptools before Python packages
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade pip setuptools
-# Pyshp 2.0.0 introduces Unicode error 05112018
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade \
        jupyterlab \
@@ -117,6 +116,7 @@ RUN  source scl_source enable rh-python36 && \
        scipy \
        pandas \
        astropy \
+       pyvo \
        pypandoc \
        ipyevents \
        ipywidgets \
@@ -160,6 +160,7 @@ RUN  source ${LOADSTACK} && \
        pipenv \
        nbval \
        pypandoc \
+       pyvo \
        astroquery \
        ipywidgets \
        ipyevents \

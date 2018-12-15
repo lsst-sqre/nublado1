@@ -47,8 +47,7 @@ RUN  cd /tmp && \
       V="3.13.2" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
-      UV="$(echo ${V} | cut -d '.' -f 1-2)" && \
-      URL="https://github.com/Kitware/CMake/releases/download/v${UV}/${F}" && \
+      URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
       cmd="curl -L ${URL} -o ${F}" && \
       ${cmd} && \
       cd /usr/local && \

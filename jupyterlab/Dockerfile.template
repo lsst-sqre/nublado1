@@ -44,15 +44,12 @@ RUN  cd /tmp && \
 # Install Snappy
 # First we need a newer cmake
 RUN  cd /tmp && \
-      V="3.12.3" && \
+      V="3.13.2" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
       UV="$(echo ${V} | cut -d '.' -f 1-2)" && \
-      URL="https://cmake.org/files/v${UV}/${F}" && \
+      URL="https://github.com/Kitware/CMake/releases/download/v${UV}/${F}" && \
       cmd="curl -L ${URL} -o ${F}" && \
-      # Cmake.org down 15 Dec 2018
-      cmd="curl -L https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2.tar.gz -o ${F}" && \
-      # Remove ^^^^ when it's back
       ${cmd} && \
       cd /usr/local && \
       tar xvz --strip-components=1 -f /tmp/${F} && \

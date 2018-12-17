@@ -54,7 +54,8 @@ variable "oauth_provider" {
 
 locals {
   "kubernetes_cluster_name" = "${replace(var.hostname,".","-")}"
-  "kubernetes_cluster_namespace" = "[${split(".",var.hostname)}][0]"
+  "_cluster_components" = "${split(".",var.hostname)}"
+  "kubernetes_cluster_namespace" = "${local._cluster_components[0]}"
 }
 
 /* GKE parameters */
@@ -352,5 +353,3 @@ variable "firefly_container_uid" {
   description = "UID under which to run Firefly"
   default = 91
 }
-
-

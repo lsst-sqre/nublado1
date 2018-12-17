@@ -5,6 +5,9 @@ data "google_client_config" "current" {}
 
 # Provider
 
+# https://github.com/sl1pm4t/terraform-provider-kubernetes has the
+#  rest of the resources.  Get there eventually....
+
 provider "kubernetes" {
   load_config_file       = false
   host = "${google_container_cluster.cluster.endpoint}"
@@ -43,4 +46,32 @@ module "firefly" {
 
 module "jupyterhub" {
   source = "./modules/jupyterhub"
+  debug = "${var.debug}"
+  hostname = "${var.hostname}"
+  namespace = "${local.kubernetes_cluster_namespace}"
+  lab_selector_title = "${var.lab_selector_title}"
+  oauth_provider = "${var.oauth_provider}"
+  allow_dask_spawn = "${var.allow_dask_containers ? "TRUE" : ""}"
+  restrict_lab_nodes = "${var.restrict_lab_nodes ? "TRUE" : "" }"
+  restrict_dask_nodes = "${var.restrict_dask_nodes ? "TRUE" : "" }"
+  repo_host = "${local.lab_repo_host}"
+  repo_owner = "${local.lab_repo_owner}"
+  repo_name = "${local.lab_repo_name}"
+  lab_image = "${var.lab_image}"
+  lab_idle_timeout = "${var.lab_idle_timeout}"
+  tiny_max_cpu = "${var.tiny_max_cpu}"
+  mb_per_cpu = "${var.mb_per_cpu}"
+  lab_size_range = "${var.lab_size_range}"
+  size_index = "${var.size_index}"
+  lab_nodejs_max_mem = "${var.lab_nodejs_max_mem}"
+  hub_route = "${var.hub_route}"
+  firefly_route = "${var.firefly_route}"
+  auto_repo_urls = "${join(",",var.auto_repo_urls)}"
+  github_allowed_organizations = "${local.github_allowed_organizations}"
+  github_forbidden_organizations = "${local.github_forbidden_organizations}"
+  cilogon_allowed_groups = "${local.cilogon_allowed_groups}"
+  cilogon_forbidden_groups = "${local.cilogon_forbidden_groups}"
+  oauth_client_id = "${var.oauth_client_id}"
+  oauth_secret = "${var.oauth_secret}"
+  session_db_url = "${var.session_db_url}"
 }

@@ -178,7 +178,7 @@ variable "prepuller_dailies" {
   default = 3
 }
 
-variable "prepuller_weekies" {
+variable "prepuller_weeklies" {
   description = "Number of weekly images to prepull"
   default = 2
 }
@@ -233,6 +233,11 @@ locals {
   "lab_repo_host" = "${var.prepuller_repo}"
   "lab_repo_owner" = "${var.prepuller_owner}"
   "lab_repo_name" = "${var.prepuller_image_name}"
+}
+
+variable "lab_selector_title" {
+  description = "Title for spawner selector page"
+  default = "LSST Stack Selector"
 }
 
 /* Image size parameters

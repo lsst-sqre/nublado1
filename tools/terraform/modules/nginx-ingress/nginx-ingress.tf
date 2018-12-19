@@ -1,3 +1,12 @@
+resource "kubernetes_namespace" "ingress_nginx" {
+  metadata {
+    name = "ingress-nginx"
+    labels {
+      name = "ingress-nginx"
+    }
+  }
+}
+
 resource "kubernetes_config_map" "nginx_configuration" {
   metadata {
     name = "nginx-configuration"

@@ -3,7 +3,7 @@ resource "kubernetes_cluster_role_binding" "jupyterhub" {
     name = "jupyterhub"
   }
   subject {
-    kind = "ClusterRole"
+    kind = "ServiceAccount"
     name = "jupyterhub"
     namespace = "${var.namespace}"
   }

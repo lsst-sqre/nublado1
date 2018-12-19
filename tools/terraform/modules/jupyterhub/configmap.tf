@@ -1,9 +1,5 @@
-/* Paths are relative to top-level terraform directory, *not* this module!
-   Add another "../../" if you need for some reason to use this module
-   standalone. */
-
 locals {
-  "config_loader" = "../../jupyterhub/jupyterhub_config"
+  "config_loader" = "${path.module}/config"
   "config_path" = "${local.config_loader}/jupyterhub_config.d"
 }
 

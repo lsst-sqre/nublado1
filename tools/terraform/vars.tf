@@ -5,7 +5,7 @@ variable "debug" {
   default = false
 }
 
-/* Start with variables for external access: 
+/* Start with variables for external access:
     * hostname
     * TLS parameters
     * Application routes
@@ -45,6 +45,10 @@ variable "firefly_route" {
   default = "/firefly/"
 }
 
+variable "aws_zone_id" {
+  description = "Zone ID for Route 53 DNS"
+}
+
 variable "oauth_provider" {
   description = "One of 'github' or 'cilogon'"
   default = "github"
@@ -71,6 +75,7 @@ variable "gke_region" {
 
 locals {
   "gke_zone" = "${var.gke_region}-a"
+  "k8s_context" = "gke_${var.gke_project}_${var.gke_region}_${local.kubernetes_cluster_name}"
 }
 
 variable "gke_node_count" {
@@ -357,4 +362,24 @@ variable "firefly_container_cpu_limit" {
 variable "firefly_container_uid" {
   description = "UID under which to run Firefly"
   default = 91
+}
+
+/*
+data "kubernetes_service" "nginx_ingress" {
+  metadata {
+    name      = "nginx-ingress-controller"
+    namespace = "${local.nginx_ingress_k8s_namespace}"
+  }
+
+  depends_on = [ "${var.nginx_depends}" ]
+}
+
+locals {
+  nginx_ingress_ip = "${lookup(data.kubernetes_service.nginx_ingress.load_balancer_ingress[0], "ip")}"
+}
+
+*/
+
+locals {
+  endpoint_ip = "${module.nginx_ingress.kubernetes_service.ingress_nginx.outputs.ip}"
 }

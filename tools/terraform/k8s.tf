@@ -10,8 +10,8 @@ data "google_client_config" "current" {}
 
 provider "kubernetes" {
   load_config_file       = false
-  host = "${google_container_cluster.cluster.endpoint}"
-  cluster_ca_certificate = "${base64decode(google_container_cluster.cluster.master_auth.0.cluster_ca_certificate)}"
+  host = "${google_container_cluster.jupyter.endpoint}"
+  cluster_ca_certificate = "${base64decode(google_container_cluster.jupyter.master_auth.0.cluster_ca_certificate)}"
   token                  = "${data.google_client_config.current.access_token}"
 }
 
@@ -75,3 +75,18 @@ module "jupyterhub" {
   oauth_secret = "${var.oauth_secret}"
   session_db_url = "${var.session_db_url}"
 }
+
+module "nginx-ingress" {
+  source = "./modules/nginx-ingress"
+  k8s_context = "${local.k8s_context}"
+}
+
+module "tls" {
+  source = "./modules/tls"
+  "tls_cert" = "${local.tls_cert}"
+  "tls_key" = "${local.tls_key}"
+  "tls_root_chain" = "${local.tls_root_chain}"
+  "tls_dhparam" = "${local.tls_dhparam}"
+}
+
+

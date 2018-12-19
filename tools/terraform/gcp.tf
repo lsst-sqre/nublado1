@@ -7,7 +7,7 @@ provider "google" {
 
 # Create cluster
 
-resource "google_container_cluster" "cluster" {
+resource "google_container_cluster" "jupyter" {
   name = "${local.kubernetes_cluster_name}"
   initial_node_count = "${var.gke_node_count}"
 

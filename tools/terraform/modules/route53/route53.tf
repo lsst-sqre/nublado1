@@ -1,5 +1,5 @@
 provider "aws" {
-  region="us-west2"
+  region="us-west-2"
 }
 
 resource "aws_route53_record" "jupyter" {

@@ -16,7 +16,7 @@ resource "kubernetes_persistent_volume" "home" {
       }
     }
     storage_class_name = "fast"
-    persistent_volume_reclaim_policy = "retain"
+    persistent_volume_reclaim_policy = "Retain"
   }
 }
 
@@ -38,7 +38,7 @@ resource "kubernetes_persistent_volume" "project" {
       }
     }
     storage_class_name = "fast"
-    persistent_volume_reclaim_policy = "retain"
+    persistent_volume_reclaim_policy = "Retain"
   }
 }
 
@@ -60,7 +60,7 @@ resource "kubernetes_persistent_volume" "scratch" {
       }
     }
     storage_class_name = "fast"
-    persistent_volume_reclaim_policy = "retain"
+    persistent_volume_reclaim_policy = "Retain"
   }
 }
 
@@ -82,6 +82,6 @@ resource "kubernetes_persistent_volume" "datasets" {
       }
     }
     storage_class_name = "fast"
-    persistent_volume_reclaim_policy = "retain"
+    persistent_volume_reclaim_policy = "Retain"
   }
 }

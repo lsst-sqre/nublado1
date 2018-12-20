@@ -79,6 +79,7 @@ module "jupyterhub" {
 module "nginx-ingress" {
   source = "./modules/nginx-ingress"
   k8s_context = "${local.k8s_context}"
+  gcloud_account = "${var.gcloud_account}"
 }
 
 module "tls" {

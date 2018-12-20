@@ -7,17 +7,6 @@ resource "kubernetes_namespace" "ingress_nginx" {
   }
 }
 
-resource "kubernetes_config_map" "nginx_configuration" {
-  metadata {
-    name = "nginx-configuration"
-    namespace = "ingress-nginx"
-    labels {
-      "app.kubernetes.io/name" = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
-  }
-}
-
 resource "kubernetes_config_map" "tcp_services" {
   metadata {
     name = "tcp-services"
@@ -27,6 +16,7 @@ resource "kubernetes_config_map" "tcp_services" {
       "app.kubernetes.io/part-of" = "ingress-nginx"
     }
   }
+  depends_on = [ "kubernetes_namespace.ingress_nginx" ]
 }
 
 resource "kubernetes_config_map" "udp_services" {
@@ -38,6 +28,7 @@ resource "kubernetes_config_map" "udp_services" {
       "app.kubernetes.io/part-of" = "ingress-nginx"
     }
   }
+  depends_on = [ "kubernetes_namespace.ingress_nginx" ]  
 }
 
 resource "kubernetes_service_account" "nginx_ingress" {
@@ -49,8 +40,25 @@ resource "kubernetes_service_account" "nginx_ingress" {
       "app.kubernetes.io/part-of" = "ingress-nginx"
     }
   }
+  depends_on = [ "kubernetes_namespace.ingress_nginx" ]  
 }
 
+resource "kubernetes_cluster_role_binding" "cluster_admin_binding" {
+  metadata {
+    name = "cluster-admin-binding"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind = "ClusterRole"
+    name = "cluster-admin"
+  }
+  subject {
+    kind = "User"
+    name = "${var.gcloud_account}"
+    api_group = "rbac.authorization.k8s.io"
+  }
+}
+  
 resource "kubernetes_cluster_role" "nginx_ingress" {
   metadata {
     name = "nginx-ingress-clusterrole"
@@ -89,6 +97,18 @@ resource "kubernetes_cluster_role" "nginx_ingress" {
     resources = [ "ingresses/status" ]
     verbs = [ "update" ]
   }
+}
+
+resource "kubernetes_config_map" "nginx_configuration" {
+  metadata {
+    name = "nginx-configuration"
+    namespace = "ingress-nginx"
+    labels {
+      "app.kubernetes.io/name" = "ingress-nginx"
+      "app.kubernetes.io/part-of" = "ingress-nginx"
+    }
+  }
+  depends_on = [ "kubernetes_namespace.ingress_nginx" ]  
 }
 
 resource "kubernetes_role" "nginx_ingress" {
@@ -142,6 +162,7 @@ resource "kubernetes_role_binding" "nginx_ingress" {
     name =  "nginx-ingress-serviceaccount"
     namespace = "ingress-nginx"
   }
+  depends_on = [ "kubernetes_namespace.ingress_nginx" ]  
 }
 
 resource "kubernetes_cluster_role_binding" "nginx_ingress" {
@@ -173,6 +194,7 @@ resource "kubernetes_deployment" "nginx_ingress_controller" {
       "app.kubernetes.io/part-of" = "ingress-nginx"
     }
   }
+  depends_on = [ "kubernetes_namespace.ingress_nginx" ]  
   spec {
     selector {
       "app.kubernetes.io/name" = "ingress-nginx"
@@ -258,36 +280,6 @@ resource "kubernetes_deployment" "nginx_ingress_controller" {
 	  }
 	}
       }
-    }
-  }
-}
-
-resource "kubernetes_service" "ingress_nginx" {
-  metadata {
-    name = "ingress-nginx"
-    namespace = "ingress-nginx"
-    labels {
-      "app.kubernetes.io/name" = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
-  }
-  spec {
-    cluster_ip = ""
-    external_traffic_policy = "Local"
-    type = "LoadBalancer"
-    selector {
-      "app.kubernetes.io/name" = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
-    port {
-      name = "http"
-      port = 80
-      target_port = 80
-    }
-    port {
-      "name" = "https"
-      "port" = 443
-      target_port = 443
     }
   }
 }

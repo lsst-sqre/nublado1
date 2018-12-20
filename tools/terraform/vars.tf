@@ -64,6 +64,10 @@ locals {
 
 /* GKE parameters */
 
+variable "gcloud_account" {
+  description = "GCloud account to install with"
+}
+
 variable "gke_project" {
   description ="GKE project to install under"
 }

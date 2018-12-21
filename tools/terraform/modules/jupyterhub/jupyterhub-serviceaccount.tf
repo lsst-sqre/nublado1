@@ -1,5 +1,6 @@
 resource "kubernetes_service_account" "jupyterhub" {
   metadata {
-    name = "jupyterhub"
+    name      = "jupyterhub"
+    namespace = "${var.namespace}"
   }
 }

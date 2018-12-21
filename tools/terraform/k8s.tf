@@ -9,6 +9,7 @@ data "google_client_config" "current" {}
 #  rest of the resources.  Get there eventually....
 
 provider "kubernetes" {
+  version                = "1.3.0-custom"
   load_config_file       = false
   host                   = "${google_container_cluster.jupyter.endpoint}"
   cluster_ca_certificate = "${base64decode(google_container_cluster.jupyter.master_auth.0.cluster_ca_certificate)}"

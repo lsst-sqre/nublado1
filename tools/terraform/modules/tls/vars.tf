@@ -12,6 +12,5 @@ variable "tls_root_chain" {
 
 variable "tls_dhparam" {
   description = "DH parameters"
-  default = ""
+  default     = ""
 }
-    

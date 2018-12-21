@@ -1,6 +1,6 @@
 locals {
   "config_loader" = "${path.module}/config"
-  "config_path" = "${local.config_loader}/jupyterhub_config.d"
+  "config_path"   = "${local.config_loader}/jupyterhub_config.d"
 }
 
 data "local_file" "jupyterhub_config_py" {
@@ -30,9 +30,9 @@ resource "kubernetes_config_map" "jupyterhub_config" {
 
   data {
     "jupyterhub_config.py" = "${data.local_file.jupyterhub_config_py.content}"
-    "00-preamble.py" = "${data.local_file.00-preamble_py.content}"
-    "10-authenticator.py" = "${data.local_file.10-authenticator_py.content}"
-    "20-spawner.py" = "${data.local_file.20-spawner_py.content}"
-    "30-environment.py" = "${data.local_file.30-environment_py.content}"
+    "00-preamble.py"       = "${data.local_file.00-preamble_py.content}"
+    "10-authenticator.py"  = "${data.local_file.10-authenticator_py.content}"
+    "20-spawner.py"        = "${data.local_file.20-spawner_py.content}"
+    "30-environment.py"    = "${data.local_file.30-environment_py.content}"
   }
 }

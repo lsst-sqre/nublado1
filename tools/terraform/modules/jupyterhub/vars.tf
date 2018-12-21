@@ -47,7 +47,7 @@ variable "lab_idle_timeout" {
 }
 
 variable "tiny_max_cpu" {
-  default=0.5
+  default = 0.5
 }
 
 variable "mb_per_cpu" {
@@ -116,7 +116,6 @@ variable "cluster_admin" {
 
 locals {
   "oauth_callback_url" = "https://${var.hostname}${var.hub_route}hub/oauth_callback"
-  "_keys" = "${random_id.crypto_key.hex}"
-  "crypto_key" = "${substr(local._keys,0,32)};${substr(local._keys,32,32)}"
+  "_keys"              = "${random_id.crypto_key.hex}"
+  "crypto_key"         = "${substr(local._keys,0,32)};${substr(local._keys,32,32)}"
 }
-  

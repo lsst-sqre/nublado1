@@ -14,6 +14,10 @@ resource "kubernetes_deployment" "jupyterhub" {
   ]
 
   spec {
+    selector {
+      name = "jupyterhub"
+    }
+
     template {
       metadata {
         name = "jupyterhub"

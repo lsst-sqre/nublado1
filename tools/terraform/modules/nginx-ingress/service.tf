@@ -4,8 +4,7 @@ resource "kubernetes_service" "ingress_nginx" {
     namespace = "ingress-nginx"
 
     labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
+      "app" = "ingress-nginx"
     }
   }
 
@@ -14,8 +13,7 @@ resource "kubernetes_service" "ingress_nginx" {
     type                    = "LoadBalancer"
 
     selector {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
+      "app" = "ingress-nginx"
     }
 
     port {

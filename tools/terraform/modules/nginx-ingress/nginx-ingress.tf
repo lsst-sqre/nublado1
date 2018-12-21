@@ -12,11 +12,6 @@ resource "kubernetes_config_map" "tcp_services" {
   metadata {
     name      = "tcp-services"
     namespace = "ingress-nginx"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   depends_on = ["kubernetes_namespace.ingress_nginx"]
@@ -26,11 +21,6 @@ resource "kubernetes_config_map" "udp_services" {
   metadata {
     name      = "udp-services"
     namespace = "ingress-nginx"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   depends_on = ["kubernetes_namespace.ingress_nginx"]
@@ -40,11 +30,6 @@ resource "kubernetes_service_account" "nginx_ingress" {
   metadata {
     name      = "nginx-ingress-serviceaccount"
     namespace = "ingress-nginx"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   depends_on = ["kubernetes_namespace.ingress_nginx"]
@@ -53,11 +38,6 @@ resource "kubernetes_service_account" "nginx_ingress" {
 resource "kubernetes_cluster_role" "nginx_ingress" {
   metadata {
     name = "nginx-ingress-clusterrole"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   rule {
@@ -101,11 +81,6 @@ resource "kubernetes_config_map" "nginx_configuration" {
   metadata {
     name      = "nginx-configuration"
     namespace = "ingress-nginx"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   depends_on = ["kubernetes_namespace.ingress_nginx"]
@@ -115,11 +90,6 @@ resource "kubernetes_role" "nginx_ingress" {
   metadata {
     name      = "nginx-ingress-role"
     namespace = "ingress-nginx"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   rule {
@@ -152,11 +122,6 @@ resource "kubernetes_role_binding" "nginx_ingress" {
   metadata {
     name      = "nginx-ingress-role"
     namespace = "ingress-nginx"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   role_ref {
@@ -177,11 +142,6 @@ resource "kubernetes_role_binding" "nginx_ingress" {
 resource "kubernetes_cluster_role_binding" "nginx_ingress" {
   metadata {
     name = "nginx-ingress-role"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   role_ref {
@@ -201,26 +161,19 @@ resource "kubernetes_deployment" "nginx_ingress_controller" {
   metadata {
     name      = "nginx-ingress-controller"
     namespace = "ingress-nginx"
-
-    labels {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
-    }
   }
 
   depends_on = ["kubernetes_namespace.ingress_nginx"]
 
   spec {
     selector {
-      "app.kubernetes.io/name"    = "ingress-nginx"
-      "app.kubernetes.io/part-of" = "ingress-nginx"
+      app = "ingress-nginx"
     }
 
     template {
       metadata {
         labels {
-          "app.kubernetes.io/name"    = "ingress-nginx"
-          "app.kubernetes.io/part-of" = "ingress-nginx"
+          app = "ingress-nginx"
         }
 
         annotations {

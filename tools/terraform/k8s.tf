@@ -90,7 +90,7 @@ module "jupyterhub" {
   cluster_admin                  = "${local.cluster_admin}"
 }
 
-module "nginx-ingress" {
+module "nginx_ingress" {
   source        = "./modules/nginx-ingress"
   k8s_context   = "${local.k8s_context}"
   cluster_admin = "${local.cluster_admin}"

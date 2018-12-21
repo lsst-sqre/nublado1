@@ -197,16 +197,56 @@ resource "kubernetes_deployment" "jupyterhub" {
             value = "${local.crypto_key}"
           }
 
-          volume_mount = [
-            {
-              name       = "home"
-              mount_path = "/home/jupyter"
-            },
-            {
-              name       = "jupyterhub-config"
-              mount_path = "/opt/lsst/software/jupyterhub/config"
-            },
-          ]
+          volume_mount = {
+            name       = "jld-hub-home-jupyter"
+            mount_path = "/home/jupyter"
+          }
+
+          volume_mount = {
+            name       = "jld-hub-config"
+            mount_path = "/opt/lsst/software/jupyterhub/config"
+          }
+        }
+
+        volume {
+          name = "jld-hub-home-jupyter"
+
+          persistent_volume_claim {
+            claim_name = "jld-hub-physpvc"
+          }
+        }
+
+        volume {
+          name = "jld-hub-config"
+
+          config_map {
+            name = "jld-hub-config"
+
+            items {
+              key  = "jupyterhub_config.py"
+              path = "jupyterhub_config.py"
+            }
+
+            items {
+              key  = "00-preamble.py"
+              path = "jupyterhub_config.d/00-preamble.py"
+            }
+
+            items {
+              key  = "10-authenticator.py"
+              path = "jupyterhub_config.d/10-authenticator.py"
+            }
+
+            items {
+              key  = "20-spawner.py"
+              path = "jupyterhub_config.d/20-spawner.py"
+            }
+
+            items {
+              key  = "30-environment.py"
+              path = "jupyterhub_config.d/30-environment.py"
+            }
+          }
         }
       }
     }

@@ -21,7 +21,7 @@ resource "kubernetes_config_map" "tcp_services" {
 
 resource "kubernetes_config_map" "udp_services" {
   metadata {
-    name = "tcp-services"
+    name = "udp-services"
     namespace = "ingress-nginx"
     labels {
       "app.kubernetes.io/name" = "ingress-nginx"
@@ -43,22 +43,6 @@ resource "kubernetes_service_account" "nginx_ingress" {
   depends_on = [ "kubernetes_namespace.ingress_nginx" ]  
 }
 
-resource "kubernetes_cluster_role_binding" "cluster_admin_binding" {
-  metadata {
-    name = "cluster-admin-binding"
-  }
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind = "ClusterRole"
-    name = "cluster-admin"
-  }
-  subject {
-    kind = "User"
-    name = "${var.gcloud_account}"
-    api_group = "rbac.authorization.k8s.io"
-  }
-}
-  
 resource "kubernetes_cluster_role" "nginx_ingress" {
   metadata {
     name = "nginx-ingress-clusterrole"

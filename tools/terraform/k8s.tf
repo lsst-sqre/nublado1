@@ -15,6 +15,19 @@ provider "kubernetes" {
   token                  = "${data.google_client_config.current.access_token}"
 }
 
+module "cluster_admin" {
+  source = "./modules/cluster_admin"
+  "gcloud_account" = "${var.gcloud_account}"
+}
+
+module "tls" {
+  source = "./modules/tls"
+  "tls_cert" = "${local.tls_cert}"
+  "tls_key" = "${local.tls_key}"
+  "tls_root_chain" = "${local.tls_root_chain}"
+  "tls_dhparam" = "${local.tls_dhparam}"
+}
+
 module "namespace" {
   source = "./modules/namespace"
   namespace = "${local.kubernetes_cluster_namespace}"
@@ -74,20 +87,11 @@ module "jupyterhub" {
   oauth_client_id = "${var.oauth_client_id}"
   oauth_secret = "${var.oauth_secret}"
   session_db_url = "${var.session_db_url}"
+  cluster_admin = "${local.cluster_admin}"
 }
 
 module "nginx-ingress" {
   source = "./modules/nginx-ingress"
   k8s_context = "${local.k8s_context}"
-  gcloud_account = "${var.gcloud_account}"
+  cluster_admin = "${local.cluster_admin}"
 }
-
-module "tls" {
-  source = "./modules/tls"
-  "tls_cert" = "${local.tls_cert}"
-  "tls_key" = "${local.tls_key}"
-  "tls_root_chain" = "${local.tls_root_chain}"
-  "tls_dhparam" = "${local.tls_dhparam}"
-}
-
-

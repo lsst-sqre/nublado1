@@ -1,4 +1,4 @@
-resource "kubernetes_persistent_volume_claim" "jupyterhub-home" {
+resource "kubernetes_persistent_volume_claim" "jupyterhub_home" {
   metadata {
     name = "jupyterhub-home"
     namespace = "${var.namespace}"

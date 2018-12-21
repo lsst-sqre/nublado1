@@ -110,6 +110,10 @@ variable "session_db_url" {
   description = "session storage location; any SQLAlchemy URL will work"
 }
 
+variable "cluster_admin" {
+  description = "dummy to sequence cluster admin role creation first"
+}
+
 locals {
   "oauth_callback_url" = "https://${var.hostname}${var.hub_route}hub/oauth_callback"
   "_keys" = "${random_id.crypto_key.hex}"

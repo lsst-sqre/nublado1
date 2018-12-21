@@ -385,5 +385,9 @@ locals {
 */
 
 locals {
-  endpoint_ip = "${module.nginx_ingress.kubernetes_service.ingress_nginx.outputs.ip}"
+  endpoint_ip = "${module.nginx_ingress.ip}"
+}
+
+locals {
+  cluster_admin = "${module.cluster_admin.complete}"
 }

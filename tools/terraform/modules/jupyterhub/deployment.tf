@@ -6,6 +6,8 @@ resource "kubernetes_deployment" "jupyterhub" {
     }
     namespace = "${var.namespace}"
   }
+  depends_on = [ "kubernetes_persistent_volume_claim.jupyterhub_home",
+    "kubernetes_config_map.jupyterhub_config"]
   spec {
     template {
       metadata {
@@ -152,7 +154,7 @@ resource "kubernetes_deployment" "jupyterhub" {
           }
           volume_mount = [
             {
-              name = "jupyterhub-home"
+              name = "home"
               mount_path = "/home/jupyter"
             },
             {
@@ -163,14 +165,14 @@ resource "kubernetes_deployment" "jupyterhub" {
         }
         volume = [
           {
-            name = "jupyterhub-home"
+            name = "home"
             persistent_volume_claim = {
               claim_name = "jupyterhub-home"
             }
           },
           {
             name = "jupyterhub-config"
-            config_map_ref = "jupyterhub_config"
+            config_map_ref = "jupyterhub-config"
           }
         }
       }

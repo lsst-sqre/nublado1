@@ -25,7 +25,7 @@ data "local_file" "30-environment_py" {
 
 resource "kubernetes_config_map" "jupyterhub_config" {
   metadata {
-    name      = "jupyterhub-config"
+    name      = "jld-hub-config"
     namespace = "${var.namespace}"
   }
 

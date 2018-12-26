@@ -222,29 +222,38 @@ resource "kubernetes_deployment" "jupyterhub" {
           config_map {
             name = "jld-hub-config"
 
+            # XXX the default_mode appear to be ignored as an explicit mode of
+            # `0` is appear on all items.
+            default_mode = "420"
+
             items {
               key  = "jupyterhub_config.py"
               path = "jupyterhub_config.py"
+              mode = "420"
             }
 
             items {
               key  = "00-preamble.py"
               path = "jupyterhub_config.d/00-preamble.py"
+              mode = "420"
             }
 
             items {
               key  = "10-authenticator.py"
               path = "jupyterhub_config.d/10-authenticator.py"
+              mode = "420"
             }
 
             items {
               key  = "20-spawner.py"
               path = "jupyterhub_config.d/20-spawner.py"
+              mode = "420"
             }
 
             items {
               key  = "30-environment.py"
               path = "jupyterhub_config.d/30-environment.py"
+              mode = "420"
             }
           }
         }

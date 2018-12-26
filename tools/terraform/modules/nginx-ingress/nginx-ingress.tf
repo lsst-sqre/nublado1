@@ -138,7 +138,10 @@ resource "kubernetes_role_binding" "nginx_ingress" {
     namespace = "ingress-nginx"
   }
 
-  depends_on = ["kubernetes_namespace.ingress_nginx"]
+  depends_on = [
+    "kubernetes_namespace.ingress_nginx",
+    "kubernetes_service_account.nginx_ingress",
+  ]
 }
 
 resource "kubernetes_cluster_role_binding" "nginx_ingress" {
@@ -157,6 +160,10 @@ resource "kubernetes_cluster_role_binding" "nginx_ingress" {
     name      = "nginx-ingress-serviceaccount"
     namespace = "ingress-nginx"
   }
+
+  depends_on = [
+    "kubernetes_service_account.nginx_ingress",
+  ]
 }
 
 resource "kubernetes_deployment" "nginx_ingress_controller" {
@@ -271,4 +278,9 @@ resource "kubernetes_deployment" "nginx_ingress_controller" {
       }
     }
   }
+
+  depends_on = [
+    "kubernetes_namespace.ingress_nginx",
+    "kubernetes_service_account.nginx_ingress",
+  ]
 }

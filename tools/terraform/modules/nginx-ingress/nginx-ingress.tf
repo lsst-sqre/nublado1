@@ -116,6 +116,8 @@ resource "kubernetes_role" "nginx_ingress" {
     resources  = ["endpoints"]
     verbs      = ["get"]
   }
+
+  depends_on = ["kubernetes_namespace.ingress_nginx"]
 }
 
 resource "kubernetes_role_binding" "nginx_ingress" {

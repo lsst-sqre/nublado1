@@ -1,6 +1,6 @@
 resource "kubernetes_persistent_volume_claim" "jupyterhub_home" {
   metadata {
-    name      = "jupyterhub-home"
+    name      = "jld-hub-physpvc"
     namespace = "${var.namespace}"
 
     labels {

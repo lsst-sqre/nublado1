@@ -1,6 +1,7 @@
 resource "kubernetes_ingress" "jupyterhub" {
   metadata {
-    name = "jld-hub"
+    name      = "jld-hub"
+    namespace = "${var.namespace}"
 
     annotations {
       "kubernetes.io/ingress.class"                       = "nginx"

@@ -1,6 +1,7 @@
 resource "kubernetes_service" "firefly" {
   metadata = {
-    name = "firefly"
+    name      = "firefly"
+    namespace = "${var.namespace}"
 
     labels = {
       name = "firefly"

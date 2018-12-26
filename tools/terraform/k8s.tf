@@ -29,19 +29,20 @@ module "tls" {
   "tls_dhparam"    = "${local.tls_dhparam}"
 }
 
-module "namespace" {
-  source    = "./modules/namespace"
-  namespace = "${local.kubernetes_cluster_namespace}"
-}
-
 module "fileserver" {
   source   = "./modules/fileserver"
   quantity = "${var.external_fileserver_ip == "" ? 1 : 0}"
 }
 
+resource "kubernetes_namespace" "hub" {
+  metadata {
+    name = "${local.kubernetes_cluster_namespace}"
+  }
+}
+
 module "nfs_pvs" {
   source    = "./modules/nfs_pvs"
-  namespace = "${local.kubernetes_cluster_namespace}"
+  namespace = "${kubernetes_namespace.hub.metadata.0.name}"
   capacity  = "${var.volume_size_gigabytes}"
   server_ip = "${var.external_fileserver_ip != "" ? var.external_fileserver_ip : module.fileserver.ip}"
 }
@@ -50,7 +51,7 @@ module "firefly" {
   source         = "./modules/firefly"
   quantity       = "${var.firefly_replicas}"
   debug          = "${var.debug}"
-  namespace      = "${local.kubernetes_cluster_namespace}"
+  namespace      = "${kubernetes_namespace.hub.metadata.0.name}"
   admin_password = "${var.firefly_admin_password}"
   max_jvm_size   = "${var.firefly_max_jvm_size}"
   mem_limit      = "${var.firefly_container_mem_limit}"
@@ -62,7 +63,7 @@ module "jupyterhub" {
   source                         = "./modules/jupyterhub"
   debug                          = "${var.debug}"
   hostname                       = "${var.hostname}"
-  namespace                      = "${local.kubernetes_cluster_namespace}"
+  namespace                      = "${kubernetes_namespace.hub.metadata.0.name}"
   lab_selector_title             = "${var.lab_selector_title}"
   oauth_provider                 = "${var.oauth_provider}"
   allow_dask_spawn               = "${var.allow_dask_containers ? "TRUE" : ""}"

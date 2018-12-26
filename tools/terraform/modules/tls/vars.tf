@@ -1,3 +1,7 @@
+variable "namespace" {
+  description = "k8s namespace"
+}
+
 variable "tls_cert" {
   description = "TLS certificate"
 }

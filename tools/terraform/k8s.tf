@@ -23,6 +23,7 @@ module "cluster_admin" {
 
 module "tls" {
   source           = "./modules/tls"
+  namespace        = "${kubernetes_namespace.hub.metadata.0.name}"
   "tls_cert"       = "${local.tls_cert}"
   "tls_key"        = "${local.tls_key}"
   "tls_root_chain" = "${local.tls_root_chain}"

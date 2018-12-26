@@ -12,6 +12,12 @@ resource "kubernetes_service" "ingress_nginx" {
     external_traffic_policy = "Local"
     type                    = "LoadBalancer"
 
+    # XXX an explicit healthcheck port seems to be required w/
+    # externalTrafficPolicy: Local
+    # is this a bug with the resource either not ignoring the healthcheck port
+    # when unspecified?
+    health_check_node_port = 30300
+
     selector {
       "app" = "ingress-nginx"
     }

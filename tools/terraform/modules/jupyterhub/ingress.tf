@@ -1,6 +1,6 @@
 resource "kubernetes_ingress" "jupyterhub" {
   metadata {
-    name      = "jld-hub"
+    name      = "jupyterhub"
     namespace = "${var.namespace}"
 
     annotations {
@@ -27,7 +27,7 @@ resource "kubernetes_ingress" "jupyterhub" {
           path_regex = "${var.hub_route}"
 
           backend {
-            service_name = "jld-hub"
+            service_name = "jupyterhub"
             service_port = "8000"
           }
         }

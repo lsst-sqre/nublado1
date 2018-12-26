@@ -198,62 +198,58 @@ resource "kubernetes_deployment" "jupyterhub" {
           }
 
           volume_mount = {
-            name       = "jld-hub-home-jupyter"
+            name       = "jupyterhub-home"
             mount_path = "/home/jupyter"
           }
 
           volume_mount = {
-            name       = "jld-hub-config"
+	    name       = "jupyterhub-config"
             mount_path = "/opt/lsst/software/jupyterhub/config"
           }
         }
 
         volume {
-          name = "jld-hub-home-jupyter"
+          name = "jupyterhub-home"
 
           persistent_volume_claim {
-            claim_name = "jld-hub-physpvc"
+            claim_name = "jupyterhub-physpvc"
           }
         }
 
         volume {
-          name = "jld-hub-config"
+          name = "jupyterhub-config"
 
           config_map {
-            name = "jld-hub-config"
-
-            # XXX the default_mode appear to be ignored as an explicit mode of
-            # `0` is appear on all items.
-            default_mode = "420"
-
+            name = "jupyterhub-config"
+	    default_mode = 0644
             items {
               key  = "jupyterhub_config.py"
               path = "jupyterhub_config.py"
-              mode = "420"
+              mode = 0644
             }
 
             items {
               key  = "00-preamble.py"
               path = "jupyterhub_config.d/00-preamble.py"
-              mode = "420"
+              mode = 0644
             }
 
             items {
               key  = "10-authenticator.py"
               path = "jupyterhub_config.d/10-authenticator.py"
-              mode = "420"
+              mode = 0644
             }
 
             items {
               key  = "20-spawner.py"
               path = "jupyterhub_config.d/20-spawner.py"
-              mode = "420"
+              mode = 0644
             }
 
             items {
               key  = "30-environment.py"
               path = "jupyterhub_config.d/30-environment.py"
-              mode = "420"
+              mode = 0644
             }
           }
         }

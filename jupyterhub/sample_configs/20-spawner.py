@@ -329,7 +329,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if self.volumes:
             already_vols = [x["name"] for x in self.volumes]
         for vol in ["home", "project", "scratch"]:
-            volname = "jld-fileserver-" + vol
+            volname = vol
             if volname in already_vols:
                 continue
             self.volumes.extend([
@@ -340,7 +340,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 {"mountPath": "/" + vol,
                  "name": volname}])
         for vol in ["datasets"]:
-            volname = "jld-fileserver-" + vol
+            volname = vol
             if volname in already_vols:
                 continue
             self.volumes.extend([

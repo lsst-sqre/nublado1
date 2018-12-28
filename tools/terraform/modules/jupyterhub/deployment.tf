@@ -203,7 +203,7 @@ resource "kubernetes_deployment" "jupyterhub" {
           }
 
           volume_mount = {
-	    name       = "jupyterhub-config"
+            name       = "jupyterhub-config"
             mount_path = "/opt/lsst/software/jupyterhub/config"
           }
         }
@@ -220,8 +220,9 @@ resource "kubernetes_deployment" "jupyterhub" {
           name = "jupyterhub-config"
 
           config_map {
-            name = "jupyterhub-config"
-	    default_mode = 0644
+            name         = "jupyterhub-config"
+            default_mode = 0644
+
             items {
               key  = "jupyterhub_config.py"
               path = "jupyterhub_config.py"

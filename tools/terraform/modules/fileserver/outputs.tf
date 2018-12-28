@@ -1,3 +1,3 @@
 output "ip" {
-  value = "127.0.0.1"
+  value = "${local.quantity > 0 ? join("",kubernetes_service.fileserver.*.ip) : var.ip}"
 }

@@ -56,6 +56,24 @@ module "landing_page" {
   hostname  = "${var.hostname}"
 }
 
+module "prepuller" {
+  source              = "./modules/prepuller"
+  debug               = "${var.debug}"
+  repo                = "${var.prepuller_repo}"
+  owner               = "${var.prepuller_owner}"
+  image_list          = "${var.prepuller_image_list}"
+  no_scan             = "${var.prepuller_no_scan}"
+  image_name          = "${var.prepuller_image_name}"
+  dailies             = "${var.prepuller_dailies}"
+  weeklies            = "${var.prepuller_weeklies}"
+  releases            = "${var.prepuller_releases}"
+  insecure            = "${var.prepuller_insecure}"
+  port                = "${var.prepuller_port}"
+  sort_field          = "${var.prepuller_sort_field}"
+  command             = "${var.prepuller_command}"
+  prepuller_namespace = "${var.prepuller_namespace == "" ? kubernetes_namespace.hub.metadata.0.name : var.prepuller_namespace}"
+}
+
 module "firefly" {
   source         = "./modules/firefly"
   quantity       = "${var.firefly_replicas}"

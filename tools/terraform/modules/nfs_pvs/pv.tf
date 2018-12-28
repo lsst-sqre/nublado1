@@ -6,7 +6,7 @@ resource "kubernetes_persistent_volume" "home" {
 
   spec {
     capacity {
-      storage = "${var.capacity}Gi"
+      storage = "${local.nfs_size}Gi"
     }
 
     access_modes = ["ReadWriteMany"]
@@ -31,7 +31,7 @@ resource "kubernetes_persistent_volume" "project" {
 
   spec {
     capacity {
-      storage = "${var.capacity}Gi"
+      storage = "${local.nfs_size}Gi"
     }
 
     access_modes = ["ReadWriteMany"]
@@ -56,7 +56,7 @@ resource "kubernetes_persistent_volume" "scratch" {
 
   spec {
     capacity {
-      storage = "${var.capacity}Gi"
+      storage = "${local.nfs_size}Gi"
     }
 
     access_modes = ["ReadWriteMany"]
@@ -81,7 +81,7 @@ resource "kubernetes_persistent_volume" "datasets" {
 
   spec {
     capacity {
-      storage = "${var.capacity}Gi"
+      storage = "${local.nfs_size}Gi"
     }
 
     access_modes = ["ReadOnlyMany"]

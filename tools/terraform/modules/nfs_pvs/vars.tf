@@ -9,3 +9,7 @@ variable "capacity" {
 variable "server_ip" {
   description = "IP address of NFS server"
 }
+
+locals {
+  nfs_size = "${ ( 100 * var.capacity ) / 95 }"
+}

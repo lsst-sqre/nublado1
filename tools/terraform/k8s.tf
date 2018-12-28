@@ -6,7 +6,7 @@ data "google_client_config" "current" {}
 # Provider
 
 # https://github.com/sl1pm4t/terraform-provider-kubernetes has the
-#  rest of the resources.  Get there eventually....
+#  rest of the resources.  That's what "1.3.0-custom" is
 
 provider "kubernetes" {
   version                = "1.3.0-custom"
@@ -21,6 +21,12 @@ module "cluster_admin" {
   "gcloud_account" = "${var.gcloud_account}"
 }
 
+resource "kubernetes_namespace" "hub" {
+  metadata {
+    name = "${local.kubernetes_cluster_namespace}"
+  }
+}
+
 module "tls" {
   source           = "./modules/tls"
   namespace        = "${kubernetes_namespace.hub.metadata.0.name}"
@@ -31,21 +37,41 @@ module "tls" {
 }
 
 module "fileserver" {
-  source   = "./modules/fileserver"
-  quantity = "${var.external_fileserver_ip == "" ? 1 : 0}"
-}
-
-resource "kubernetes_namespace" "hub" {
-  metadata {
-    name = "${local.kubernetes_cluster_namespace}"
-  }
+  source      = "./modules/fileserver"
+  ip          = "${var.external_fileserver_ip}"
+  volume_size = "${var.volume_size_gigabytes}"
+  namespace   = "${kubernetes_namespace.hub.metadata.0.name}"
 }
 
 module "nfs_pvs" {
   source    = "./modules/nfs_pvs"
   namespace = "${kubernetes_namespace.hub.metadata.0.name}"
   capacity  = "${var.volume_size_gigabytes}"
-  server_ip = "${var.external_fileserver_ip != "" ? var.external_fileserver_ip : module.fileserver.ip}"
+  server_ip = "${module.fileserver.ip}"
+}
+
+module "landing_page" {
+  source    = "./modules/landing_page"
+  namespace = "${kubernetes_namespace.hub.metadata.0.name}"
+  hostname  = "${var.hostname}"
+}
+
+module "prepuller" {
+  source              = "./modules/prepuller"
+  debug               = "${var.debug}"
+  repo                = "${var.prepuller_repo}"
+  owner               = "${var.prepuller_owner}"
+  image_list          = "${var.prepuller_image_list}"
+  no_scan             = "${var.prepuller_no_scan}"
+  image_name          = "${var.prepuller_image_name}"
+  dailies             = "${var.prepuller_dailies}"
+  weeklies            = "${var.prepuller_weeklies}"
+  releases            = "${var.prepuller_releases}"
+  insecure            = "${var.prepuller_insecure}"
+  port                = "${var.prepuller_port}"
+  sort_field          = "${var.prepuller_sort_field}"
+  command             = "${var.prepuller_command}"
+  prepuller_namespace = "${var.prepuller_namespace == "" ? kubernetes_namespace.hub.metadata.0.name : var.prepuller_namespace}"
 }
 
 module "firefly" {
@@ -58,6 +84,9 @@ module "firefly" {
   mem_limit      = "${var.firefly_container_mem_limit}"
   cpu_limit      = "${var.firefly_container_cpu_limit}"
   uid            = "${var.firefly_container_uid}"
+  nfs_server_ip  = "${module.fileserver.ip}"
+  hostname       = "${var.hostname}"
+  firefly_route  = "${var.firefly_route}"
 }
 
 module "jupyterhub" {
@@ -94,7 +123,6 @@ module "jupyterhub" {
 }
 
 module "nginx_ingress" {
-  source        = "./modules/nginx-ingress"
-  k8s_context   = "${local.k8s_context}"
+  source        = "./modules/nginx_ingress"
   cluster_admin = "${local.cluster_admin}"
 }

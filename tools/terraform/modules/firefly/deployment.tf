@@ -12,9 +12,17 @@ resource "kubernetes_deployment" "firefly" {
   }
 
   spec {
+    selector {
+      name = "firefly"
+    }
+
     template {
       metadata {
         name = "firefly"
+
+        labels {
+          name = "firefly"
+        }
       }
 
       spec {
@@ -68,6 +76,15 @@ resource "kubernetes_deployment" "firefly" {
               value = "${var.admin_password}"
             },
           ]
+        }
+
+        volume {
+          name = "scratch"
+
+          nfs {
+            path   = "/exports/scratch"
+            server = "${var.nfs_server_ip}"
+          }
         }
       }
     }

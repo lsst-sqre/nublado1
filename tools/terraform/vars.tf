@@ -103,7 +103,9 @@ variable "gke_default_local_volume_size_gigabytes" {
 
 variable "external_fileserver_ip" {
   description = "IP of NFS server; must be accessible from Hub, Firefly, and JupyterLab"
-  default     = ""
+
+  #  default     = ""
+  # Internal fileserver does not yet work.
 }
 
 variable "volume_size_gigabytes" {
@@ -179,6 +181,17 @@ variable "prepuller_image_name" {
   default     = "jld-lab"
 }
 
+/* Set these two to completely replace the repo scan with a static list */
+variable "prepuller_image_list" {
+  description = "Comma-separated list of prepuller images"
+  default     = ""
+}
+
+variable "prepuller_no_scan" {
+  description = "Set to a non-empty string to disable prepuller scan"
+  default     = ""
+}
+
 /* These control number of daily/weekly/release images to prepull.
    This requires a tag format like LSST/DM uses. */
 
@@ -220,8 +233,9 @@ variable "prepuller_command" {
   default     = "echo \"Prepuller complete on $(hostname) at $(date)\""
 }
 
-locals {
-  prepuller_namespace = "${local.kubernetes_cluster_namespace}"
+variable "prepuller_namespace" {
+  description = "Prepuller namespace; override so you only have one/cluster"
+  default     = ""
 }
 
 /* Parameters for images presented in the Hub menu

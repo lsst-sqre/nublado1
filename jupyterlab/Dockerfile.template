@@ -144,7 +144,8 @@ RUN  source scl_source enable rh-python36 && \
        cython \
        graphviz \
        nbdime \
-       jupyterlabutils
+       jupyterlabutils \
+       firefly_client
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
@@ -193,8 +194,10 @@ RUN  source ${LOADSTACK} && \
        cython \
        graphviz \
        nbdime \
-       jupyterlabutils
-# Numpy must be installed before vaex.
+       jupyterlabutils \
+       firefly_client
+# Numpy must be installed before vaex and Cython must be installed before
+#  cartopy
 RUN  source scl_source enable rh-python36 && \
       pip3 install --upgrade \
        vaex-core \
@@ -227,7 +230,8 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
           @pyviz/jupyterlab_pyviz \
           bqplot dask-labextension ipyevents ipyvolume jupyter-threejs \
-          jupyterlab_bokeh nbdime-jupyterlab"
+          jupyterlab_bokeh nbdime-jupyterlab \
+          jupyter_firefly_extensions"
 # jupyterlab/hub-extension not updated yet
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
@@ -270,6 +274,15 @@ RUN  source scl_source enable rh-python36 && \
           jupyter labextension install --no-build ; \
           cd .. ; \
       done
+# Install jupyter_firefly_extensions from source until server extension is
+#  pip-installable
+RUN  source scl_source enable rh-python36 && \
+      cd /usr/share/git && \
+      git clone https://github.com/Caltech-IPAC/jupyter_firefly_extensions && \
+      set -e && \
+      cd jupyter_firefly_extensions && \
+      jupyter labextension install . --no-build ; \
+      jupyter serverextension enable --py jupyter_firefly_extensions
 RUN  source scl_source enable rh-python36 && \
       gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
       set -e && \

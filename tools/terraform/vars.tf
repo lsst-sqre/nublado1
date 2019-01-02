@@ -381,6 +381,11 @@ variable "firefly_container_uid" {
   default     = 91
 }
 
+variable "external_firefly_url" {
+  description = "URL of external Firefly server"
+  default     = ""
+}
+
 /*
 data "kubernetes_service" "nginx_ingress" {
   metadata {

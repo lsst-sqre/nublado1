@@ -86,6 +86,8 @@ spec:
               value: '{{AUTO_REPO_URLS}}'
             - name: SIZE_INDEX
               value: '{{SIZE_INDEX}}'
+            - name: EXTERNAL_FIREFLY_URL
+              value: '{{EXTERNAL_FIREFLY_URL}}'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:

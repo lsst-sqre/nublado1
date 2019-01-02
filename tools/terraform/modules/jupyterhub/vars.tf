@@ -114,6 +114,10 @@ variable "cluster_admin" {
   description = "dummy to sequence cluster admin role creation first"
 }
 
+variable "external_firefly_url" {
+  description = "URL of external Firefly server"
+}
+
 locals {
   "oauth_callback_url" = "https://${var.hostname}${var.hub_route}hub/oauth_callback"
   "_keys"              = "${random_id.crypto_key.hex}"

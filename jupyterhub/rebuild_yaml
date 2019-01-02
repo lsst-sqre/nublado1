@@ -24,6 +24,7 @@ SIZE_INDEX=${SIZE_INDEX:-"1"}
 ALLOW_DASK_SPAWN=${ALLOW_DASK_SPAWN:-""}
 RESTRICT_LAB_NODES=${RESTRICT_LAB_NODES:-""}
 RESTRICT_DASK_NODES=${RESTRICT_DASK_NODES:-""}
+EXTERNAL_FIREFLY_URL=${EXTERNAL_FIREFLY_URL:-""}
 if [ -z "${DB_IDENTIFIER}" ]; then
     if [ -z "${GKE_PROJECT}" ]; then
        GKE_PROJECT=$(gcloud config list core/project --format json | \
@@ -65,4 +66,5 @@ sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{SIZE_INDEX}}/${SIZE_INDEX}/g" \
     -e "s/{{RESTRICT_DASK_NODES}}/${RESTRICT_DASK_NODES}/g" \
     -e "s/{{RESTRICT_LAB_NODES}}/${RESTRICT_LAB_NODES}/g" \
+    -e "s/{{EXTERNAL_FIREFLY_URL}}/${EXTERNAL_FIREFLY_URL}/g" \
     ${DEPYAMLTPL} > ${DEPYAML}

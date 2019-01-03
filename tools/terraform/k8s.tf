@@ -120,6 +120,7 @@ module "jupyterhub" {
   oauth_secret                   = "${var.oauth_secret}"
   session_db_url                 = "${var.session_db_url}"
   cluster_admin                  = "${local.cluster_admin}"
+  external_firefly_url           = "${var.external_firefly_url}"
 }
 
 module "nginx_ingress" {

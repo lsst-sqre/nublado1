@@ -11,6 +11,6 @@ Defaults env_keep += "MEM_LIMIT CPU_LIMIT"
 Defaults env_keep += "KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT"
 Defaults env_keep += "GITHUB_LOGIN CLEAR_DOTLOCAL FIREFLY_ROUTE EXTERNAL_URL"
 Defaults env_keep += "MANPATH INFOPATH"
-Defaults env_keep += "AUTO_REPO_URLS"
+Defaults env_keep += "AUTO_REPO_URLS EXTERNAL_FIREFLY_URL"
 Defaults env_keep += "NODE_OPTIONS"
 

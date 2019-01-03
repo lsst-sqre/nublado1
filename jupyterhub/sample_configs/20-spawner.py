@@ -305,6 +305,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if os.getenv('LAB_NODEJS_MAX_MEM'):
             pod_env['NODE_OPTIONS'] = ("--max-old-space-size=" +
                                        os.getenv('LAB_NODEJS_MAX_MEM'))
+        if os.getenv('EXTERNAL_FIREFLY_URL'):
+            pod_env['EXTERNAL_FIREFLY_URL'] = os.getenv('EXTERNAL_FIREFLY_URL')
         oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
         endstr = "/hub/oauth_callback"
         if oauth_callback and oauth_callback.endswith(endstr):

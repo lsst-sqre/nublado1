@@ -123,7 +123,7 @@ host_url=$(echo ${EXTERNAL_URL} | cut -d '/' -f 1-3)
 FIREFLY_ROUTE=${FIREFLY_ROUTE:-"/firefly/"}
 FIREFLY_URL="${host_url}${FIREFLY_ROUTE}"
 if -n [ "${EXTERNAL_FIREFLY_URL}" ]; then
-    FIREFLY_URL = ${EXTERNAL_FIREFLY_URL}
+    FIREFLY_URL=${EXTERNAL_FIREFLY_URL}
 fi
 FIREFLY_HTML="slate.html"
 export FIREFLY_URL FIREFLY_HTML

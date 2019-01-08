@@ -143,6 +143,7 @@ RUN  source scl_source enable rh-python36 && \
        python-snappy \
        cython \
        graphviz \
+       nbdime \
        jupyterlabutils
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -191,6 +192,7 @@ RUN  source ${LOADSTACK} && \
        python-snappy \
        cython \
        graphviz \
+       nbdime \
        jupyterlabutils
 # Numpy must be installed before vaex and Cython must be installed before
 #  cartopy
@@ -203,22 +205,23 @@ RUN  source scl_source enable rh-python36 && \
        vaex-distributed \
        vaex-jupyter \
        vaex-arrow \
-       cartopy
+       cartopy \
+       nbdime
 RUN  source ${LOADSTACK} && \
       pip3 install --upgrade \
-       cartopy
+       cartopy nbdime
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
 # Install our extensions
-ENV SVXT="jupyterlab nbserverproxy jupyterlab_lsstquery"
-ENV NBXT="widgetsnbextension ipyevents"
+ENV SVXT="jupyterlab nbserverproxy jupyterlab_lsstquery nbdime"
+ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
           @pyviz/jupyterlab_pyviz \
           bqplot dask-labextension ipyevents ipyvolume jupyter-threejs \
-          jupyterlab_bokeh"
+          jupyterlab_bokeh nbdime-jupyterlab"
 # jupyterlab/hub-extension not updated yet
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}

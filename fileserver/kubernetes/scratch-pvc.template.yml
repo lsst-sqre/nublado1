@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: jld-fileserver-project
+  name: scratch
 spec:
   accessModes:
     - ReadWriteMany

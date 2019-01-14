@@ -3,7 +3,7 @@ kind: PersistentVolume
 metadata:
   # PersistentVolumes are not namespaced, so you need to have an
   #  identifier in the name
-  name: jld-fileserver-scratch-{{CLUSTER_IDENTIFIER}}
+  name: datasets-{{CLUSTER_IDENTIFIER}}
   # Needed (but dangerous) to keep the notebook from freezing.
   annotations:
     volume.beta.kubernetes.io/mount-options: "local_lock=all"
@@ -12,12 +12,9 @@ spec:
     # Must be a little smaller than the actual PV.
     storage: {{SHARED_VOLUME_SIZE}}
   accessModes:
-    - ReadWriteMany
+    - ReadOnlyMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: fast
   nfs:
-    #server: jld-fileserver
-    # This currently needs to be an IP, so you have to create the
-    # service, get the fileserver service IP, and use that.
     server: {{NFS_SERVER_IP_ADDRESS}}
-    path: "/exports/scratch"
+    path: "/exports/datasets"

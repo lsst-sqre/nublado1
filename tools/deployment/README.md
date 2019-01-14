@@ -94,7 +94,7 @@ Here are the steps you need to perform:
 deployment script (FQDN, certificate directory, OAuth client and secret,
 and whitelist of GitHub Organizations or CILogon Groups).  If you want to
 use CILogon you should set the environment variable
-`JLD_OAUTH_PROVIDER` to `cilogon` before running the deployment tool.
+`LSP_NB_OAUTH_PROVIDER` to `cilogon` before running the deployment tool.
 
 
 ### YAML document-based / Environment-based deployment
@@ -114,9 +114,9 @@ use CILogon you should set the environment variable
         - `cilogon_group_whitelist`
 	  
    You can also specify these as environment variables.  The rule for
-   creation is that the environment variable name is `JLD_` prepended to
+   creation is that the environment variable name is `LSP_NB_` prepended to
    the uppercase representation of the setting name, so you'd need, for
-   instance, `JLD_HOSTNAME`.  If you run the deployment
+   instance, `LSP_NB_HOSTNAME`.  If you run the deployment
    program without either specifying a file or supplying required
    parameters in the environment, you will be prompted for those
    parameters as in the interactive deployment.
@@ -152,7 +152,7 @@ use CILogon you should set the environment variable
 10. When you're done and ready to tear down the cluster, run
     `deploy-jupyterlabdemo -f /path/to/mydeploy.yml -u` if you deployed
     with a YAML file, or just `deploy-jupyterlabdemo -u` and answer the
-	FQDN question if `JLD_HOSTNAME` is not set.
+	FQDN question if `LSP_NB_HOSTNAME` is not set.
 
 ## Running a custom configuration
 

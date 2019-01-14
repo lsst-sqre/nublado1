@@ -41,12 +41,12 @@ if [ ${changed} -ne 0 ]; then
     fi
 fi
 ./rebuild_yaml
-kubectl delete configmap jld-hub-config
-kubectl create configmap jld-hub-config \
+kubectl delete configmap hub-config
+kubectl create configmap hub-config \
 	--from-file=kubernetes/config/jupyterhub_config.py \
 	--from-file=kubernetes/config/jupyterhub_config.d
-kubectl delete deployment jld-hub
-kubectl create -f kubernetes/jld-hub-deployment.yml
+kubectl delete deployment hub
+kubectl create -f kubernetes/deployment.yml
 if [ ${changed} -ne 0 ]; then
     # Restore old context info if needed
     if [ ${ccontext} -ne 0 ]; then

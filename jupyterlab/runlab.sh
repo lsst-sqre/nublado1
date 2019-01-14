@@ -107,14 +107,14 @@ cd ${HOME}
 #  populate it)
 copy_etc_skel
 # Replace API URL with service address if it exists
-if [ -n "${JLD_HUB_SERVICE_HOST}" ]; then
+if [ -n "${HUB_SERVICE_HOST}" ]; then
     jh_proto=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f -1)
     jh_path=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f 4-)
-    port=${JLD_HUB_SERVICE_PORT_API}
+    port=${HUB_SERVICE_PORT_API}
     if [ -z "${port}" ]; then
         port="8081"
     fi
-    jh_api="${jh_proto}//${JLD_HUB_SERVICE_HOST}:${port}/${jh_path}"
+    jh_api="${jh_proto}//${HUB_SERVICE_HOST}:${port}/${jh_path}"
     JUPYTERHUB_API_URL=${jh_api}
 fi
 export JUPYTERHUB_API_URL

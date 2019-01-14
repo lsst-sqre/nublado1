@@ -115,7 +115,7 @@ allowed_groups:
 #  prepuller_sort_field: 'comp_ts'
 #  prepuller_command: 'echo "Prepuller complete on $(hostname) at $(date)"'
 # In normal operation, namespace will be set from the container itself.
-#  prepuller_namespace: 'jld_namespace'
+#  prepuller_namespace: 'lsst_nb_namespace'
 
 ### Parameters for images presented in the Hub menu
 # Unless you are trying to annoy your users, these should probably match
@@ -164,10 +164,10 @@ allowed_groups:
 # beats_cert: '/path/to/beats_cert.pem'
 # beats_ca: '/path/to/beats_ca.pem'
 # beats_key: '/path/to/beats_key.pem'
-# shipper_name: 'jld'
+# shipper_name: 'lsp_nb'
 # rabbitmq_pan_password: 'rmqpw'
 # rabbitmq_target_host: 'rabbitmq'
-# rabbitmq_target_vhost: 'jld'
+# rabbitmq_target_vhost: 'lsp_nb'
 
 ### Optional for firefly
 # firefly_admin_password: 'firefly'

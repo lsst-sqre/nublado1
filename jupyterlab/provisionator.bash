@@ -24,8 +24,7 @@ function setup_user() {
 }
 
 function forget_extraneous_vars() {
-    purge_docker_vars K8S_JLD_NGINX HTTP:80,HTTPS:443
-    purge_docker_vars JLD_FILESERVER RPCBIND:111,NFS:2049,MOUNTD:20048
+    purge_docker_vars FILESERVER RPCBIND:111,NFS:2049,MOUNTD:20048
 }
 
 function purge_docker_vars() {

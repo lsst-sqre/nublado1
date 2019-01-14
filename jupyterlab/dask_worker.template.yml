@@ -37,28 +37,28 @@ spec:
         cpu: {{CPU_GUARANTEE}}
         memory: "{{MEM_GUARANTEE}}M"
     volumeMounts:
-      - name: jld-fileserver-home
+      - name: home
         mountPath: /home
-      - name: jld-fileserver-scratch
+      - name: scratch
         mountPath: /scratch
-      - name: jld-fileserver-project
+      - name: project
         mountPath: /project
-      - name: jld-fileserver-datasets
+      - name: datasets
         mountPath: /datasets
   volumes:
-    - name: jld-fileserver-home
+    - name: home
       persistentVolumeClaim:
-        claimName: jld-fileserver-home
+        claimName: home
         accessMode: ReadWriteMany
-    - name: jld-fileserver-scratch
+    - name: scratch
       persistentVolumeClaim:
-         claimName: jld-fileserver-scratch
+         claimName: scratch
          accessMode: ReadWriteMany
-    - name: jld-fileserver-project
+    - name: project
       persistentVolumeClaim:
-         claimName: jld-fileserver-project
+         claimName: project
          accessMode: ReadWriteMany
-    - name: jld-fileserver-datasets
+    - name: datasets
       persistentVolumeClaim:
-         claimName: jld-fileserver-datasets
+         claimName: datasets
          accessMode: ReadOnlyMany

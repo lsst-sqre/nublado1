@@ -4,12 +4,12 @@ import os
 import codecs
 from setuptools import setup, find_packages
 
-PACKAGENAME = 'jld-deploy'
-DESCRIPTION = 'JupyterLab Demo deployment tools'
+PACKAGENAME = 'lsst-nb-deploy'
+DESCRIPTION = 'LSST Science Platform Notebook Aspect deployment tools'
 AUTHOR = 'Adam Thornton'
 AUTHOR_EMAIL = 'athornton@lsst.org'
-URL = 'https://github.com/lsst-sqre/jld-deploy'
-VERSION = '0.0.1'
+URL = 'https://github.com/lsst-sqre/jupyterlabdemo'
+VERSION = '0.0.2'
 LICENSE = 'MIT'
 
 
@@ -52,7 +52,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'deploy-jupyterlabdemo = jld_deploy:standalone'
+            'deploy-lsst-notebook-aspect = lsst_nb_deploy:standalone'
         ]
     }
 )

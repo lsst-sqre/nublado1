@@ -1,8 +1,8 @@
 #!/bin/sh
 if [ -z "${DEPYAMLTPL}" ]; then
-    DEPYAMLTPL="kubernetes/jld-hub-deployment.template.yml"
+    DEPYAMLTPL="kubernetes/deployment.template.yml"
 fi
-DEPYAML="kubernetes/jld-hub-deployment.yml"
+DEPYAML="kubernetes/deployment.yml"
 OAUTH_PROVIDER=${OAUTH_PROVIDER:-"github"}
 LAB_SELECTOR_TITLE=${LAB_SELECTOR_TITLE:-"LSST Stack Selector"}
 LAB_REPO_HOST=${LAB_REPO_HOST:-"hub.docker.com"}

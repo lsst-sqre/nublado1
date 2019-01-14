@@ -16,7 +16,7 @@ spec:
           securityContext:
             runAsUser: {{FIREFLY_UID}}
           volumeMounts:
-            - name: jld-fileserver-scratch
+            - name: scratch
               mountPath: /scratch
           resources:
             limits:
@@ -42,6 +42,6 @@ spec:
                   name: firefly
                   key: admin.password              
       volumes:
-        - name: jld-fileserver-scratch
+        - name: scratch
           persistentVolumeClaim:
-             claimName: jld-fileserver-scratch
+             claimName: scratch

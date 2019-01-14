@@ -1,17 +1,17 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: jld-hub
+  name: hub
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: jld-hub
+        name: hub
     spec:
-      serviceAccountName: jld-hub
+      serviceAccountName: hub
       containers:
-        - name: jld-hub
+        - name: hub
           imagePullPolicy: "Always"
           image: "lsstsqre/jld-hub"
           resources:
@@ -24,7 +24,7 @@ spec:
           ports:
             -
               containerPort: 8000
-              name: jld-hub
+              name: hub
           env:
             - name: LOGLEVEL
               value: INFO
@@ -91,39 +91,39 @@ spec:
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: github_organization_whitelist
             - name: CILOGON_GROUP_WHITELIST
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: cilogon_group_whitelist
             - name: GITHUB_ORGANIZATION_DENYLIST
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: github_organization_denylist
                   optional: true
             - name: CILOGON_GROUP_DENYLIST
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: cilogon_group_denylist
                   optional: true
             - name: OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: oauth_client_id
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: oauth_secret
             - name: OAUTH_CALLBACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: oauth_callback_url
             # You want this if you're using CILogon rather than GitHub
             #  and not using 'cilogon.org'
@@ -133,7 +133,7 @@ spec:
             - name: SESSION_DB_URL
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: session_db_url
             # This is one or more 32-byte encryption keys (separated
             # with ';') needed to persist auth_state.  They can be
@@ -141,14 +141,14 @@ spec:
             - name: JUPYTERHUB_CRYPT_KEY
               valueFrom:
                 secretKeyRef:
-                  name: jld-hub
+                  name: hub
                   key: jupyterhub_crypto_key
           # If you use sqlite, you want this to persist sessions across
           #  jupyterhub restarts.
           volumeMounts:
-            - name: jld-hub-home-jupyter
+            - name: home-jupyter
               mountPath: /home/jupyter
-            - name: jld-hub-config
+            - name: hub-config
               mountPath: /opt/lsst/software/jupyterhub/config
         #
         # This is for CloudSQL and does not work correctly yet.
@@ -182,13 +182,13 @@ spec:
         #- name: cloudsql-instance-credentials
         #  secret:
         #    secretName: cloudsql-instance-credentials
-        - name: jld-hub-home-jupyter
+        - name: home-jupyter
           persistentVolumeClaim:
-           claimName: jld-hub-physpvc
-        - name: jld-hub-config
+           claimName: hub-physpvc
+        - name: hub-config
           configMap:
-            name: jld-hub-config
-            #  Create with `kubectl create configmap jld-hub-config \
+            name: hub-config
+            #  Create with `kubectl create configmap hub-config \
             #   --from-file=config/jupyterhub_config.py \
             #   --from-file=config/jupyterhub_config.d`
             #  It is sort of annoying that you still have to specify

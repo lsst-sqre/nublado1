@@ -44,7 +44,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     extra_containers = []
     service_account = None
     if os.getenv("ALLOW_DASK_SPAWN"):
-        service_account = "jld-dask"
+        service_account = "dask"
     # Change some defaults.
     delete_namespace_on_stop = True
     duplicate_nfs_pvs_to_namespace = True
@@ -214,7 +214,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         # This part is our custom LSST stuff.
 
         if os.getenv("ALLOW_DASK_SPAWN"):
-            self.service_account = 'jld-dask'
+            self.service_account = 'dask'
 
         pod_name = self.pod_name
         image_spec = (self.image_spec or

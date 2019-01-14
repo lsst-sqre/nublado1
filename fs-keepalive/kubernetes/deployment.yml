@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: keepalive
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: keepalive
+    spec:
+      containers:
+        - name: "keepalive"
+          imagePullPolicy: "Always"
+          image: "lsstsqre/nfsclienttest"
+          # Use this for manual testing.
+          #securityContext:
+          #  privileged: true
+          volumeMounts:
+            - name: home
+              mountPath: /home
+            - name: scratch
+              mountPath: /scratch
+            - name: project
+              mountPath: /project
+            - name: datasets
+              mountPath: /datasets
+            - name: software
+              mountPath: /software
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+             claimName: home
+        - name: scratch
+          persistentVolumeClaim:
+             claimName: scratch
+        - name: project
+          persistentVolumeClaim:
+             claimName: project
+        - name: datasets
+          persistentVolumeClaim:
+             claimName: datasets
+        - name: software
+          persistentVolumeClaim:
+             claimName: software

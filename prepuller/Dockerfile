@@ -10,4 +10,4 @@ RUN  chmod 0755 /usr/bin/prepull
 CMD [ "/usr/bin/prepull" ]
 LABEL      description="jupyterlab demo: imageprepuller" \
              name="lsstsqre/prepuller" \
-             version="0.2.0"
+             version="0.2.1"

@@ -1,7 +1,7 @@
 resource "kubernetes_role_binding" "prepuller" {
   metadata {
     name = "prepuller"
-    namespace = "${var.namespace}"
+    namespace = "${var.prepuller_namespace}"
   }
 
   subject {

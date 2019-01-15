@@ -256,7 +256,7 @@ with some minor modifications.
 Create the StorageClass resource first, which will give you access to
 SSD volumes:
 
-`kubectl create -f jld-fileserver-storageclass.yml`
+`kubectl create -f storageclass.yml`
 
 (the `pd-ssd` type parameter is what does that for you; this may be
 Google Kubernetes Engine-specific)
@@ -266,23 +266,23 @@ Google Kubernetes Engine-specific)
 Create a service to expose the NFS server (only inside the cluster)
 with the following:
 
-`kubectl create -f jld-fileserver-service.yml`
+`kubectl create -f service.yml`
 
 You will need the IP address of the service for a subsequent step.
-`kubectl describe service jld-fileserver` and note the IP address.
-Alternatively, `kubectl describe service jld-fileserver | grep ^IP: |
+`kubectl describe service fileserver` and note the IP address.
+Alternatively, `kubectl describe service fileserver | grep ^IP: |
 awk '{print $2}'` to get just the IP address.
 
 ##### Physical Storage PersistentVolumeClaim
 
 Next, create a PersistentVolumeClaim (*not* a PersistentVolume!) for the
 underlying storage.  Copy the template file
-`jld-fileserver-physpvc.template.yml` to a working file.  Substitute the
+`physpvc.template.yml` to a working file.  Substitute the
 disk size in the `storage` field (GKE has a default quota of 500GB);
 the size depends on how much local storage you expect your users to
 require.
 
-`kubectl create -f jld-fileserver-home-physpvc.yml`
+`kubectl create -f physpvc.yml`
 
 On Google Kubernetes Engine, this will automagically create a
 PersistentVolume to back it.  I, at least, found this very surprising.
@@ -301,7 +301,7 @@ course separate volumes managed from an external file server.
 The next step is to create an NFS Server that serves up the actual
 disk.
 
-`kubectl create -f jld-fileserver-deployment.yml`
+`kubectl create -f deployment.yml`
 
 I created my own NFS Server image, basing it on the stuff found inside
 the gcr.io "volume-nfs" server.  You could probably just use Google's
@@ -335,7 +335,7 @@ deployment of a new Jupyterlab Demo instance, because you have to create
 the service, then pull the IP address off it and use that in the PV
 definition.
 
-Copy the template (`jld-fileserver-home-pv.template.yml`) to a working file,
+Copy the template (`home-pv.template.yml`) to a working file,
 replace the `name` field with something making it unique (such as the
 cluster-plus-namespace), and replace the `server` field with the IP
 address of the NFS service.  Replace the `storage` field with a value a
@@ -350,12 +350,12 @@ address here.
 ##### NFS Mount PersistentVolumeClaim
 
 From here on it's smooth sailing.  Create a working file from
-`jld-fileserver-home-pvc.template.yml`, substitute the `storage` field
+`home-pvc.template.yml`, substitute the `storage` field
 with the value you used for the PersistentVolume immediately prior, and
 then Create a PersistentVolumeClaim referring to the PersistentVolume
 just created:
 
-`kubectl create -f jld-fileserver-home-pvc.yml`
+`kubectl create -f home-pvc.yml`
 
 And now there is a multiple-read-and-write NFS mount for your JupyterLab
 containers to use.
@@ -375,7 +375,7 @@ volumes reside).
   NFS-mounted filesystems, which insures that the fileserver doesn't get
   descheduled when idle.
   
-* Create it with `kubectl create -f jld-keepalive-deployment.yml`
+* Create it with `kubectl create -f deployment.yml`
 
 ### Firefly [optional]
 
@@ -451,26 +451,26 @@ customization on your part.
 
 * This is located in `jupyterhub`.
 
-* Start by creating the `jld-hub-service` component.
+* Start by creating the `service` component.
 
 * Create a service account for `jupyterhub` so that it can manipulate
   pods using Role-Based Access Control: `kubectl create -f
-  jld-hub-serviceaccount.yml`.
+  serviceaccount.yml`.
   
 * Create a ClusterRole (the Hub needs the ability to manipulate
   namespaces and pods and quotas in multiple namespaces): `kubectl
-  create -f jld-hub-clusterrole.yml`.
+  create -f clusterrole.yml`.
   
 * Create a ClusterRoleBinding by copying
-  `jld-hub-clusterrolebinding.template.yml` to a working file,
+  `clusterrolebinding.template.yml` to a working file,
   substituting the namespace.  Create it with `kubectl -f` run against
   the working file.
 
 * Next, create the Persistent Volume Claim: `kubectl create -f
-  jld-hub-physpvc.yml`.  The Hub needs some persistent storage so its
+  physpvc.yml`.  The Hub needs some persistent storage so its
   knowledge of user sessions survives a container restart.
 
-* Copy `jld-hub-ingress.template.yml` to a working file, substituting
+* Copy `ingress.template.yml` to a working file, substituting
   `HUB_ROUTE` (use `/nb/` if you have no particular reason to do otherwise)
   and `HOSTNAME`.  Create that with `kubectl -f` against the working file.
 
@@ -505,7 +505,7 @@ customization on your part.
   create -f <filename>`.
   
 * Set up your deployment environment by editing the environment
-  variables in `jld-hub-deployment.yml`.
+  variables in `deployment.yml`.
 
   1. Set the environment variable `OAUTH_PROVIDER` to one of `github` or
     `cilogon`, depending on which provider you want to use.

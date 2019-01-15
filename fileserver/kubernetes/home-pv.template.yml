@@ -3,8 +3,8 @@ kind: PersistentVolume
 metadata:
   # PersistentVolumes are not namespaced, so you need to have an
   #  identifier in the name
-  name: jld-fileserver-project-{{CLUSTER_IDENTIFIER}}
-  # Needed (but dangerous) to keep the notebook from freezing.
+  name: home-{{CLUSTER_IDENTIFIER}}
+  # Needed (but dangerous) to keep the notebook from freezing at LDF.
   annotations:
     volume.beta.kubernetes.io/mount-options: "local_lock=all"
 spec:
@@ -16,8 +16,5 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: fast
   nfs:
-    #server: jld-fileserver
-    # This currently needs to be an IP, so you have to create the
-    # service, get the fileserver service IP, and use that.
     server: {{NFS_SERVER_IP_ADDRESS}}
-    path: "/exports/project"
+    path: "/exports/home"

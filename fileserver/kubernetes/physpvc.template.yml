@@ -1,11 +1,12 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: jld-hub-physpvc
+  name: physpvc
 spec:
   accessModes:
     - "ReadWriteOnce"
   resources:
     requests:
-      storage: 1Gi
+      storage: {{PHYSICAL_SHARED_VOLUME_SIZE}}
+  storageClassName: fast
 

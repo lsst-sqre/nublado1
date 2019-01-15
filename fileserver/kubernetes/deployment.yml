@@ -1,18 +1,18 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: jld-fileserver
+  name: fileserver
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: jld-fileserver
+        name: fileserver
     spec:
       containers:
-        - name: jld-fileserver
+        - name: fileserver
           imagePullPolicy: "Always"
-          image: "lsstsqre/jld-fileserver"
+          image: "lsstsqre/fileserver"
           env:
             - name: LOGLEVEL
               value: INFO
@@ -26,9 +26,9 @@ spec:
           securityContext:
             privileged: true
           volumeMounts:
-            - name: jld-storage
+            - name: storage
               mountPath: /exports
       volumes:
-        - name: jld-storage
+        - name: storage
           persistentVolumeClaim:
-            claimName: jld-fileserver-physpvc
+            claimName: physpvc

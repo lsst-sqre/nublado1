@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This is a wrapper around a JupyterLabDeployment class.  The class,
+"""This is a wrapper around an LSSTNotebookAspectDeployment class.  The class,
 at the moment, assumes the following:
 
 1) Deployment is to Google Kubernetes Engine.  You have chosen a cluster name
@@ -14,14 +14,14 @@ at the moment, assumes the following:
     stack communication, those must also be present on the local filesystem.
 5) You are using GitHub or CILogon OAuth for your authentication, and you
     have created an OAuth application Client ID, Client Secret, and a client
-    callback that is 'https://fqdn.of.jupyterlab.demo/nb/hub/oauth_callback'.
+    callback that is 'https://fqdn.of.science.platform/nb/hub/oauth_callback'.
     ( "/nb/" is configurable, but is the default hub_route value )
     If you are using GitHub as your OAuth2 provider, you must also specify
     a list of GitHub organizations, to at least one of which any authenticated
     user must belong.
 6) Either all of this information has been encoded in a YAML file that you
     reference with the -f switch during deployment, or it's in a series of
-    environment variables starting with "JLD_", or you enter it at a
+    environment variables starting with "LSST_NB_", or you enter it at a
     terminal prompt.
     - If you specify a directory for TLS certificates, the
       certificate, key, and root chain files must be named "cert.pem",
@@ -35,9 +35,9 @@ at the moment, assumes the following:
 Obvious future enhancements are to make this work with a wider variety of
 Kubernetes and DNS providers.
 
-It is capable of deploying and undeploying a JupyterLab Demo environment,
-or of generating a set of Kubernetes configuration files suitable for
-editing and then deploying from this tool.
+It is capable of deploying and undeploying an LSST Science Platform Notebook
+Aspect environment, or of generating a set of Kubernetes configuration files
+suitable for editing and then deploying from this tool.
 """
 import argparse
 import base64
@@ -69,7 +69,7 @@ DEFAULT_GKE_MACHINE_TYPE = "n1-standard-4"
 DEFAULT_GKE_NODE_COUNT = 3
 DEFAULT_GKE_LOCAL_VOLUME_SIZE_GB = 200
 DEFAULT_VOLUME_SIZE_GB = 20
-ENVIRONMENT_NAMESPACE = "JLD_"
+ENVIRONMENT_NAMESPACE = "LSST_NB_"
 ME = os.path.realpath(__file__)
 OAUTH_DEFAULT_PROVIDER = "github"
 REQUIRED_PARAMETER_NAMES = ["kubernetes_cluster_name",
@@ -147,8 +147,8 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
 MTPTS = ["home", "scratch", "project", "datasets", "software"]
 
 
-class JupyterLabDeployment(object):
-    """JupyterLab Deployment object.
+class LSSTNotebookAspectDeployment(object):
+    """LSSTNotebookAspectDeployment object.
     """
     directory = None
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
@@ -816,10 +816,9 @@ class JupyterLabDeployment(object):
         """
         directory = os.path.join(self.directory, "deployment",
                                  "fileserver")
-        fnbase = "jld-fileserver"
         for m in MTPTS:
-            src = os.path.join(directory, fnbase + "-%s-pv.yml" % m)
-            tgt = os.path.join(directory, fnbase + "-%s-pv.template.yml" % m)
+            src = os.path.join(directory, "%s-pv.yml" % m)
+            tgt = os.path.join(directory, "%s-pv.template.yml" % m)
             os.rename(src, tgt)
 
     def _rename_jupyterhub_template(self):
@@ -827,8 +826,8 @@ class JupyterLabDeployment(object):
         database identifier.
         """
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
-        src = os.path.join(directory, "jld-hub-deployment.yml")
-        tgt = os.path.join(directory, "jld-hub-deployment.template-stage2.yml")
+        src = os.path.join(directory, "deployment.yml")
+        tgt = os.path.join(directory, "deployment.template-stage2.yml")
         os.rename(src, tgt)
 
     def _save_deployment_yml(self):
@@ -842,7 +841,7 @@ class JupyterLabDeployment(object):
         if self.yamlfile:
             shutil.copy2(self.yamlfile, outf)
         else:
-            ymlstr = "# JupyterLab Demo deployment file\n"
+            ymlstr = "# LSST Science Platform Notebook Aspect deployment\n"
             ymlstr += "# Created at %s\n" % datestr
             cleancopy = self._clean_param_copy()
             ymlstr += yaml.dump(cleancopy, default_flow_style=False)
@@ -1253,17 +1252,17 @@ class JupyterLabDeployment(object):
     def _create_fileserver(self):
         logging.info("Creating fileserver.")
         directory = os.path.join(self.directory, "deployment", "fileserver")
-        for c in ["jld-fileserver-storageclass.yml",
-                  "jld-fileserver-physpvc.yml",
-                  "jld-fileserver-service.yml",
-                  "jld-fileserver-deployment.yml"]:
+        for c in ["storageclass.yml",
+                  "physpvc.yml",
+                  "service.yml",
+                  "deployment.yml"]:
             self._run_kubectl_create(os.path.join(directory, c))
         ip = self._waitfor(self._get_fileserver_ip)
         ns = self.params["kubernetes_cluster_namespace"]
         self._substitute_fileserver_ip(ip, ns)
         for m in MTPTS:
-            for c in ["jld-fileserver-%s-pv-%s.yml" % (m, ns),
-                      "jld-fileserver-%s-pvc.yml" % m]:
+            for c in ["%s-pv-%s.yml" % (m, ns),
+                      "%s-pvc.yml" % m]:
                 self._run_kubectl_create(os.path.join(directory, c))
 
     def _substitute_fileserver_ip(self, ip, ns):
@@ -1274,11 +1273,11 @@ class JupyterLabDeployment(object):
         directory = os.path.join(self.directory, "deployment", "fileserver")
         for m in MTPTS:
             with open(os.path.join(directory,
-                                   "jld-fileserver-%s-pv.template.yml" % m),
+                                   "%s-pv.template.yml" % m),
                       "r") as fr:
                 tmpl = Template(fr.read())
                 out = tmpl.render(NFS_SERVER_IP_ADDRESS=ip)
-                ofn = "jld-fileserver-%s-pv-%s.yml" % (m, ns)
+                ofn = "%s-pv-%s.yml" % (m, ns)
                 with open(os.path.join(directory, ofn), "w") as fw:
                     fw.write(out)
 
@@ -1302,7 +1301,7 @@ class JupyterLabDeployment(object):
     def _get_fileserver_ip(self):
         """Get IP of fileserver service from YAML output.
         """
-        rc = self._run(["kubectl", "get", "svc", "jld-fileserver",
+        rc = self._run(["kubectl", "get", "svc", "fileserver",
                         "--namespace=%s" %
                         self.params['kubernetes_cluster_namespace'],
                         "-o", "yaml"],
@@ -1376,16 +1375,16 @@ class JupyterLabDeployment(object):
     def _destroy_fileserver(self):
         logging.info("Destroying fileserver.")
         ns = self.params["kubernetes_cluster_namespace"]
-        pv = self._get_pv_and_disk_from_pvc("jld-fileserver-physpvc")
+        pv = self._get_pv_and_disk_from_pvc("physpvc")
         items = []
         # Remove NFS PVCs and PVs
         for m in MTPTS:
-            items.append(["pvc", "jld-fileserver-%s" % m])
+            items.append(["pvc", "%s" % m])
         for m in MTPTS:
-            items.append(["pv", "jld-fileserver-%s-%s" % (m, ns)])
-        items.extend([["deployment", "jld-fileserver"],
-                      ["svc", "jld-fileserver"],
-                      ["pvc", "jld-fileserver-physpvc"]])
+            items.append(["pv", "%s-%s" % (m, ns)])
+        items.extend([["deployment", "fileserver"],
+                      ["svc", "fileserver"],
+                      ["pvc", "physpvc"]])
         if pv:
             items.append(["pv", pv])
         items.append(["storageclass", "fast"])
@@ -1420,20 +1419,20 @@ class JupyterLabDeployment(object):
             self.directory,
             "deployment",
             "fs-keepalive",
-            "jld-keepalive-deployment.yml"
+            "deployment.yml"
         ))
 
     def _destroy_fs_keepalive(self):
         logging.info("Destroying fs-keepalive")
-        self._run_kubectl_delete(["deployment", "jld-keepalive"])
+        self._run_kubectl_delete(["deployment", "keepalive"])
         self._destroy_pods_with_callback(self._check_keepalive_gone,
                                          "keepalive")
 
     def _check_keepalive_gone(self):
-        return self._check_pods_gone("jld-keepalive")
+        return self._check_pods_gone("keepalive")
 
     def _check_fileserver_gone(self):
-        return self._check_pods_gone("jld-fileserver")
+        return self._check_pods_gone("fileserver")
 
     def _check_pods_gone(self, name):
         """Used as a callback for _waitfor(); return True only when all
@@ -1509,19 +1508,19 @@ class JupyterLabDeployment(object):
         logging.info("Creating JupyterHub")
 
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
-        for c in ["jld-hub-service.yml", "jld-hub-physpvc.yml",
-                  "jld-hub-secrets.yml", "jld-hub-serviceaccount.yml",
-                  "jld-hub-role.yml", "jld-hub-rolebinding.yml",
-                  "jld-hub-ingress.yml", "jld-dask-serviceaccount.yml",
-                  "jld-dask-role.yml", "jld-dask-rolebinding.yml"]:
+        for c in ["service.yml", "hub-physpvc.yml",
+                  "secrets.yml", "serviceaccount.yml",
+                  "role.yml", "rolebinding.yml",
+                  "ingress.yml", "dask-serviceaccount.yml",
+                  "dask-role.yml", "dask-rolebinding.yml"]:
             self._run_kubectl_create(os.path.join(directory, c))
         cfdir = os.path.join(directory, "config")
         cfnm = "jupyterhub_config"
-        self._run(['kubectl', 'create', 'configmap', 'jld-hub-config',
+        self._run(['kubectl', 'create', 'configmap', 'hub-config',
                    "--from-file=%s" % os.path.join(cfdir, "%s.py" % cfnm),
                    "--from-file=%s" % os.path.join(cfdir, "%s.d" % cfnm)])
         self._run_kubectl_create(os.path.join(
-            directory, "jld-hub-deployment.yml"))
+            directory, "deployment.yml"))
 
     def _substitute_db_identifier(self):
         """Once we have the (internal) IP of the fileserver service, we
@@ -1531,7 +1530,7 @@ class JupyterLabDeployment(object):
         p = self.params
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
         with open(os.path.join(directory,
-                               "jld-hub-deployment.template-stage2.yml"),
+                               "hub-deployment.template-stage2.yml"),
                   "r") as fr:
             if not p.get('database_instance_name'):
                 p['database_instance_name'] = "dummy"
@@ -1539,25 +1538,25 @@ class JupyterLabDeployment(object):
                              p['database_instance_name'])
             tmpl = Template(fr.read())
             out = tmpl.render(DB_IDENTIFIER=db_identifier)
-            ofn = "jld-hub-deployment.yml"
+            ofn = "deployment.yml"
             with open(os.path.join(directory, ofn), "w") as fw:
                 fw.write(out)
 
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
-        pv = self._get_pv_and_disk_from_pvc("jld-hub-physpvc")
-        items = [["rolebinding", "jld-dask"],
-                 ["role", "jld-dask"],
-                 ["serviceaccount", "jld-dask"],
-                 ["ingress", "jld-hub"],
-                 ["deployment", "jld-hub"],
-                 ["configmap", "jld-hub-config"],
-                 ["rolebinding", "jld-hub"],
-                 ["role", "jld-hub"],
-                 ["serviceaccount", "jld-hub"],
-                 ["secret", "jld-hub"],
-                 ["pvc", "jld-hub-physpvc"],
-                 ["svc", "jld-hub"]]
+        pv = self._get_pv_and_disk_from_pvc("hub-physpvc")
+        items = [["rolebinding", "dask"],
+                 ["role", "dask"],
+                 ["serviceaccount", "dask"],
+                 ["ingress", "hub"],
+                 ["deployment", "hub"],
+                 ["configmap", "hub-config"],
+                 ["rolebinding", "hub"],
+                 ["role", "hub"],
+                 ["serviceaccount", "hub"],
+                 ["secret", "hub"],
+                 ["pvc", "hub-physpvc"],
+                 ["svc", "hub"]]
         if pv:
             items.append(["pv", pv])
         for c in items:
@@ -1566,10 +1565,10 @@ class JupyterLabDeployment(object):
     def _create_firefly(self):
         logging.info("Creating Firefly")
         directory = os.path.join(self.directory, "deployment", "firefly")
-        for c in ["firefly-service",
-                  "firefly-secrets",
-                  "firefly-deployment",
-                  "firefly-ingress"]:
+        for c in ["service",
+                  "secrets",
+                  "deployment",
+                  "ingress"]:
             self._run_kubectl_create(os.path.join(directory, c + ".yml"))
 
     def _destroy_firefly(self):
@@ -1599,7 +1598,7 @@ class JupyterLabDeployment(object):
         """
         zoneid = self.params["zoneid"]
         record = {
-            "Comment": "JupyterLab Demo %s/%s" % (
+            "Comment": "LSST Science Platform Notebook Aspect %s/%s" % (
                 self.params['kubernetes_cluster_name'],
                 self.params['kubernetes_cluster_namespace'],
             ),
@@ -1791,7 +1790,7 @@ class JupyterLabDeployment(object):
             self._save_deployment_yml()
 
     def deploy(self):
-        """Deploy JupyterLab Demo cluster.
+        """Deploy LSST Science Platform Notebook Aspect cluster.
         """
         if not self.yamlfile and not self.params:
             errstr = "YAML file or parameter set required."
@@ -1803,7 +1802,7 @@ class JupyterLabDeployment(object):
         logging.info("Finished.")
 
     def undeploy(self):
-        """Remove JupyterLab Demo cluster.
+        """Remove LSST Science Platform Notebook Aspect cluster.
         """
         self._set_params()
         self.directory = os.getenv("TMPDIR") or "/tmp"
@@ -1815,11 +1814,11 @@ class JupyterLabDeployment(object):
 
 def get_cli_options():
     """Parse command-line arguments."""
-    desc = "Deploy or destroy the JupyterLab Demo environment. "
+    desc = "Deploy or destroy the LSST Science Platform Notebook Aspect. "
     desc += ("Parameters may be set from\neither the YAML file specified " +
              "with the -f option, or from an environment\nvariable.  The " +
-             "form of the environment variable is JLD_ prepended to the\n" +
-             "parameter name.\n\n")
+             "form of the environment variable is LSST_NB_ prepended to\n" +
+             "the parameter name.\n\n")
     desc += ("The 'hostname' parameter is always required, for both " +
              "deployment and\ndestruction.  It must be the FQDN of the " +
              "external endpoint.\n\n")
@@ -1831,7 +1830,7 @@ def get_cli_options():
     desc += ("For deployment, the following set of parameters is " +
              "required:\n%s.\n\n" % REQUIRED_DEPLOYMENT_PARAMETER_NAMES)
     desc += ("The TLS information can be set by defining " +
-             "JLD_CERTIFICATE_DIRECTORY and then\nputting 'cert.pem', " +
+             "LSST_NB_CERTIFICATE_DIRECTORY and then\nputting 'cert.pem', " +
              "'key.pem', and 'chain.pem' in it.  If you put\n" +
              "'dhparam.pem' there as well, it will be used rather than " +
              "generated.\nAdditionally, if you are using the " +
@@ -1839,8 +1838,8 @@ def get_cli_options():
              "'beats_ca.pem', and 'beats_key.pem' in the same directory,\n" +
              "they will be used as well.\n\n")
     desc += ("The 'allowed_groups' parameter is a list in " +
-             "the YAML file; as the\nenvironment variable JLD_ALLOWED_GROUPS" +
-             " it must be a comma-separated\n" +
+             "the YAML file; as the\nenvironment variable " +
+             "LSST_NB_ALLOWED_GROUPS it must be a comma-separated\n" +
              "list of GitHub organization names or CILogon/NCSA " +
              "group names.\n\n")
     desc += ("The 'cilogon_group_whitelist' or " +
@@ -1865,7 +1864,7 @@ def get_cli_options():
              "not just\nrequired ones. The complete set of recognized " +
              "parameters is:\n%s.\n\n" % PARAMETER_NAMES)
     desc += ("Therefore the set of allowable environment variables is:\n" +
-             "%s.\n\n" % ["JLD_" + x.upper() for x in PARAMETER_NAMES])
+             "%s.\n\n" % ["LSST_NB_" + x.upper() for x in PARAMETER_NAMES])
     hf = argparse.RawDescriptionHelpFormatter
     pr = argparse.ArgumentParser(description=desc,
                                  formatter_class=hf)
@@ -1891,7 +1890,8 @@ def get_cli_options():
                     "remove after deployment.  Incompatible with -d.",
                     action="store_true")
     pr.add_argument("-u", "--undeploy", "--destroy", "--remove",
-                    help="Undeploy JupyterLab Demo cluster.",
+                    help=("Undeploy LSST Science Platform Notebook Aspect " +
+                          "cluster."),
                     action='store_true')
     pr.add_argument("--disable-prepuller", "--no-prepuller",
                     help="Do not deploy prepuller",
@@ -2019,11 +2019,11 @@ def get_options_from_user(dtype="deploy", params={}):
     for required configuration, then ask the user for them on stdin.
 
     Anything not required is defaulted, so, for instance, if you want to set
-    the cluster namespace, you need to set JLD_KUBERNETES_CLUSTER_NAMESPACE in
-    the environment.
+    the cluster namespace, you need to set
+    LSST_NB_KUBERNETES_CLUSTER_NAMESPACE in the environment.
     """
     prompt = {"kubernetes_cluster_name": ["Kubernetes Cluster Name", None],
-              "hostname": ["JupyterLab Demo hostname (FQDN)", None],
+              "hostname": ["LSST Science Platform hostname (FQDN)", None],
               "oauth_client_id": ["OAuth Client ID", None],
               "oauth_secret": ["OAuth Secret", None],
               "oauth_provider": ["OAuth provider", "github"],
@@ -2132,17 +2132,17 @@ def standalone_deploy(options):
     import pprint
     s = pprint.pformat(options)
     logging.info("Options: %s" % s)
-    deployment = JupyterLabDeployment(yamlfile=y_f,
-                                      disable_prepuller=d_p,
-                                      existing_cluster=e_c,
-                                      existing_namespace=e_n,
-                                      existing_database=e_s,
-                                      existing_database_instance=e_i,
-                                      directory=e_d,
-                                      config_only=c_c,
-                                      params=p_p,
-                                      temporary=t_t
-                                      )
+    deployment = LSSTNotebookAspectDeployment(yamlfile=y_f,
+                                              disable_prepuller=d_p,
+                                              existing_cluster=e_c,
+                                              existing_namespace=e_n,
+                                              existing_database=e_s,
+                                              existing_database_instance=e_i,
+                                              directory=e_d,
+                                              config_only=c_c,
+                                              params=p_p,
+                                              temporary=t_t
+                                              )
     deployment.deploy()
 
 
@@ -2157,13 +2157,13 @@ def standalone_undeploy(options):
     p_p = None
     if "params" in options:
         p_p = options.params
-    deployment = JupyterLabDeployment(yamlfile=y_f,
-                                      existing_cluster=e_c,
-                                      existing_namespace=e_n,
-                                      existing_database_instance=e_i,
-                                      existing_database=e_d,
-                                      params=p_p
-                                      )
+    deployment = LSSTNotebookAspectDeployment(yamlfile=y_f,
+                                              existing_cluster=e_c,
+                                              existing_namespace=e_n,
+                                              existing_database_instance=e_i,
+                                              existing_database=e_d,
+                                              params=p_p
+                                              )
     deployment.undeploy()
 
 

@@ -2,8 +2,8 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   namespace: {{CLUSTER_IDENTIFIER}}
-  name: jld-dask
+  name: hub
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "create", "delete"]
+  resources: ["pods","events"]
+  verbs: ["get", "list", "create", "watch", "delete"]

@@ -1,14 +1,14 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: jld-dask
+  name: hub
 subjects:
 - kind: ServiceAccount
-  name: jld-dask
+  name: hub
   namespace: {{CLUSTER_IDENTIFIER}}
   apiGroup: ""
 roleRef:
   kind: Role
-  name: jld-dask
+  name: hub
   apiGroup: ""
 

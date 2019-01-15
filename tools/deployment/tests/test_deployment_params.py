@@ -2,20 +2,20 @@
 """Test deployment parameter manipulation.
 """
 import pytest
-from jld_deploy import JupyterLabDeployment
+from lsst_nb_deploy import LSSTNotebookAspectDeployment
 
 
 def test_missing_params():
     """Test deployment without any parameters at all.
     """
-    dep = JupyterLabDeployment()
+    dep = LSSTNotebookAspectDeployment()
     assert dep.params is None
 
 
 def test_missing_hostname():
     """Test deployment parameters without a hostname.
     """
-    dep = JupyterLabDeployment(params={})
+    dep = LSSTNotebookAspectDeployment(params={})
     assert(dep)
 
     with pytest.raises(ValueError):
@@ -23,55 +23,55 @@ def test_missing_hostname():
 
 
 def test_empty_param_method():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru"})
     dep._validate_deployment_params()
     assert dep._empty_param('missing')
     assert not dep._empty_param('hostname')
 
 
 def test_default_cluster_name():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru"})
     dep._validate_deployment_params()
     assert dep.params['kubernetes_cluster_name'] == "kremvax-ru"
 
 
 def test_explicit_cluster_name():
-    dep = JupyterLabDeployment(params={"hostname": "westwing.ru"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "westwing.ru"})
     dep._validate_deployment_params()
     assert dep.params['kubernetes_cluster_name'] == "westwing-ru"
 
 
 def test_default_cluster_namespace():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru"})
     dep._validate_deployment_params()
-    assert dep.params['kubernetes_cluster_namespace'] == 'default'
+    assert dep.params['kubernetes_cluster_namespace'] == 'kremvax'
 
 
 def test_explicit_cluster_namespace():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru",
-                                       "kubernetes_cluster_namespace":
-                                       "raskolnikov"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru",
+                                               "kubernetes_cluster_namespace":
+                                               "raskolnikov"})
     dep._validate_deployment_params()
     assert dep.params['kubernetes_cluster_namespace'] == 'raskolnikov'
 
 
 def test_filesystem_default_size():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru"})
     dep._validate_deployment_params()
     assert dep.params['volume_size_gigabytes'] == 20
 
 
 def test_filesystem_illegal_size():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru",
-                                       "volume_size_gigabytes": -2})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru",
+                                               "volume_size_gigabytes": -2})
     with pytest.raises(ValueError):
         dep._validate_deployment_params()
 
 
 def test_filesystem_calculate_sizes():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru",
-                                       "github_organization_whitelist":
-                                       "nkvd"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru",
+                                               "github_organization_whitelist":
+                                               "nkvd"})
     dep._validate_deployment_params()
     dep._normalize_params()
     assert dep.params['volume_size'] == '20Gi'
@@ -87,7 +87,7 @@ def test_filesystem_calculate_sizes():
 
 
 def test_github_organization_whitelist():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru"})
     dep._validate_deployment_params()
     with pytest.raises(KeyError):
         dep._normalize_params()
@@ -106,19 +106,19 @@ def test_github_organization_whitelist():
 
 
 def test_callback_url():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru",
-                                       "github_organization_whitelist":
-                                       "nkvd"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru",
+                                               "github_organization_whitelist":
+                                               "nkvd"})
     dep._validate_deployment_params()
     dep._normalize_params()
-    assert dep.params['github_callback_url'] == (
-        "https://kremvax.ru/hub/oauth_callback")
+    assert dep.params['oauth_callback_url'] == (
+        "https://kremvax.ru/nb/hub/oauth_callback")
 
 
 def test_enable_firefly():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru",
-                                       "github_organization_whitelist":
-                                       "nkvd"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru",
+                                               "github_organization_whitelist":
+                                               "nkvd"})
     dep._validate_deployment_params()
     dep._normalize_params()
     dep._check_optional()
@@ -129,9 +129,9 @@ def test_enable_firefly():
 
 
 def test_enable_logging():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru",
-                                       "github_organization_whitelist":
-                                       "nkvd"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru",
+                                               "github_organization_whitelist":
+                                               "nkvd"})
     dep._validate_deployment_params()
     dep._normalize_params()
     dep._check_optional()
@@ -149,9 +149,9 @@ def test_enable_logging():
 
 
 def check_default_options():
-    dep = JupyterLabDeployment(params={"hostname": "kremvax.ru",
-                                       "github_organization_whitelist":
-                                       "nkvd"})
+    dep = LSSTNotebookAspectDeployment(params={"hostname": "kremvax.ru",
+                                               "github_organization_whitelist":
+                                               "nkvd"})
     dep._validate_deployment_params()
     dep._normalize_params()
     dep._check_optional()

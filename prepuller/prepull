@@ -37,9 +37,9 @@ if [ -n "${PREPULLER_IMAGE_LIST}" ]; then
     cmd="${cmd} -l ${PREPULLER_IMAGE_LIST}"
 fi
 if [ -n "${PREPULLER_COMMAND}" ]; then
-    cmd="${cmd} -l ${PREPULLER_COMMAND}"    
+    cmd="${cmd} -c ${PREPULLER_COMMAND}"
 fi
 if [ -n "${PREPULLER_NAMESPACE}" ]; then
-    cmd="${cmd} -l ${PREPULLER_NAMESPACE}"    
+    cmd="${cmd} --namespace ${PREPULLER_NAMESPACE}"
 fi
 exec $cmd

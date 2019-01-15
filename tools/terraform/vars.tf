@@ -168,7 +168,8 @@ variable "allow_dask_containers" {
 
 variable "prepuller_repo" {
   description = "Hostname of image repository"
-  default     = "hub.docker.com"
+  /* Empty for Docker Hub */
+  default     = ""
 }
 
 variable "prepuller_owner" {
@@ -214,7 +215,8 @@ variable "prepuller_releases" {
 
 variable "prepuller_port" {
   description = "Port number on image repository"
-  default     = "443"
+  /* Empty for Docker Hub */
+  default     = ""
 }
 
 variable "prepuller_insecure" {

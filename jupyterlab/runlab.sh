@@ -135,6 +135,9 @@ else
     create_dask_yml
     # Fetch/update magic notebook.
     . /opt/lsst/software/jupyterlab/refreshnb.sh
+    # Clear eups cache.  Use a subshell.
+    ( source /opt/lsst/software/stack/loadLSST.bash && \
+	  eups admin clearCache )
 fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \

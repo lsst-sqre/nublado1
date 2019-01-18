@@ -227,12 +227,12 @@ variable "prepuller_insecure" {
 /* Probably do not need to change these. */
 variable "prepuller_sort_field" {
   description = "Field to sort prepuller images by"
-  default     = "comp_ts"
+  default     = ""
 }
 
 variable "prepuller_command" {
   description = "Command to run in prepulled image container"
-  default     = "echo \"Prepuller complete on $(hostname) at $(date)\""
+  default     = ""
 }
 
 variable "prepuller_namespace" {

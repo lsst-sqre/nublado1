@@ -14,4 +14,7 @@ resource "kubernetes_cluster_role_binding" "prepuller" {
     name      = "prepuller"
     kind      = "ClusterRole"
   }
+
+  depends_on = [ "kubernetes_cluster_role.prepuller",
+    "kubernetes_service_account.prepuller" ]
 }

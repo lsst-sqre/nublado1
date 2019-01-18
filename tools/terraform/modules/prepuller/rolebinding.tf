@@ -16,4 +16,7 @@ resource "kubernetes_role_binding" "prepuller" {
     name      = "prepuller"
     api_group = ""
   }
+
+  depends_on = [ "kubernetes_service_account.prepuller",
+    "kubernetes_role.prepuller" ]
 }

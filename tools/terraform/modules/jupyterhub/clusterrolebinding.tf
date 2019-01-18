@@ -14,4 +14,7 @@ resource "kubernetes_cluster_role_binding" "jupyterhub" {
     name      = "jupyterhub"
     kind      = "ClusterRole"
   }
+
+  depends_on = [ "kubernetes_cluster_role_binding.jupyterhub",
+    "kubernetes_cluster_role.jupyterhub" ]
 }

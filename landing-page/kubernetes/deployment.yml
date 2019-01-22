@@ -28,4 +28,4 @@ spec:
         - name: landing-page-www
           configMap:
             name: landing-page-www
-          # kubectl create configmap landing-page-www from-file=config/
+          # kubectl create configmap landing-page-www --from-file=config/

@@ -1,4 +1,4 @@
-# Automated JupyterLab Demo Deployment
+# Automated LSST Science Platform Notebook Aspect Deployment
 
 ## Basic Usage
 

@@ -1,6 +1,6 @@
 resource "kubernetes_service_account" "prepuller" {
   metadata {
-    name = "prepuller"
+    name      = "prepuller"
     namespace = "${var.prepuller_namespace}"
   }
 }

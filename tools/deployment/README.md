@@ -1,10 +1,10 @@
-# Automated JupyterLab Demo Deployment
+# Automated LSST Science Platform Notebook Aspect Deployment
 
 ## Basic Usage
 
 These instructions should suffice to get you going with an LSST
-JupyterLab Demo environment, where all of the following conditions are
-true.
+Science Platform Notebook Aspect environment, where all of the following
+conditions are true.
 
 - The computation is hosted within Google Kubernetes Engine.
 - The domain name is hosted within AWS Route 53.
@@ -90,7 +90,7 @@ Here are the steps you need to perform:
 
 ### Interactive deployment
 
-8. Run `deploy-jupyterlabdemo`.  Answer the questions asked by the
+8. Run `deploy-lsst-notebook-aspect`.  Answer the questions asked by the
 deployment script (FQDN, certificate directory, OAuth client and secret,
 and whitelist of GitHub Organizations or CILogon Groups).  If you want to
 use CILogon you should set the environment variable
@@ -143,21 +143,21 @@ use CILogon you should set the environment variable
    in the environment, but optional settings will not be
    prompted--instead, defaults will be used.
 
-   Finally, run `deploy-jupyterlabdemo -f /path/to/mydeploy.yml` .
+   Finally, run `deploy-lsst-notebook-aspect -f /path/to/mydeploy.yml` .
 
 ### Usage and teardown
 
 9. After installation completes, browse to the FQDN you created.
 
 10. When you're done and ready to tear down the cluster, run
-    `deploy-jupyterlabdemo -f /path/to/mydeploy.yml -u` if you deployed
-    with a YAML file, or just `deploy-jupyterlabdemo -u` and answer the
+    `deploy-lsst-notebook-aspect -f /path/to/mydeploy.yml -u` if you deployed
+    with a YAML file, or just `deploy-lsst-notebook-aspect -u` and answer the
 	FQDN question if `LSP_NB_HOSTNAME` is not set.
 
 ## Running a custom configuration
 
 1. Specify a directory you want the configuration to be built in with
-   `deploy-jupyterlabdemo -f /path/to/mydeploy.yml -d
+   `deploy-lsst-notebook-aspect -f /path/to/mydeploy.yml -d
    /path/to/config/directory -c`
    
 2. Edit the Kubernetes deployment files under
@@ -167,17 +167,17 @@ use CILogon you should set the environment variable
    JupyterHub ConfigMap files to change the authentication or spawner
    configuration.
    
-3. Deploy with `deploy-jupyterlabdemo -f /path/to/mydeploy.yml -d
+3. Deploy with `deploy-lsst-notebook-aspect -f /path/to/mydeploy.yml -d
    /path/to/config/directory`
    
 ## Preserving existing clusters and namespaces.
 
 If you do not want to create and destroy a new cluster each time, you
-can use the `--existing-cluster` parameter to `deploy-jupyterlabdemo`.
-If you have specified `--existing-cluster` you can also use
-`--existing-namespace`.  Both of these settings can also be used during
-undeployment to leave the cluster (and namespace) at GKE.  If not
-specified the cluster and namespace are created during deployment and
-destroyed during undeployment.
+can use the `--existing-cluster` parameter to
+`deploy-lsst-notebook-aspect`.  If you have specified
+`--existing-cluster` you can also use `--existing-namespace`.  Both of
+these settings can also be used during undeployment to leave the cluster
+(and namespace) at GKE.  If not specified the cluster and namespace are
+created during deployment and destroyed during undeployment.
 
    

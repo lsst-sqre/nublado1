@@ -12,7 +12,7 @@ spec:
       containers:
         - name: fileserver
           imagePullPolicy: "Always"
-          image: "lsstsqre/fileserver"
+          image: "lsstsqre/jld-fileserver"
           env:
             - name: LOGLEVEL
               value: INFO

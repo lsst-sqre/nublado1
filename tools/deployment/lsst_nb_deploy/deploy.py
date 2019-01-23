@@ -38,6 +38,9 @@ Kubernetes and DNS providers.
 It is capable of deploying and undeploying an LSST Science Platform Notebook
 Aspect environment, or of generating a set of Kubernetes configuration files
 suitable for editing and then deploying from this tool.
+
+This system should be considered a stopgap until we can move to Terraform
+while still preserving the flexibility of this deployment tool.
 """
 import argparse
 import base64
@@ -1462,13 +1465,13 @@ class LSSTNotebookAspectDeployment(object):
             "deployment",
             "landing-page")
         self._run_kubectl_create(os.path.join(
-            lp_dir, "landing-page-service.yml"))
+            lp_dir, "service.yml"))
         self._run_kubectl_create(os.path.join(
-            lp_dir, "landing-page-ingress.yml"))
+            lp_dir, "ingress.yml"))
         self._run(['kubectl', 'create', 'configmap', 'landing-page-www',
                    "--from-file=%s" % os.path.join(lp_dir, "config")])
         self._run_kubectl_create(os.path.join(
-            lp_dir, "landing-page-deployment.yml"))
+            lp_dir, "deployment.yml"))
 
     def _destroy_landing_page(self):
         logging.info("Destroying landing page")
@@ -1484,16 +1487,16 @@ class LSSTNotebookAspectDeployment(object):
             "deployment",
             "prepuller")
         self._run_kubectl_create(os.path.join(
-            pp_dir, "prepuller-serviceaccount.yml"))
+            pp_dir, "serviceaccount.yml"))
         self._run_kubectl_create(os.path.join(
-            pp_dir, "prepuller-clusterrole.yml"))
+            pp_dir, "clusterrole.yml"))
         self._run_kubectl_create(os.path.join(
-            pp_dir, "prepuller-role.yml"))
+            pp_dir, "role.yml"))
         self._run_kubectl_create(os.path.join(
-            pp_dir, "prepuller-clusterrolebinding.yml"))
+            pp_dir, "clusterrolebinding.yml"))
         self._run_kubectl_create(os.path.join(
-            pp_dir, "prepuller-rolebinding.yml"))
-        self._run_kubectl_create(os.path.join(pp_dir, "prepuller-cronjob.yml"))
+            pp_dir, "rolebinding.yml"))
+        self._run_kubectl_create(os.path.join(pp_dir, "cronjob.yml"))
 
     def _destroy_prepuller(self):
         logging.info("Destroying prepuller")
@@ -1508,8 +1511,9 @@ class LSSTNotebookAspectDeployment(object):
         logging.info("Creating JupyterHub")
 
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
-        for c in ["service.yml", "hub-physpvc.yml",
+        for c in ["service.yml", "physpvc.yml",
                   "secrets.yml", "serviceaccount.yml",
+                  "clusterrole.yml", "clusterrolebinding.yml",
                   "role.yml", "rolebinding.yml",
                   "ingress.yml", "dask-serviceaccount.yml",
                   "dask-role.yml", "dask-rolebinding.yml"]:
@@ -1530,7 +1534,7 @@ class LSSTNotebookAspectDeployment(object):
         p = self.params
         directory = os.path.join(self.directory, "deployment", "jupyterhub")
         with open(os.path.join(directory,
-                               "hub-deployment.template-stage2.yml"),
+                               "deployment.template-stage2.yml"),
                   "r") as fr:
             if not p.get('database_instance_name'):
                 p['database_instance_name'] = "dummy"
@@ -1544,7 +1548,7 @@ class LSSTNotebookAspectDeployment(object):
 
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
-        pv = self._get_pv_and_disk_from_pvc("hub-physpvc")
+        pv = self._get_pv_and_disk_from_pvc("physpvc")
         items = [["rolebinding", "dask"],
                  ["role", "dask"],
                  ["serviceaccount", "dask"],
@@ -1553,6 +1557,8 @@ class LSSTNotebookAspectDeployment(object):
                  ["configmap", "hub-config"],
                  ["rolebinding", "hub"],
                  ["role", "hub"],
+                 ["clusterrolebinding", "hub"],
+                 ["clusterrole", "hub"],
                  ["serviceaccount", "hub"],
                  ["secret", "hub"],
                  ["pvc", "hub-physpvc"],

@@ -95,14 +95,14 @@ allowed_groups:
 ### Parameters for which image or set of images is prepulled.
 # For a single image, use prepuller_image_list and no_scan.
 #  prepuller_image_list:
-#  - 'lsstsqre/jld-lab:latest'
+#  - 'lsstsqre/sciplat-lab:latest'
 #  prepuller_no_scan: 'true'
 # To scan a repo, specify some or all of a repo/owner/image combo
 #  and the tags will be parsed at login time
 # The values shown are the defaults.
 #  prepuller_repo: 'hub.docker.com'
 #  prepuller_owner: 'lsstsqre'
-#  prepuller_image_name: 'jld-lab'
+#  prepuller_image_name: 'sciplat-lab'
 # This controls number of daily/weekly/release images to prepull.
 # This requires a tag format like LSST/DM uses.
 #  prepuller_dailies: '3'
@@ -121,11 +121,11 @@ allowed_groups:
 # Unless you are trying to annoy your users, these should probably match
 #  the values above.
 # If you only want a single lab image, set lab_image
-#  lab_image: 'lsstsqre/jld-lab:latest'
+#  lab_image: 'lsstsqre/sciplat-lab:latest'
 # As with the prepuller, if you want to scan a repo for tags...
 #  lab_repo_host: 'hub.docker.com'
 #  lab_repo_owner: 'lsstsqre'
-#  lab_repo_name: 'jld-lab'
+#  lab_repo_name: 'sciplat-lab'
 
 ### Image size parameters
 # By default you get four image sizes, "tiny", "small", "medium", and

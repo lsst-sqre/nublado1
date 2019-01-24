@@ -10,8 +10,8 @@ RUN  for i in home scratch project software datasets; do \
      done 
 COPY exports /etc/exports
 COPY run_nfs.sh /usr/local/bin/run_nfs.sh
-LABEL      description="jupyterlab demo: fileserver" \
-             name="lsstsqre/jld-fileserver" \
-             version="0.0.11"
+LABEL      description="LSST Science Platform Notebook Aspect: fileserver" \
+             name="lsstsqre/sciplat-fileserver" \
+             version="0.0.12"
 CMD [ "/usr/local/bin/run_nfs.sh" ]
 

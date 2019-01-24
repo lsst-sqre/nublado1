@@ -8,8 +8,8 @@ function usage() {
 function write_user_sudoer() {
     local username=$1
     local sudoers="/etc/sudoers.d/88_jupyter"
-    local jldir="/opt/lsst/software/jupyterlab"
-    l="provisionator ALL = (${username}) NOPASSWD:SETENV: ${jldir}/runlab.sh"
+    local labdir="/opt/lsst/software/jupyterlab"
+    l="provisionator ALL = (${username}) NOPASSWD:SETENV: ${labdir}/runlab.sh"
     echo "${l}" > ${sudoers}
 }
 

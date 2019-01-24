@@ -476,8 +476,8 @@ customization on your part.
      `LAB_REPO_NAME` to the name of the image.  The container name will
      then be `LAB_REPO_HOST`/`LAB_OWNER`/`LAB_REPO_NAME`.  If you only
      have a single image, set `LAB_IMAGE` to that container name.  It
-     will default to `lsstsqre/jld-lab:latest` (with `hub.docker.com` as
-     the implied repository host).
+     will default to `lsstsqre/sciplat-lab:latest` (with
+     `hub.docker.com` as the implied repository host).
 	 
    5. If you want to allow users to spawn dask nodes, set
       `ALLOW_DASK_SPAWN` to a non-empty value.  If you want to restrict

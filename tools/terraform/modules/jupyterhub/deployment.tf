@@ -33,7 +33,7 @@ resource "kubernetes_deployment" "jupyterhub" {
         container {
           name              = "jupyterhub"
           image_pull_policy = "Always"
-          image             = "lsstsqre/jld-hub"
+          image             = "lsstsqre/sciplat-hub"
 
           resources {
             limits {

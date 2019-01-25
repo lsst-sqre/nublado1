@@ -8,7 +8,7 @@ function usage() {
     echo 1>&2 "  -e is experimental (exp_ before tag), no 'latest' tag."
     echo 1>&2 "  -x is 'do not push' (but does build)."
     echo 1>&2 "  default BASE_IMAGE='lsstsqre/centos'"
-    echo 1>&2 "  default IMAGE_NAME='lsstsqre/jld-lab'"
+    echo 1>&2 "  default IMAGE_NAME='lsstsqre/sciplat-lab'"
     echo 1>&2 "  default TAG_PREFIX='7-stack-lsst_distrib-'"
     echo 1>&2 "  typical TAG='w_2017_35'"
     exit 2
@@ -19,7 +19,7 @@ DRY_RUN=0
 EXPERIMENTAL=0
 NOPUSH=0
 BASE_IMAGE="lsstsqre/centos"
-IMAGE_NAME="lsstsqre/jld-lab"
+IMAGE_NAME="lsstsqre/sciplat-lab"
 TAG_PREFIX="7-stack-lsst_distrib-"
 while getopts ':hdexp:n:b:t:' opt; do
     case $opt in

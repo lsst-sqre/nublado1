@@ -59,7 +59,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         # Make options form by scanning container repository
         title = os.getenv("LAB_SELECTOR_TITLE") or "Container Image Selector"
         owner = os.getenv("LAB_REPO_OWNER") or "lsstsqre"
-        repo = os.getenv("LAB_REPO_NAME") or "jld-lab"
+        repo = os.getenv("LAB_REPO_NAME") or "sciplat-lab"
         host = os.getenv("LAB_REPO_HOST") or "hub.docker.com"
         scanner = ScanRepo(host=host,
                            owner=owner,
@@ -219,7 +219,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         pod_name = self.pod_name
         image_spec = (self.image_spec or
                       os.getenv("LAB_IMAGE") or
-                      "lsstsqre/jld-lab:latest")
+                      "lsstsqre/sciplat-lab:latest")
         image_name = image_spec
         size = None
         image_size = None

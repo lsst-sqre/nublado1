@@ -13,7 +13,7 @@ spec:
       containers:
         - name: hub
           imagePullPolicy: "Always"
-          image: "lsstsqre/jld-hub"
+          image: "lsstsqre/sciplat-hub"
           resources:
             limits:
               memory: 2G

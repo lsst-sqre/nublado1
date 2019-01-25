@@ -40,7 +40,7 @@ RUN  sed -i -e \
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
-LABEL      description="jupyterlab demo: jupyterhub" \
-             name="lsstsqre/jld-hub" \
-	     version="0.9.10"
+LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
+             name="lsstsqre/sciplat-hub" \
+	     version="0.10.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

@@ -180,7 +180,7 @@ variable "prepuller_owner" {
 
 variable "prepuller_image_name" {
   description = "Name of prepulled image"
-  default     = "jld-lab"
+  default     = "sciplat-lab"
 }
 
 /* Set these two to completely replace the repo scan with a static list */
@@ -247,7 +247,7 @@ variable "prepuller_namespace" {
    the values above. */
 
 /* If you only want a single lab image, set lab_image, e.g.
-   "lsstsqre/jld-lab:latest" */
+   "lsstsqre/sciplat-lab:latest" */
 
 variable "lab_image" {
   description = "Single image for presenting"

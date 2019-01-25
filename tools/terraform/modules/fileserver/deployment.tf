@@ -21,7 +21,7 @@ resource "kubernetes_deployment" "fileserver" {
         container {
           name              = "fileserver"
           image_pull_policy = "Always"
-          image             = "lsstsqre/jld-fileserver"
+          image             = "lsstsqre/sciplat-fileserver"
 
           volume_mount = [
             {

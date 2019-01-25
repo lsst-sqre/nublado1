@@ -251,6 +251,12 @@ RUN  source scl_source enable rh-python36 && \
      for l in ${LBXT}; do \
          jupyter labextension install ${l} --no-build ; \
      done
+# Install Firefly extension from source until PyPi is updated.
+RUN  source scl_source enable rh-python36 && \
+      pip install \
+       git+https://github.com/Caltech-IPAC/jupyter_firefly_extensions && \
+      jupyter serverextension enable jupyter_firefly_extensions --py \
+       --sys-prefix 
 # Install ipyaladin extension from source until npm is updated.
 RUN  source scl_source enable rh-python36 && \
       cd /usr/share/git && \
@@ -274,15 +280,6 @@ RUN  source scl_source enable rh-python36 && \
           jupyter labextension install --no-build ; \
           cd .. ; \
       done
-# Install jupyter_firefly_extensions from source until server extension is
-#  pip-installable
-RUN  source scl_source enable rh-python36 && \
-      cd /usr/share/git && \
-      git clone https://github.com/Caltech-IPAC/jupyter_firefly_extensions && \
-      set -e && \
-      cd jupyter_firefly_extensions && \
-      jupyter labextension install . --no-build ; \
-      jupyter serverextension enable --py jupyter_firefly_extensions
 RUN  source scl_source enable rh-python36 && \
       gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
       set -e && \

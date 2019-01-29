@@ -1,13 +1,16 @@
 FROM centos:7
 USER root
 RUN  yum install -y epel-release
-RUN  yum install -y python34 python34-pip git
+RUN  yum install -y python36 python36-pip git
+# Make EPEL Python 3.6 system Python 3 and install pip3
+RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
+      python3 -m ensurepip
 RUN  yum -y update
 RUN  pip3 install --upgrade pip
-RUN  pip3 install https://github.com/lsst-sqre/jupyterutils/zipball/master
+RUN  pip3 install jupyterhubutils
 COPY prepull /usr/bin/prepull
 RUN  chmod 0755 /usr/bin/prepull
 CMD [ "/usr/bin/prepull" ]
 LABEL      description="jupyterlab demo: imageprepuller" \
              name="lsstsqre/prepuller" \
-             version="0.2.1"
+             version="0.2.3"

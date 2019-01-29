@@ -11,14 +11,17 @@ RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install \
       git sudo \
-      python-devel http-parser nodejs perl-Digest-MD5 \
+      python36 python36-setuptools python36-devel \
+      http-parser nodejs perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox \
       graphviz geos-devel
-# Python 3.6, tkinter, and git: install from SCL
+# Make EPEL Python 3.6 system Python 3 and install pip3
+RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
+      python3 -m ensurepip
+# Tkinter and git: install from SCL
 RUN  yum -y install centos-release-scl && \
-     yum -y install rh-git29 rh-python36-python-tkinter \
-      rh-python36
+     yum -y install rh-git29
 # Install git-lfs repo and then git-lfs
 RUN  S="script.rpm.sh" && \
       curl -s \
@@ -97,10 +100,8 @@ RUN  cd /tmp && \
         --profile /tmp/texlive.profile && \
       rm -rf /tmp/${FN} /tmp/install-tl*
 # Get newer setuptools before Python packages
-RUN  source scl_source enable rh-python36 && \
-      pip3 install --upgrade pip setuptools
-RUN  source scl_source enable rh-python36 && \
-      pip3 install --upgrade \
+RUN  pip3 install --upgrade pip setuptools
+RUN  pip3 install --upgrade \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
@@ -198,27 +199,24 @@ RUN  source ${LOADSTACK} && \
        firefly_client
 # Numpy must be installed before vaex and Cython must be installed before
 #  cartopy
-RUN  source scl_source enable rh-python36 && \
-      pip3 install --upgrade \
-       vaex-core \
-       vaex-viz \
-       vaex-server \
-       vaex-hdf5 vaex-astro \
-       vaex-distributed \
-       vaex-jupyter \
-       vaex-arrow
+RUN  pip3 install --upgrade \
+      vaex-core \
+      vaex-viz \
+      vaex-server \
+      vaex-hdf5 vaex-astro \
+      vaex-distributed \
+      vaex-jupyter \
+      vaex-arrow
 # Pip installing breaks for cartopy: 23 Jan 2019
 ENV  CARTOPY_VER="0.17.0"
 RUN  cd /usr/share/git && \
       git clone -b v${CARTOPY_VER} https://github.com/SciTools/cartopy
-RUN  source scl_source enable rh-python36 && \
-      cd /usr/share/git/cartopy && \
-      python setup.py bdist_wheel --universal
+RUN  cd /usr/share/git/cartopy && \
+      python3 setup.py bdist_wheel --universal
 ENV  CARTOPY_WHEEL=Cartopy-${CARTOPY_VER}-cp36-cp36m-linux_x86_64.whl
-RUN  source scl_source enable rh-python36 && \
-      pip3 install /usr/share/git/cartopy/dist/${CARTOPY_WHEEL}
+RUN  pip3 install /usr/share/git/cartopy/dist/${CARTOPY_WHEEL}
 RUN  source ${LOADSTACK} && \
-      pip3 install /usr/share/git/cartopy/dist/${CARTOPY_WHEEL}
+      pip install /usr/share/git/cartopy/dist/${CARTOPY_WHEEL}
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
@@ -235,41 +233,35 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
 # jupyterlab/hub-extension not updated yet
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
-RUN  source scl_source enable rh-python36 && \
-      set -e && \
+RUN  set -e && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
       done
-RUN  source scl_source enable rh-python36 && \
-      set -e && \
+RUN  set -e && \
       for n in $NBXT; do \
           jupyter nbextension install ${n} --py --sys-prefix && \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
       done
-RUN  source scl_source enable rh-python36 && \
-     set -e && \
-     for l in ${LBXT}; do \
-         jupyter labextension install ${l} --no-build ; \
-     done
+RUN  set -e && \
+      for l in ${LBXT}; do \
+          jupyter labextension install ${l} --no-build ; \
+      done
 # Install Firefly extension from source until PyPi is updated.
-RUN  source scl_source enable rh-python36 && \
-      pip install \
+RUN  pip3 install \
        git+https://github.com/Caltech-IPAC/jupyter_firefly_extensions && \
       jupyter serverextension enable jupyter_firefly_extensions --py \
        --sys-prefix 
 # Install ipyaladin extension from source until npm is updated.
-RUN  source scl_source enable rh-python36 && \
-      cd /usr/share/git && \
+RUN  cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
       cd ipyaladin/js && \
       npm install --unsafe-perm && \
       cd .. && \
-      pip install -e . && \
+      pip3 install -e . && \
       cd js && \
       jupyter labextension install --no-build
 # Install jupyterlab-hub from source until npm is updated.
-RUN  source scl_source enable rh-python36 && \
-      gitxt="jupyterlab-hub" && \
+RUN  gitxt="jupyterlab-hub" && \
       cd /usr/share/git && \
       git clone https://github.com/jupyterhub/jupyterlab-hub && \
       set -e && \
@@ -280,21 +272,18 @@ RUN  source scl_source enable rh-python36 && \
           jupyter labextension install --no-build ; \
           cd .. ; \
       done
-RUN  source scl_source enable rh-python36 && \
-      gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
+RUN gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
 ENV  NODE_OPTIONS=--max-old-space-size=4096
-RUN  source scl_source enable rh-python36 && \
-      npm cache clean && \
+RUN  npm cache clean && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jupyter && \
-     scl="/opt/rh/rh-python36/root/usr/share/" && \
-     #uls="/usr/local/share" && \
+     uls="/usr/local/share" && \
      jl="jupyter/lab" && \
      u="${scl}/${jl}" && \
 # If we recursively chown all of the lab directory, it gets rid of permission

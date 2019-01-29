@@ -49,3 +49,9 @@ spec:
                 value: "{{PREPULLER_COMMAND}}"
               - name: PREPULLER_NAMESPACE
                 value: "{{PREPULLER_NAMESPACE}}"
+              - name: ALLOW_DASK_SPAWN
+                value: "{{ALLOW_DASK_SPAWN}}"
+              - name: RESTRICT_LAB_NODES
+                value: "{{RESTRICT_LAB_NODES}}"
+              - name: RESTRICT_DASK_NODES
+                value: "{{RESTRICT_DASK_NODES}}"

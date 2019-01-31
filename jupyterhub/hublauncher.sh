@@ -23,10 +23,8 @@ fi
 if [ -f "/home/jupyter/jupyterhub-proxy.pid" ]; then
     rm /home/jupyter/jupyterhub-proxy.pid
 fi
-#upgdb="--upgrade-db"
-upgdb=""
-source scl_source enable rh-python36
-cmd="sudo -E -u ${USER} ${jhdir}/hubwrapper.sh ${upgdb} ${dbgflag} -f ${conf}"
+cmd="sudo -E -u ${USER} /usr/local/bin/jupyterhub ${dbgflag} -f ${conf}"
+echo $cmd
 if [ -n "${DEBUG}" ]; then
     ${cmd}
     sleep 600

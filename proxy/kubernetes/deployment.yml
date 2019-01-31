@@ -17,6 +17,7 @@ spec:
           command:
             - configurable-http-proxy
             - --ip=0.0.0.0
+            - --api-ip=0.0.0.0
             - --api-port=8001
             - --default-target=http://$(HUB_SERVICE_HOST):$(HUB_SERVICE_PORT_API)
             - --error-target=http://$(HUB_SERVICE_HOST):$(HUB_SERVICE_PORT_API)/hub/error

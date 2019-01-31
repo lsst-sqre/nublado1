@@ -217,10 +217,10 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             self.service_account = 'dask'
 
         pod_name = self.pod_name
-        image_spec = (self.image_spec or
-                      os.getenv("LAB_IMAGE") or
-                      "lsstsqre/sciplat-lab:latest")
-        image_name = image_spec
+        image = (self.image or
+                 os.getenv("LAB_IMAGE") or
+                 "lsstsqre/sciplat-lab:latest")
+        image_name = image
         size = None
         image_size = None
         # First pulls can be really slow for the LSST stack containers,
@@ -236,19 +236,18 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                                                            sort_keys=True,
                                                            indent=4))
             if self.user_options.get('kernel_image'):
-                image_spec = self.user_options.get('kernel_image')
-                colon = image_spec.find(':')
+                image = self.user_options.get('kernel_image')
+                colon = image.find(':')
                 if colon > -1:
-                    imgname = image_spec[:colon]
-                    tag = image_spec[(colon + 1):]
+                    imgname = image[:colon]
+                    tag = image[(colon + 1):]
                     self.log.debug("Image name: %s ; tag: %s" % (imgname, tag))
                     if tag == "__custom":
                         cit = self.user_options.get('image_tag')
                         if cit:
-                            image_spec = imgname + ":" + cit
-                image_name = image_spec
-                self.log.info("Replacing image spec from options form: %s" %
-                              image_spec)
+                            image = imgname + ":" + cit
+                image_name = image
+                self.log.info("Replacing image from options form: %s" % image)
                 size = self.user_options.get('size')
                 if size:
                     image_size = self._sizemap[size]
@@ -277,15 +276,15 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             cpu_guar = float(image_size["cpu"] / size_range)
         self.mem_guarantee = mem_guar
         self.cpu_guarantee = cpu_guar
-        self.image_spec = image_spec
-        s_idx = image_spec.find('/')
-        c_idx = image_spec.find(':')
+        self.image = image
+        s_idx = image.find('/')
+        c_idx = image.find(':')
         tag = "latest"
         if s_idx != -1:
-            image_name = image_spec[(s_idx + 1):]
+            image_name = image[(s_idx + 1):]
             if c_idx > 0:
-                image_name = image_spec[(s_idx + 1):c_idx]
-                tag = image_spec[(c_idx + 1):].replace('_', '')
+                image_name = image[(s_idx + 1):c_idx]
+                tag = image[(c_idx + 1):].replace('_', '')
         pn_template = image_name + "-{username}-" + tag
         auth_state = yield self.user.get_auth_state()
         if auth_state and "id" in auth_state:
@@ -358,10 +357,10 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         self.log.debug("Volume mounts: %s" % json.dumps(self.volume_mounts,
                                                         indent=4,
                                                         sort_keys=True))
-        self.image_spec = image_spec
-        self.log.debug("Image spec: %s" % json.dumps(image_spec,
-                                                     indent=4,
-                                                     sort_keys=True))
+        self.image = image
+        self.log.debug("Image: %s" % json.dumps(image,
+                                                indent=4,
+                                                sort_keys=True))
         self.log.debug("Pod env: %s" % json.dumps(pod_env,
                                                   indent=4,
                                                   sort_keys=True))
@@ -371,7 +370,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             name=self.pod_name,
             cmd=real_cmd,
             port=self.port,
-            image=self.image_spec,
+            image=self.image,
             image_pull_policy=self.image_pull_policy,
             image_pull_secret=self.image_pull_secrets,
             node_selector=self.node_selector,

@@ -36,3 +36,10 @@ c.JupyterHub.hub_connect_url = "http://" + k8s_svc_address + ":8081" + \
 # Add node selector
 if os.getenv('RESTRICT_LAB_NODES'):
     c.KubeSpawner.node_selector.update({'jupyterlab': 'ok'})
+
+# External proxy
+c.ConfigurableHTTPProxy.should_start = False
+proxy_host = os.getenv('PROXY_SERVICE_HOST') or '127.0.0.1'
+proxy_port = os.getenv('PROXY_SERVICE_PORT_API') or '8001'
+proxy_url = "http://" + proxy_host + ":" + proxy_port
+c.ConfigurableHTTPProxy.api_url = proxy_url

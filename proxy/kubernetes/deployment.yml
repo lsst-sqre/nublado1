@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: proxy
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: proxy
+    spec:
+      serviceAccountName: hub
+      containers:
+        - name: hub
+          imagePullPolicy: "Always"
+          image: "jupyterhub/configurable-http-proxy"
+          command:
+            - configurable-http-proxy
+            - --ip=0.0.0.0
+            - --api-port=8001
+            - --default-target=http://$(HUB_SERVICE_HOST):$(HUB_SERVICE_PORT_API)
+            - --error-target=http://$(HUB_SERVICE_HOST):$(HUB_SERVICE_PORT_API)/hub/error
+            - --port=8000
+          env:
+            - name: CONFIGPROXY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hub
+                  key: configproxy_auth_token
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 200m
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 8001
+              name: api

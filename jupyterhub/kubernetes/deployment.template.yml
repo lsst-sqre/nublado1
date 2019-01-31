@@ -22,9 +22,8 @@ spec:
               memory: 1G
               cpu: 0.8
           ports:
-            -
-              containerPort: 8000
-              name: hub
+            - containerPort: 8081
+              name: api
           env:
             - name: LOGLEVEL
               value: INFO
@@ -143,6 +142,11 @@ spec:
                 secretKeyRef:
                   name: hub
                   key: jupyterhub_crypto_key
+            - name: CONFIGPROXY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hub
+                  key: configproxy_auth_token
           # If you use sqlite, you want this to persist sessions across
           #  jupyterhub restarts.
           volumeMounts:

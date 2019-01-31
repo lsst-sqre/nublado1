@@ -8,8 +8,9 @@ import os
 import oauthenticator
 import random
 from oauthenticator.common import next_page_from_links
-from tornado import gen
+from tornado import gen, web
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
+from tornado.httputil import url_concat
 
 # Get authenticator type; default to "github"
 OAUTH_PROVIDER = os.environ.get('OAUTH_PROVIDER') or "github"
@@ -180,12 +181,87 @@ class LSSTCILogonAuth(oauthenticator.CILogonOAuthenticator):
 
     @gen.coroutine
     def authenticate(self, handler, data=None):
-        """Change username to something more sane. The 'eppn' field will have
-        a username and a domain.  If the domain matches our default domain,
-        just use the username; otherwise, use username prepended with a dot
-        to the domain.
+        """The superclass doesn't have any way to gracefully fall back
+        from eppn to another field, so we (sigh) are going to duplicate the
+        method.
         """
-        userdict = yield super().authenticate(handler, data)
+        # userdict = yield super().authenticate(handler, data)
+
+        """We set up auth_state based on additional CILogon info if we
+        receive it.
+        """
+        code = handler.get_argument("code")
+        # TODO: Configure the curl_httpclient for tornado
+        http_client = AsyncHTTPClient()
+
+        # Exchange the OAuth code for a CILogon Access Token
+        # See: http://www.cilogon.org/oidc
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": "JupyterHub",
+        }
+        params = dict(
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            redirect_uri=self.oauth_callback_url,
+            code=code,
+            grant_type='authorization_code',
+        )
+
+        url = url_concat("https://%s/oauth2/token" % CILOGON_HOST, params)
+
+        req = HTTPRequest(url,
+                          headers=headers,
+                          method="POST",
+                          body=''
+                          )
+
+        resp = yield http_client.fetch(req)
+        token_response = json.loads(resp.body.decode('utf8', 'replace'))
+        access_token = token_response['access_token']
+        self.log.info("Access token acquired.")
+        # Determine who the logged in user is
+        params = dict(access_token=access_token)
+        req = HTTPRequest(url_concat("https://%s/oauth2/userinfo" %
+                                     CILOGON_HOST, params),
+                          headers=headers
+                          )
+        resp = yield http_client.fetch(req)
+        resp_json = json.loads(resp.body.decode('utf8', 'replace'))
+
+        # Not very classy here.  But perhaps it will work
+        for claim in [self.username_claim, "uid"]:
+            username = resp_json.get(claim)
+            if username:
+                break
+
+        if not username:
+            self.log.error("Username claim %s not found in the response: %s",
+                           self.username_claim, sorted(resp_json.keys())
+                           )
+            raise web.HTTPError(500, "Failed to get username from CILogon")
+
+        if self.idp_whitelist:
+            gotten_name, gotten_idp = username.split('@')
+            if gotten_idp not in self.idp_whitelist:
+                self.log.error(
+                    "Trying to login from not whitelisted domain %s", gotten_idp)
+                raise web.HTTPError(
+                    500, "Trying to login from not whitelisted domain")
+            if len(self.idp_whitelist) == 1 and self.strip_idp_domain:
+                username = gotten_name
+        userdict = {"name": username}
+        # Now we set up auth_state
+        userdict["auth_state"] = auth_state = {}
+        # Save the token response and full CILogon reply in auth state
+        # These can be used for user provisioning
+        #  in the Lab/Notebook environment.
+        auth_state['token_response'] = token_response
+        # store the whole user model in auth_state.cilogon_user
+        # keep access_token as well, in case anyone was relying on it
+        auth_state['access_token'] = access_token
+        auth_state['cilogon_user'] = resp_json
+
         if userdict:
             membership = yield self._check_group_membership(userdict)
             if not membership:
@@ -196,7 +272,8 @@ class LSSTCILogonAuth(oauthenticator.CILogonOAuthenticator):
                 username, domain = user_rec["eppn"].split("@")
             if "uid" in user_rec:
                 username = user_rec["uid"]
-            if domain != self._default_domain:
+                domain = ""
+            if domain and domain != self._default_domain:
                 username = username + "." + domain
             userdict["name"] = username
         return userdict
@@ -308,7 +385,7 @@ c.LSSTGitHubAuth.scope = [u'public_repo', u'read:org', u'user:email']
 # Set scope, skin, and provider for CILogon
 c.LSSTCILogonAuth.scope = ['openid', 'org.cilogon.userinfo']
 c.LSSTCILogonAuth.skin = "LSST"
-c.LSSTCILogonAuth.idp = "https://idp.ncsa.illinois.edu/idp/shibboleth"
+#c.LSSTCILogonAuth.idp = "https://idp.ncsa.illinois.edu/idp/shibboleth"
 
 # Default to GitHub
 c.JupyterHub.authenticator_class = LSSTGitHubAuth

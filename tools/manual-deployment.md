@@ -421,10 +421,6 @@ customization on your part.
   physpvc.yml`.  The Hub needs some persistent storage so its
   knowledge of user sessions survives a container restart.
 
-* Copy `ingress.template.yml` to a working file, substituting
-  `HUB_ROUTE` (use `/nb/` if you have no particular reason to do otherwise)
-  and `HOSTNAME`.  Create that with `kubectl -f` against the working file.
-
 * Create a file from the secrets template.  Populate this secrets file
   with the following (base64-encoded):
   
@@ -451,6 +447,9 @@ customization on your part.
      second key to the first position, and generating a new key for the
      second position.  The command `"r="openssl rand -hex 32"; echo
      "$(${r});$(${r})"` will generate a pair in this form for you.
+  5. `configproxy_auth_token`; use `openssl rand -hex 32` to get 16 more
+     random bytes.  The Configurable HTTP Proxy does not have facilities
+	 for key rotation.
 
   Once you have done that, create the secrets from the file: `kubectl
   create -f <filename>`.
@@ -513,6 +512,21 @@ customization on your part.
 * Deploy the file using the `redeploy` script, which will create
   the `ConfigMap` resource from the JupyterHub configuration, and then
   deploy the Hub into the specified context and namespace.
+
+### Configurable HTTP Proxy
+
+* The Configurable HTTP Proxy is a Jupyter-provided piece that manages
+  per-user routes to spawned Lab servers.
+
+* This is located in `proxy`.
+
+* Create the service with `kubectl -f service.yml`.
+
+* Create the deployment with `kubectl -f deployment.yml`.
+
+* Copy `ingress.template.yml` to a working file, substituting
+  `HUB_ROUTE` (use `/nb/` if you have no particular reason to do otherwise)
+  and `HOSTNAME`.  Create that with `kubectl -f` against the working file.
 
 ### Landing Page (optional)
 

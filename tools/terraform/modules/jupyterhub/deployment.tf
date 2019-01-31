@@ -153,48 +153,113 @@ resource "kubernetes_deployment" "jupyterhub" {
           }
 
           env {
-            name  = "GITHUB_ORGANIZATION_WHITELIST"
-            value = "${var.github_allowed_organizations}"
+            name = "GITHUB_ORGANIZATION_WHITELIST"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "github_allowed_organizations"
+              }
+            }
           }
 
           env {
-            name  = "CILOGON_GROUP_WHITELIST"
-            value = "${var.cilogon_allowed_groups}"
+            name = "CILOGON_GROUP_WHITELIST"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "cilogon_allowed_groups"
+              }
+            }
           }
 
           env {
-            name  = "GITHUB_ORGANIZATION_DENYLIST"
-            value = "${var.github_forbidden_organizations}"
+            name = "GITHUB_ORGANIZATION_DENYLIST"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "github_forbidden_organizations"
+              }
+            }
           }
 
           env {
-            name  = "CILOGON_GROUP_DENYLIST"
-            value = "${var.cilogon_forbidden_groups}"
+            name = "CILOGON_GROUP_DENYLIST"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "cilogon_forbidden_groups"
+              }
+            }
           }
 
           env {
-            name  = "OAUTH_CLIENT_ID"
-            value = "${var.oauth_client_id}"
+            name = "OAUTH_CLIENT_ID"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "oauth_client_id"
+              }
+            }
           }
 
           env {
-            name  = "OAUTH_CLIENT_SECRET"
-            value = "${var.oauth_secret}"
+            name = "OAUTH_CLIENT_SECRET"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "oauth_secret"
+              }
+            }
           }
 
           env {
-            name  = "OAUTH_CALLBACK_URL"
-            value = "${local.oauth_callback_url}"
+            name = "OAUTH_CALLBACK_URL"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "oauth_callback_url"
+              }
+            }
           }
 
           env {
-            name  = "SESSION_DB_URL"
-            value = "${var.session_db_url}"
+            name = "SESSION_DB_URL"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "session_db_url"
+              }
+            }
           }
 
           env {
-            name  = "JUPYTERHUB_CRYPT_KEY"
-            value = "${local.crypto_key}"
+            name = "JUPYTERHUB_CRYPT_KEY"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "crypto_key"
+              }
+            }
+          }
+
+          env {
+            name = "CONFIGPROXY_AUTH_TOKEN"
+
+            value_from {
+              secret_key_ref {
+                name = "jupyterhub"
+                key  = "configproxy_auth_token"
+              }
+            }
           }
 
           volume_mount = {

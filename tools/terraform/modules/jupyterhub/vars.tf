@@ -119,7 +119,8 @@ variable "external_firefly_url" {
 }
 
 locals {
-  "oauth_callback_url" = "https://${var.hostname}${var.hub_route}hub/oauth_callback"
-  "_keys"              = "${random_id.crypto_key.hex}"
-  "crypto_key"         = "${substr(local._keys,0,32)};${substr(local._keys,32,32)}"
+  "oauth_callback_url"     = "https://${var.hostname}${var.hub_route}hub/oauth_callback"
+  "_keys"                  = "${random_id.crypto_key.hex}"
+  "crypto_key"             = "${substr(local._keys,0,32)};${substr(local._keys,32,32)}"
+  "configproxy_auth_token" = "${random_id.configproxy_auth_token.hex}"
 }

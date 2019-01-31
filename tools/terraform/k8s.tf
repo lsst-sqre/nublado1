@@ -123,6 +123,13 @@ module "jupyterhub" {
   external_firefly_url           = "${var.external_firefly_url}"
 }
 
+module "proxy" {
+  source    = "./modules/proxy"
+  hostname  = "${var.hostname}"
+  namespace = "${kubernetes_namespace.hub.metadata.0.name}"
+  hub_route = "${var.hub_route}"
+}
+
 module "nginx_ingress" {
   source        = "./modules/nginx_ingress"
   cluster_admin = "${local.cluster_admin}"

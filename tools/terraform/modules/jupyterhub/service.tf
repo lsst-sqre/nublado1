@@ -13,12 +13,6 @@ resource "kubernetes_service" "jupyterhub" {
     type = "NodePort"
 
     port {
-      name     = "http"
-      port     = 8000
-      protocol = "TCP"
-    }
-
-    port {
       name     = "api"
       port     = 8081
       protocol = "TCP"

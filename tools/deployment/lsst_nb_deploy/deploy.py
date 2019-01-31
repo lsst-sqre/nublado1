@@ -155,7 +155,7 @@ class LSSTNotebookAspectDeployment(object):
     """
     directory = None
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
-                  "firefly", "prepuller", "jupyterhub", "tls",
+                  "firefly", "prepuller", "jupyterhub", "proxy", "tls",
                   "nginx-ingress", "landing-page"]
     params = None
     yamlfile = None
@@ -634,6 +634,7 @@ class LSSTNotebookAspectDeployment(object):
         with _wd(os.path.join(self.directory, "deployment")):
             self._generate_dhparams()
             self._generate_crypto_key()
+            self._generate_configproxy_auth_token()
             matches = {}
             for c in self.components:
                 matches[c] = []
@@ -650,6 +651,12 @@ class LSSTNotebookAspectDeployment(object):
         """
         ck = os.urandom(16).hex() + ";" + os.urandom(16).hex()
         self.params['crypto_key'] = ck
+
+    def _generate_configproxy_auth_token(self):
+        """Generate a random auth token for the proxy.
+        """
+        at = os.urandom(16).hex()
+        self.params['configproxy_auth_token'] = at
 
     def _generate_random_pw(self, len=16):
         """Generate a random string for use as a password.
@@ -746,6 +753,8 @@ class LSSTNotebookAspectDeployment(object):
                               'session_db_url'),
                           JUPYTERHUB_CRYPTO_KEY=self.encode_value(
                               'crypto_key'),
+                          CONFIGPROXY_AUTH_TOKEN=self.encode_value(
+                              'configproxy_auth_token'),
                           CLUSTER_IDENTIFIER=p[
                               'kubernetes_cluster_namespace'],
                           SHARED_VOLUME_SIZE=p[
@@ -859,8 +868,8 @@ class LSSTNotebookAspectDeployment(object):
         pathvars = ['tls_cert', 'tls_key', 'tls_root_chain',
                     'beats_cert', 'beats_key', 'beats_ca']
         fullpathvars = set()
-        ignore = ['oauth_callback_url', 'crypto_key', 'dhparams',
-                  'nfs_volume_size', 'volume_size']
+        ignore = ['oauth_callback_url', 'crypto_key', 'configproxy_auth_token',
+                  'dhparams', 'nfs_volume_size', 'volume_size']
         for p in pathvars:
             v = self.params.get(p)
             if v:
@@ -898,6 +907,7 @@ class LSSTNotebookAspectDeployment(object):
                 self._create_firefly()
             self._substitute_db_identifier()
             self._create_jupyterhub()
+            self._create_proxy()
             if self.enable_landing_page:
                 self._create_landing_page()
             self._create_dns_record()
@@ -1515,7 +1525,7 @@ class LSSTNotebookAspectDeployment(object):
                   "secrets.yml", "serviceaccount.yml",
                   "clusterrole.yml", "clusterrolebinding.yml",
                   "role.yml", "rolebinding.yml",
-                  "ingress.yml", "dask-serviceaccount.yml",
+                  "dask-serviceaccount.yml",
                   "dask-role.yml", "dask-rolebinding.yml"]:
             self._run_kubectl_create(os.path.join(directory, c))
         cfdir = os.path.join(directory, "config")
@@ -1565,6 +1575,20 @@ class LSSTNotebookAspectDeployment(object):
                  ["svc", "hub"]]
         if pv:
             items.append(["pv", pv])
+        for c in items:
+            self._run_kubectl_delete(c)
+
+    def _create_proxy(self):
+        logging.info("Creating Configurable HTTP Proxy")
+        directory = os.path.join(self.directory, "deployment", "proxy")
+        for c in ["service.yml", "ingress.yml", "deployment.yml"]:
+            self._run_kubectl_create(os.path.join(directory, c))
+
+    def _destroy_proxy(self):
+        logging.info("Destroying Configurable HTTP Proxy")
+        items = [["deployment", "proxy"],
+                 ["ingress", "proxy"],
+                 ["svc", "proxy"]]
         for c in items:
             self._run_kubectl_delete(c)
 
@@ -1681,6 +1705,7 @@ class LSSTNotebookAspectDeployment(object):
             self._switch_to_context(self.params["kubernetes_cluster_name"])
             self._destroy_dns_record()
             self._destroy_landing_page()
+            self._destroy_proxy()
             self._destroy_jupyterhub()
             self._destroy_firefly()
             self._destroy_tls_secrets()

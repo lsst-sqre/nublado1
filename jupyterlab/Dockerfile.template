@@ -105,7 +105,7 @@ RUN  pip3 install --upgrade \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
-       nbserverproxy \
+       jupyter-server-proxy \
        virtualenv \
        virtualenvwrapper \
        pyshp \
@@ -154,8 +154,9 @@ RUN  source ${LOADSTACK} && \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
-       nbserverproxy \
+       jupyter-server-proxy \
        setuptools \
+       virtualenv \
        virtualenvwrapper \
        pyshp \
        ipykernel \
@@ -221,7 +222,7 @@ RUN  source ${LOADSTACK} && \
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
 # Install our extensions
-ENV SVXT="jupyterlab nbserverproxy jupyterlab_lsstquery nbdime"
+ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery nbdime"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
@@ -229,7 +230,7 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @pyviz/jupyterlab_pyviz \
           bqplot dask-labextension ipyevents ipyvolume jupyter-threejs \
           jupyterlab_bokeh nbdime-jupyterlab \
-          jupyter_firefly_extensions"
+          jupyter_firefly_extensions jupyterlab-server-proxy"
 # jupyterlab/hub-extension not updated yet
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}

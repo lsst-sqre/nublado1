@@ -1,13 +1,13 @@
 #!/bin/sh
 # Source virtualenvwrapper.sh
-# This must happen *after* the python scl is enabled.
+# Use python3, *not* the system Python 2.
 if [ $(id -u) -ne 0 ]; then
-    source $(which virtualenvwrapper.sh)
-    rc=$?
-    if [ "${rc}" -ne 0 ]; then
-	alias python='python3'
+    pver=$(python -V 2>&1 | cut -d ' ' -f 2 | cut -d '.' -f 1)
+    if [ ${pver} -lt 3 ]; then
+	VIRTUALENVWRAPPER_PYTHON="$(command \which python3)" \
+				source $(which virtualenvwrapper.sh)
+    else
 	source $(which virtualenvwrapper.sh)
-	unalias python
     fi
 fi
 

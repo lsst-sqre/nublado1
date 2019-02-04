@@ -10,6 +10,7 @@ RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
       python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
+# Use forked oauthenticator until PR lands.
 RUN  pip3 install jupyterlab \
       ipykernel \
       pyyaml \
@@ -19,10 +20,10 @@ RUN  pip3 install jupyterlab \
       cryptography \
       mysqlclient \
       jupyterhub \
-      oauthenticator \
       jupyterhubutils \
       jupyterhub-kubespawner \
-      namespacedkubespawner
+      namespacedkubespawner \
+      git+https://github.com/lsst-sqre/oauthenticator.git
 RUN jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterhub/config
 RUN  mkdir /opt/lsst/software/jupyterhub/templates
@@ -39,5 +40,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.11.0"
+	     version="0.11.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

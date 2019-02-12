@@ -339,6 +339,9 @@ RUN  mkdir ${jl}/prov
 COPY prov/addlabuser.bash prov/changestagingid.bash \
      prov/writeusersudoer.bash \
      ${jl}/prov/
+# Otherwise ipyevents shows up in serverextensions, which it should not.
+RUN  c="/usr/local/etc/jupyter/jupyter_notebook_config.d/ipyevents.json" && \
+      mv ${c} ${c}.disabled
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \
       's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \

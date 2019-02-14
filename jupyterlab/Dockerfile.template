@@ -254,11 +254,6 @@ RUN  set -e && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
-# Install Firefly extension from source until PyPi is updated.
-RUN  pip3 install \
-       git+https://github.com/Caltech-IPAC/jupyter_firefly_extensions && \
-      jupyter serverextension enable jupyter_firefly_extensions --py \
-       --sys-prefix 
 # Install ipyaladin extension from source until npm is updated.
 RUN  cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \

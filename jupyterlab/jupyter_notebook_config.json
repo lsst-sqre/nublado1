@@ -1,8 +1,5 @@
 {
   "NotebookApp": {
-    "nbserver_extensions": {
-      "jupyterlab": true
-    },
     "terminado_settings": {
       "shell_command": [ "/bin/bash", "-i" ]
     }

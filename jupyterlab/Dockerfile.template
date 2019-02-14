@@ -146,6 +146,7 @@ RUN  pip3 install --upgrade \
        graphviz \
        nbdime \
        jupyterlabutils \
+       jupyter-firefly-extensions \
        firefly_client
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -197,6 +198,7 @@ RUN  source ${LOADSTACK} && \
        graphviz \
        nbdime \
        jupyterlabutils \
+       jupyter-firefly-extensions \
        firefly_client
 # Numpy must be installed before vaex and Cython must be installed before
 #  cartopy
@@ -222,7 +224,12 @@ RUN  source ${LOADSTACK} && \
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
 # Install our extensions
-ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery nbdime"
+# First inject jupyter_notebook_config with terminado settings, *then*
+#  edit it by adding jupyter server extensions.
+RUN  mkdir -p /usr/etc/jupyter
+COPY jupyter_notebook_config.json /usr/etc/jupyter
+ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery nbdime \
+          jupyter_firefly_extensions"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
@@ -324,7 +331,6 @@ RUN  set -e && \
 COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst/kernel.json
 COPY motd /etc/motd
-COPY jupyter_notebook_config.json /usr/etc/jupyter
 COPY 20_jupytervars 30_provisionator /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
 COPY gitconfig /etc/skel/.gitconfig

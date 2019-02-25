@@ -341,8 +341,12 @@ COPY prov/addlabuser.bash prov/changestagingid.bash \
      prov/writeusersudoer.bash \
      ${jl}/prov/
 # Otherwise ipyevents shows up in serverextensions, which it should not.
+#  This is fixed in ipyevents 1.4.1, but we will leave the workaround in
+#  place so we can rebuild previous releases if need be.
 RUN  c="/usr/local/etc/jupyter/jupyter_notebook_config.d/ipyevents.json" && \
-      mv ${c} ${c}.disabled
+     if [ -f "${c}" ]; then \
+         mv ${c} ${c}.disabled ; \
+     fi
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \
       's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \

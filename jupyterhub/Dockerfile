@@ -23,7 +23,8 @@ RUN  pip3 install jupyterlab \
       jupyterhubutils \
       jupyterhub-kubespawner \
       namespacedkubespawner \
-      git+https://github.com/lsst-sqre/oauthenticator.git
+      git+https://github.com/mogthesprog/jwtauthenticator.git \
+      git+https://github.com/jupyterhub/oauthenticator.git
 RUN jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterhub/config
 RUN  mkdir /opt/lsst/software/jupyterhub/templates
@@ -40,5 +41,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.11.2"
+	     version="exp_0.12.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

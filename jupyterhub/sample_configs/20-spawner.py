@@ -286,11 +286,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 image_name = image[(s_idx + 1):c_idx]
                 tag = image[(c_idx + 1):].replace('_', '')
         pn_template = image_name + "-{username}-" + tag
-        auth_state = yield self.user.get_auth_state()
-        if auth_state and "id" in auth_state:
-            if auth_state["id"] != self.user.id:
-                self.log.info("Updating userid from %d to %d" %
-                              (self.user.id, auth_state["id"]))
         pod_name = self._expand_user_properties(pn_template)
         self.pod_name = pod_name
         self.log.info("Replacing pod name from options form: %s" %
@@ -364,6 +359,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         self.log.debug("Pod env: %s" % json.dumps(pod_env,
                                                   indent=4,
                                                   sort_keys=True))
+        if not pod_env.get("EXTERNAL_UID"):
+            raise ValueError("EXTERNAL_UID is not set!")
         self.log.debug("About to run make_pod()")
 
         pod = make_pod(

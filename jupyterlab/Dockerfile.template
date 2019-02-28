@@ -347,6 +347,9 @@ RUN  c="/usr/local/etc/jupyter/jupyter_notebook_config.d/ipyevents.json" && \
      if [ -f "${c}" ]; then \
          mv ${c} ${c}.disabled ; \
      fi
+# Copy the static templates where Jupyter can find them.
+RUN  c="/usr/local/share/jupyter/lab" && \
+     cp -rp "${c}/staging/templates" "${c}/static"
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \
       's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \

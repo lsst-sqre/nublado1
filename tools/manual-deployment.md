@@ -425,7 +425,8 @@ customization on your part.
   with the following (base64-encoded):
   
   1. The `Client ID`, `Client Secret`, and `Callback URL` from the
-     OAuth2 Application you registered with GitHub at the beginning.
+     OAuth2 Application you registered with GitHub at the beginning.  If
+     you are using JWT authentication you can leave these empty.
   2. `github_organization_whitelist` is a comma-separated list of the
      names of the GitHub organizations whose members will be allowed to
      log in.  Either membership in the organization must be public, or
@@ -457,8 +458,8 @@ customization on your part.
 * Set up your deployment environment by editing the environment
   variables in `deployment.yml`.
 
-  1. Set the environment variable `OAUTH_PROVIDER` to one of `github` or
-    `cilogon`, depending on which provider you want to use.
+  1. Set the environment variable `OAUTH_PROVIDER` to one of `github`,
+    `cilogon`, or `jwt` depending on which provider you want to use.
 
   2. Set the environment variable
     `K8S_CONTEXT` to the context in which your deployment is running
@@ -501,13 +502,17 @@ customization on your part.
   - If you're using CILogon, the setup is quite similar; scope, the
     authenticator skin, and the identity provider to use are all set as
     configurable properties of the authenticator class.
-  - Which of the GitHub or CILogon authenticator classes to use is
+  - Which of the GitHub, CILogon, or JWT authenticator classes to use is
     determined by the value of the `OAUTH_PROVIDER` environment
     variable.
   - In the spawner class, we subclass NamespacedKubeSpawner to build a
     dynamic list of kernels (current as of user login time) and then do
     additional launch-time setup, to spawn the user pod into a
     user-specific namespace.
+
+* If you are using `jwt` as your authentication type, copy the public
+  key from the JWT implementation's signing certificate over
+  `jupyterhub_config/signing-certificate.pem`.
 
 * Deploy the file using the `redeploy` script, which will create
   the `ConfigMap` resource from the JupyterHub configuration, and then
@@ -526,7 +531,9 @@ customization on your part.
 
 * Copy `ingress.template.yml` to a working file, substituting
   `HUB_ROUTE` (use `/nb/` if you have no particular reason to do otherwise)
-  and `HOSTNAME`.  Create that with `kubectl -f` against the working file.
+  and `HOSTNAME`.  If you are using `jwt` authentication, uncomment the
+  indicated lines.  Create the resource with `kubectl -f` against the
+  working file.
 
 ### Landing Page (optional)
 

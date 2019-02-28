@@ -45,6 +45,9 @@ kubectl delete configmap hub-config
 kubectl create configmap hub-config \
 	--from-file=kubernetes/config/jupyterhub_config.py \
 	--from-file=kubernetes/config/jupyterhub_config.d
+kubectl delete configmap jwt-cert
+kubectl create configmap jwt-cert \
+	--from-file=kubernetes/config/signing-certificate.pem
 kubectl delete deployment hub
 kubectl create -f kubernetes/deployment.yml
 if [ ${changed} -ne 0 ]; then

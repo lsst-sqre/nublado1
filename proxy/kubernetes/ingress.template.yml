@@ -8,10 +8,24 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "0m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: {{HUB_ROUTE}}
+    #
+    # If you're doing JWT auth, you also need:
+    #
+    # nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-Token
+    # nginx.ingress.kubernetes.io/auth-url: {{HOSTNAME}}/auth\
+    #  ?capability=exec:notebook&reissue_token=true
+    #
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Forwarded-Path {{HUB_ROUTE}};
+    #
+    # And for JWT, add:
+    #
+    # auth_request_set $auth_token $upstream_http_x_auth_request_token;
+    # proxy_set_header X-Portal-Authorization "Bearer $auth_token";
+    # error_page 403 = "https://{{HOSTNAME}}/oauth2/start?rd=$request_uri";
+    #
 spec:
   tls:
   - hosts:

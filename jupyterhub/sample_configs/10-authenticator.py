@@ -1,5 +1,5 @@
 '''Choose GitHub or CILogon authentication with the OAUTH_PROVIDER environment
-variable, which must be one of "github" or "cilogon", and defaults to
+variable, which must be one of "github", "cilogon" or "jwt", and defaults to
 "github".
 '''
 
@@ -7,10 +7,12 @@ import json
 import os
 import oauthenticator
 import random
+from jupyterhub.utils import url_path_join
+from jwtauthenticator.jwtauthenticator import JSONWebTokenAuthenticator
+from jwtauthenticator.jwtauthenticator import JSONWebTokenLoginHandler
 from oauthenticator.common import next_page_from_links
 from tornado import gen, web
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
-from tornado.httputil import url_concat
 
 # Get authenticator type; default to "github"
 OAUTH_PROVIDER = os.environ.get('OAUTH_PROVIDER') or "github"
@@ -247,6 +249,7 @@ class LSSTCILogonAuth(oauthenticator.CILogonOAuthenticator):
         self.log.warning("User not in any groups %s" % str(allowed_groups))
         return False
 
+    # We should refactor this out into a mixin class.
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
         """Add extra configuration from auth_state.
@@ -302,6 +305,159 @@ class LSSTCILogonAuth(oauthenticator.CILogonOAuthenticator):
                     # information...
 
 
+class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
+
+    # Slightly cheesy, but we know we are in fact using the NCSA IDP at
+    #  CILogon as the source of truth
+    allowed_groups = os.environ.get("CILOGON_GROUP_WHITELIST") or "lsst_users"
+    forbidden_groups = os.environ.get("CILOGON_GROUP_DENYLIST")
+
+    @gen.coroutine
+    def get(self):
+        # This is taken from https://github.com/mogthesprog/jwtauthenticator
+        #  but with our additional claim information checked and stuffed
+        #  into auth_state, and allow/deny lists checked.
+        header_name = self.authenticator.header_name
+        param_name = self.authenticator.param_name
+        header_is_authorization = self.authenticator.header_is_authorization
+
+        auth_header_content = self.request.headers.get(header_name, "")
+        auth_cookie_content = self.get_cookie("XSRF-TOKEN", "")
+        signing_certificate = self.authenticator.signing_certificate
+        secret = self.authenticator.secret
+        username_claim_field = self.authenticator.username_claim_field
+        audience = self.authenticator.expected_audience
+        tokenParam = self.get_argument(param_name, default=False)
+
+        if auth_header_content and tokenParam:
+            raise web.HTTPError(400)
+        elif auth_header_content:
+            if header_is_authorization:
+                # We should not see "token" as first word in the
+                #  AUTHORIZATION header.  If we do it could mean someone
+                #  coming in with a stale API token
+                if auth_header_content.split()[0].lower() != "bearer":
+                    raise web.HTTPError(403)
+                token = auth_header_content.split()[1]
+            else:
+                token = auth_header_content
+        elif auth_cookie_content:
+            token = auth_cookie_content
+        elif tokenParam:
+            token = tokenParam
+        else:
+            raise web.HTTPError(401)
+
+        claims = ""
+        if secret:
+            claims = self.verify_jwt_using_secret(token, secret, audience)
+        elif signing_certificate:
+            claims = self.verify_jwt_with_claims(token, signing_certificate,
+                                                 audience)
+        else:
+            raise web.HTTPError(401)
+
+        username = self.retrieve_username(claims, username_claim_field)
+        # Here is where we deviate from the vanilla JWT authenticator.
+        # We simply store all the JWT claims in auth_state, although we also
+        #  choose our field names to make the spawner reusable from the
+        #  OAuthenticator implementation.
+        auth_state = {"id": username,
+                      "access_token": token,
+                      "claims": claims}
+        user = self.user_from_username(username)
+        if not self.validate_user_from_claims_groups(claims):
+            # We're either in a forbidden group, or not in any allowed group
+            raise web.HTTPError(403)
+        yield user.save_auth_state(auth_state)
+        self.set_login_cookie(user)
+
+        _url = url_path_join(self.hub.server.base_url, 'home')
+        next_url = self.get_argument('next', default=False)
+        if next_url:
+            _url = next_url
+
+        self.redirect(_url)
+
+    def validate_user_from_claims_groups(self, claims):
+        alist = self.allowed_groups.split('/')
+        dlist = []
+        if self.forbidden_groups is not None:
+            dlist = self.forbidden_groups.split('/')
+        membership = [x["name"] for x in claims["isMemberOf"]]
+        intersection = list(set(dlist) & set(membership))
+        if intersection:
+            # User is in at least one forbidden group.
+            return False
+        intersection = list(set(alist) & set(membership))
+        if not intersection:
+            # User is not in at least one allowed group.
+            return False
+        return True
+
+
+class LSSTJWTAuth(JSONWebTokenAuthenticator):
+    enable_auth_state = True
+    header_name = "X-Portal-Authorization"
+
+    def get_handlers(self, app):
+        return [
+            (r'/login', LSSTJWTLoginHandler),
+        ]
+
+    # We should refactor this out into a mixin class.
+    @gen.coroutine
+    def pre_spawn_start(self, user, spawner):
+        """Add extra configuration from auth_state.
+        """
+        if not self.enable_auth_state:
+            return
+        auth_state = yield user.get_auth_state()
+        if auth_state:
+            claims = auth_state.get("claims")
+            if claims:
+                # Get UID and GIDs from OAuth reply
+                uid = claims.get("uidNumber")
+                if uid:
+                    uid = str(uid)
+                else:
+                    # Fake it
+                    sub = claims.get("sub")
+                    if sub:
+                        uid = sub.split("/")[-1]  # Pretend last field is UID
+                spawner.environment['EXTERNAL_UID'] = uid
+                email = claims.get("email")
+                if email:
+                    spawner.environment['GITHUB_EMAIL'] = email
+                membership = claims.get("isMemberOf")
+                if membership:
+                    # We use a fake number if there is no matching 'id'
+                    # Pick something outside of 16 bits, way under 32,
+                    #  and high enough that we are unlikely to have
+                    #  collisions.  Turn on STRICT_LDAP_GROUPS by
+                    #  setting the environment variable if you want to
+                    #  just skip those.
+                    gidlist = []
+                    grpbase = 3E7
+                    grprange = 1E7
+                    igrp = random.randint(grpbase, (grpbase + grprange))
+                    for group in membership:
+                        gname = group["name"]
+                        if "id" in group:
+                            gid = group["id"]
+                        else:
+                            # Skip if strict groups and no GID
+                            if STRICT_LDAP_GROUPS:
+                                continue
+                            gid = igrp
+                            igrp = igrp + 1
+                        gidlist.append(gname + ":" + str(gid))
+                    grplist = ",".join(gidlist)
+                    spawner.environment['EXTERNAL_GROUPS'] = grplist
+                    # Might be nice to have a mixin to also get GitHub
+                    # information...
+
+
 # Set scope for GitHub
 c.LSSTGitHubAuth.scope = [u'public_repo', u'read:org', u'user:email']
 
@@ -314,3 +470,5 @@ c.LSSTCILogonAuth.skin = "LSST"
 c.JupyterHub.authenticator_class = LSSTGitHubAuth
 if OAUTH_PROVIDER == "cilogon":
     c.JupyterHub.authenticator_class = LSSTCILogonAuth
+if OAUTH_PROVIDER == "jwt":
+    c.JupyterHub.authenticator_class = LSSTJWTAuth

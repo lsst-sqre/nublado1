@@ -5,9 +5,16 @@ import os
 from jupyter_client.localinterfaces import public_ips
 
 # Set up auth environment
-c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
-c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
+authtype = os.environ.get('OAUTH_PROVIDER') or ''
+if authtype == 'jwt':
+    # Parameters for JWT
+    c.LSSTJWTAuth.signing_certificate = '/opt/jwt/signing-certificate.pem'
+    c.LSSTJWTAuth.username_claim_field = 'uid'
+    c.LSSTJWTAuth.expected_audience = os.getenv('OAUTH_CLIENT_ID') or ''
+else:
+    c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+    c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
+    c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 
 ghowl = os.environ.get('GITHUB_ORGANIZATION_WHITELIST')
 if ghowl:
@@ -33,9 +40,6 @@ c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
 k8s_svc_address = os.environ.get('HUB_SERVICE_HOST') or public_ips()[0]
 c.JupyterHub.hub_connect_url = "http://" + k8s_svc_address + ":8081" + \
                                hub_route
-# Add node selector
-if os.getenv('RESTRICT_LAB_NODES'):
-    c.KubeSpawner.node_selector.update({'jupyterlab': 'ok'})
 
 # External proxy
 c.ConfigurableHTTPProxy.should_start = False

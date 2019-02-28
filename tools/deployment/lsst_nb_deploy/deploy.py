@@ -12,13 +12,16 @@ at the moment, assumes the following:
 4) At least your external endpoint TLS certs are already generated and
     exist on the local filesystem.  If you need certificates for ELK
     stack communication, those must also be present on the local filesystem.
-5) You are using GitHub or CILogon OAuth for your authentication, and you
-    have created an OAuth application Client ID, Client Secret, and a client
-    callback that is 'https://fqdn.of.science.platform/nb/hub/oauth_callback'.
+5) You are using GitHub, CILogon OAuth, or an external JWT service for your
+    authentication, and if you are using OAuth, you have created an OAuth
+    application Client ID, Client Secret, and a client callback that is
+    'https://fqdn.of.science.platform/nb/hub/oauth_callback'.
     ( "/nb/" is configurable, but is the default hub_route value )
     If you are using GitHub as your OAuth2 provider, you must also specify
     a list of GitHub organizations, to at least one of which any authenticated
-    user must belong.
+    user must belong.  If you are using the JWT service you must have the
+    public key from the RSA key pair that the JWT provider uses to sign
+    claims.
 6) Either all of this information has been encoded in a YAML file that you
     reference with the -f switch during deployment, or it's in a series of
     environment variables starting with "LSST_NB_", or you enter it at a
@@ -27,6 +30,8 @@ at the moment, assumes the following:
       certificate, key, and root chain files must be named "cert.pem",
       "key.pem", and "chain.pem" respectively.  If you already have a
       DH Params file, it should be called "dhparam.pem" in the same directory.
+    - If present in that directory, the signing certificate public key
+      should be called "signing-certificate.pem".
     - If present in that directory, the ELK certificates must be
       "beats_cert.pem", "beats_key.pem", and
       "beats_ca.pem" for certificate, key, and certificate authority
@@ -78,14 +83,15 @@ OAUTH_DEFAULT_PROVIDER = "github"
 REQUIRED_PARAMETER_NAMES = ["kubernetes_cluster_name",
                             "hostname"]
 REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
-    "oauth_client_id",
-    "oauth_secret",
     "tls_cert",
     "tls_key",
     "tls_root_chain",
     "allowed_groups"
 ]
 PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
+    "oauth_client_id",
+    "oauth_secret",
+    "jwt_signing_certificate",
     "github_organization_whitelist",
     "cilogon_group_whitelist",
     "forbidden_groups",
@@ -146,6 +152,8 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "firefly_route",
     "restrict_lab_nodes",
     "restrict_dask_nodes",
+    "external_firefly_url",
+    "external_url",
     "debug"]
 MTPTS = ["home", "scratch", "project", "datasets", "software"]
 
@@ -410,6 +418,12 @@ class LSSTNotebookAspectDeployment(object):
         if self._any_empty(REQUIRED_PARAMETER_NAMES):
             raise ValueError("All parameters '%s' must be specified!" %
                              str(REQUIRED_PARAMETER_NAMES))
+        if self.params["oauth_provider"] != "jwt":
+            for param in ["oauth_client_id", "oauth_secret"]:
+                if self._empty_param(param):
+                    raise ValueError("Parameter '%s' must be specified" %
+                                     param +
+                                     " unless oauth_provider is 'jwt'.")
         if self._empty_param('volume_size_gigabytes'):
             logging.warn("Using default volume size: 20GiB")
             self.params["volume_size_gigabytes"] = DEFAULT_VOLUME_SIZE_GB
@@ -645,6 +659,7 @@ class LSSTNotebookAspectDeployment(object):
                 templates = matches[c]
                 for t in templates:
                     self._substitute_file(t)
+            self._update_jwt_cert()
 
     def _generate_crypto_key(self):
         """Get a pair of keys to make rotation easier.
@@ -657,6 +672,14 @@ class LSSTNotebookAspectDeployment(object):
         """
         at = os.urandom(16).hex()
         self.params['configproxy_auth_token'] = at
+
+    def _update_jwt_cert(self):
+        if self._empty_param('jwt_signing_certificate'):
+            return
+        configdir = os.path.join(
+            self.directory, "deployment", "jupyterhub", "config")
+        shutil.copyfile(self.params["jwt_signing_certificate"],
+                        os.path.join(configdir, "signing_certificate.pem"))
 
     def _generate_random_pw(self, len=16):
         """Generate a random string for use as a password.
@@ -866,6 +889,7 @@ class LSSTNotebookAspectDeployment(object):
         """
         cleancopy = {}
         pathvars = ['tls_cert', 'tls_key', 'tls_root_chain',
+                    'jwt_signing_certificate',
                     'beats_cert', 'beats_key', 'beats_ca']
         fullpathvars = set()
         ignore = ['oauth_callback_url', 'crypto_key', 'configproxy_auth_token',
@@ -1533,6 +1557,9 @@ class LSSTNotebookAspectDeployment(object):
         self._run(['kubectl', 'create', 'configmap', 'hub-config',
                    "--from-file=%s" % os.path.join(cfdir, "%s.py" % cfnm),
                    "--from-file=%s" % os.path.join(cfdir, "%s.d" % cfnm)])
+        self._run(['kubectl', 'create', 'configmap', 'jwt-cert',
+                   "--from-file=%s" % os.path.join(cfdir,
+                                                   "signing-certificate.pem")])
         self._run_kubectl_create(os.path.join(
             directory, "deployment.yml"))
 
@@ -2004,6 +2031,9 @@ def _set_certs_from_dir(d, beats=False):
             retval["beats_cert"] = beats_cert
             retval["beats_ca"] = os.path.join(d, "beats_ca.pem")
             retval["beats_key"] = os.path.join(d, "beats_key.pem")
+    jwtfile = os.path.join(d, "signing-certificate.pem")
+    if os.path.exists(jwtfile):
+        retval["jwt_signing_certificate"] = jwtfile
     return retval
 
 

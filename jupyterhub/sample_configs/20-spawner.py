@@ -301,10 +301,13 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                                        os.getenv('LAB_NODEJS_MAX_MEM'))
         if os.getenv('EXTERNAL_FIREFLY_URL'):
             pod_env['EXTERNAL_FIREFLY_URL'] = os.getenv('EXTERNAL_FIREFLY_URL')
-        oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
-        endstr = "/hub/oauth_callback"
-        if oauth_callback and oauth_callback.endswith(endstr):
-            pod_env['EXTERNAL_URL'] = oauth_callback[:-len(endstr)]
+        external_url = os.getenv('EXTERNAL_URL')
+        if not external_url:
+            oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
+            endstr = "/hub/oauth_callback"
+            if oauth_callback and oauth_callback.endswith(endstr):
+                external_url = oauth_callback[:-len(endstr)]
+        pod_env['EXTERNAL_URL'] = external_url
         if os.getenv('DEBUG'):
             pod_env['DEBUG'] = os.getenv('DEBUG')
         if clear_dotlocal:
@@ -314,13 +317,13 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         auto_repo_urls = os.getenv('AUTO_REPO_URLS')
         if auto_repo_urls:
             pod_env['AUTO_REPO_URLS'] = auto_repo_urls
+
         # The standard set of LSST volumes is mountpoints at...
         #  /home
         #  /project
         #  /scratch
         #  /datasets
         # Where datasets is read/only and the others are read/write
-
         already_vols = []
         if self.volumes:
             already_vols = [x["name"] for x in self.volumes]

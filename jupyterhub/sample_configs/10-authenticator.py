@@ -13,7 +13,6 @@ from jwtauthenticator.jwtauthenticator import JSONWebTokenLoginHandler
 from oauthenticator.common import next_page_from_links
 from tornado import gen, web
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
-from tornado.httputil import url_concat
 
 # Get authenticator type; default to "github"
 OAUTH_PROVIDER = os.environ.get('OAUTH_PROVIDER') or "github"
@@ -334,9 +333,9 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             raise web.HTTPError(400)
         elif auth_header_content:
             if header_is_authorization:
-                # we should not see "token" as first word in the
-                # AUTHORIZATION header.  If we do it could mean someone
-                # coming in with a stale API token
+                # We should not see "token" as first word in the
+                #  AUTHORIZATION header.  If we do it could mean someone
+                #  coming in with a stale API token
                 if auth_header_content.split()[0].lower() != "bearer":
                     raise web.HTTPError(403)
                 token = auth_header_content.split()[1]
@@ -353,11 +352,8 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         if secret:
             claims = self.verify_jwt_using_secret(token, secret, audience)
         elif signing_certificate:
-            self.log.debug("knocking out audience...")
-            # claims = self.verify_jwt_with_claims(token, signing_certificate,
-            # audience)
-            claims = self.verify_jwt_with_claims(
-                token, signing_certificate, '')
+            claims = self.verify_jwt_with_claims(token, signing_certificate,
+                                                 audience)
         else:
             raise web.HTTPError(401)
 
@@ -367,13 +363,13 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         #  choose our field names to make the spawner reusable from the
         #  OAuthenticator implementation.
         auth_state = {"id": username,
+                      "access_token": token,
                       "claims": claims}
         user = self.user_from_username(username)
         if not self.validate_user_from_claims_groups(claims):
             # We're either in a forbidden group, or not in any allowed group
             raise web.HTTPError(403)
-
-        await user.save_auth_state(auth_state)
+        yield user.save_auth_state(auth_state)
         self.set_login_cookie(user)
 
         _url = url_path_join(self.hub.server.base_url, 'home')
@@ -402,6 +398,7 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
 
 class LSSTJWTAuth(JSONWebTokenAuthenticator):
     enable_auth_state = True
+    header_name = "X-Portal-Authorization"
 
     def get_handlers(self, app):
         return [
@@ -409,7 +406,6 @@ class LSSTJWTAuth(JSONWebTokenAuthenticator):
         ]
 
     # We should refactor this out into a mixin class.
-
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
         """Add extra configuration from auth_state.
@@ -469,11 +465,6 @@ c.LSSTGitHubAuth.scope = [u'public_repo', u'read:org', u'user:email']
 c.LSSTCILogonAuth.scope = ['openid', 'org.cilogon.userinfo']
 c.LSSTCILogonAuth.skin = "LSST"
 #c.LSSTCILogonAuth.idp = "https://idp.ncsa.illinois.edu/idp/shibboleth"
-
-# Parameters for JWT
-c.LSSTJWTAuth.signing_certificate = '/opt/jwt/signing-certificate.pem'
-c.LSSTJWTAuth.username_claim_field = 'uid'
-c.LSSTJWTAuth.expected_audience = os.getenv('OAUTH_CLIENT_ID') or ''
 
 # Default to GitHub
 c.JupyterHub.authenticator_class = LSSTGitHubAuth

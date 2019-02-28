@@ -153,6 +153,16 @@ resource "kubernetes_deployment" "jupyterhub" {
           }
 
           env {
+            name  = "EXTERNAL_URL"
+            value = "https://${var.hostname}"
+          }
+
+          env {
+            name  = "EXTERNAL_FIREFLY_URL"
+            value = "${var.external_firefly_url}"
+          }
+
+          env {
             name = "GITHUB_ORGANIZATION_WHITELIST"
 
             value_from {

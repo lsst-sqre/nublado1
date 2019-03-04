@@ -101,7 +101,9 @@ RUN  cd /tmp && \
       rm -rf /tmp/${FN} /tmp/install-tl*
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools
+# Tornado 6 breaks the world.
 RUN  pip3 install --upgrade \
+       "tornado<6.0.0" \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
@@ -152,6 +154,7 @@ RUN  pip3 install --upgrade \
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
       pip install --upgrade pip \
+       "tornado<6.0.0" \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \

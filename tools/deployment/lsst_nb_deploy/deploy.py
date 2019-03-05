@@ -626,8 +626,8 @@ class LSSTNotebookAspectDeployment(object):
         for c in self.components:
             cp = os.path.join(topdir, c)
             if not os.path.isdir(cp):
-                raise RuntimeError("Directory for component '%s' not " +
-                                   "found at %s." % (c, cp))
+                raise RuntimeError("Directory for component '%s' not " % c +
+                                   "found at %s." % cp)
         self.srcdir = topdir
 
     def _copy_deployment_files(self):

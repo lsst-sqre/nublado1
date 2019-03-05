@@ -80,6 +80,7 @@ DEFAULT_VOLUME_SIZE_GB = 20
 ENVIRONMENT_NAMESPACE = "LSST_NB_"
 ME = os.path.realpath(__file__)
 OAUTH_DEFAULT_PROVIDER = "github"
+CONFIG_PLACEHOLDER = "CONFIGURATION_PLACEHOLDER"
 REQUIRED_PARAMETER_NAMES = ["kubernetes_cluster_name",
                             "hostname"]
 REQUIRED_DEPLOYMENT_PARAMETER_NAMES = REQUIRED_PARAMETER_NAMES + [
@@ -259,8 +260,9 @@ class LSSTNotebookAspectDeployment(object):
         in an AWS hosted zone, we want to fail sooner rather than later.
         """
         if self.config_only:
-            logging.info("No need to check authetication for config-only " +
+            logging.info("No need to check authentication for config-only " +
                          "operation.")
+            self.params["zoneid"] = CONFIG_PLACEHOLDER
             return
         logging.info("Checking authentication.")
         cmd = "gcloud info --format yaml".split()
@@ -302,7 +304,11 @@ class LSSTNotebookAspectDeployment(object):
         for p in proglist:
             rc = _which(p)
             if not rc:
-                raise ValueError("%s not on search path!" % p)
+                if not self.config_only:
+                    raise ValueError("%s not on search path!" % p)
+                logging.warning("Executable '%s' not found.  " % p +
+                                "Using config placeholder.")
+                rc = CONFIG_PLACEHOLDER
             self.executables[p] = rc
 
     def _set_params(self):
@@ -380,15 +386,26 @@ class LSSTNotebookAspectDeployment(object):
             logging.info("Using gke project '%s'." %
                          self.params["gke_project"])
         else:
-            rc = self._run(["gcloud", "config", "get-value", "project",
-                            "--format=yaml"], capture=True)
-            if rc.stdout:
+            rc = None
+            try:
+                rc = self._run(["gcloud", "config", "get-value", "project",
+                                "--format=yaml"], capture=True)
+            except FileNotFoundError:
+                if not self.config_only:
+                    raise
+                logging.info("gcloud not found, but configuration-only " +
+                             "requested.  Continuing.")
+            if rc and rc.stdout:
                 result = yaml.safe_load(rc.stdout.decode('utf-8'))
                 if not result:
                     raise RuntimeError("gke_project not specified " +
                                        "and no default set.")
                 logging.info("Using default gke project '%s'." % result)
                 self.params["gke_project"] = result
+            else:
+                if self.config_only:
+                    logging.info("Setting gke_cluster to dummy value.")
+                    self.params["gke_project"] = CONFIG_PLACEHOLDER
 
     def _validate_deployment_params(self):
         """Verify that we have what we need, and get sane defaults for things
@@ -697,6 +714,11 @@ class LSSTNotebookAspectDeployment(object):
         """If we don't have a param file, make one.  If we do, read it.
         """
         if self._empty_param('tls_dhparam'):
+            if self.config_only:
+                logging.info("Skipping DH param creation in configuration-" +
+                             "only mode.")
+                self.params["dhparams"] = None
+                return
             bits = self.params['dhparam_bits']
             with _wd(self.directory):
                 ossl = self.executables["openssl"]
@@ -714,6 +736,11 @@ class LSSTNotebookAspectDeployment(object):
         suitable for kubernetes secrets."""
         if _empty(self.b64_cache, key):
             val = self.params[key]
+            if not val:
+                if self.config_only:
+                    logging.warning("No value for '%s'" % key + ".  Using" +
+                                    " placeholder for config.")
+                    val = CONFIG_PLACEHOLDER
             if type(val) is str:
                 val = val.encode('utf-8')
             self.b64_cache[key] = base64.b64encode(val).decode('utf-8')

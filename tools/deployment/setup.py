@@ -9,7 +9,7 @@ DESCRIPTION = 'LSST Science Platform Notebook Aspect deployment tools'
 AUTHOR = 'Adam Thornton'
 AUTHOR_EMAIL = 'athornton@lsst.org'
 URL = 'https://github.com/lsst-sqre/jupyterlabdemo'
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 LICENSE = 'MIT'
 
 

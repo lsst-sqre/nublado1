@@ -41,5 +41,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.12.0"
+	     version="0.12.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

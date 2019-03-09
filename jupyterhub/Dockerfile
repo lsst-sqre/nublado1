@@ -11,7 +11,9 @@ RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
 # Use forked oauthenticator until PR lands.
-RUN  pip3 install jupyterlab \
+RUN  pip3 install \
+      'tornado<6.0.0' \
+      jupyterlab \
       ipykernel \
       pyyaml \
       pycurl \
@@ -41,5 +43,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.12.0"
+	     version="0.12.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

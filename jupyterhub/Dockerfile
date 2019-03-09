@@ -11,7 +11,9 @@ RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
 # Use forked oauthenticator until PR lands.
-RUN  pip3 install jupyterlab \
+RUN  pip3 install \
+      'tornado<6.0.0' \
+      jupyterlab \
       ipykernel \
       pyyaml \
       pycurl \

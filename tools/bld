@@ -37,6 +37,25 @@ if [ "${etag}" = "exp" ]; then
 fi
 docker push ${IMAGE}:${VERSION}
 if [ "${EXPERIMENTAL}" -ne 1 ]; then
+    ichar=$(echo "${VERSION}" | cut -c 1)
+    itype=""
+    case $ichar in
+	"r")
+	    itype="release"
+	    ;;
+	"w")
+	    itype="weekly"
+	    ;;
+	"d")
+	    itype="daily"
+	    ;;
+	*)
+	    ;;
+    esac
+    if [ -n "$itype" ]; then
+	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest_${itype}
+	docker push ${IMAGE}:latest_${itype}
+    fi
     docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
     docker push ${IMAGE}:latest
 fi

@@ -15,7 +15,7 @@ RUN  yum -y install \
       http-parser nodejs perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox \
-      graphviz geos-devel
+      graphviz geos-devel hdf5-devel
 # Make EPEL Python 3.6 system Python 3 and install pip3
 RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
       python3 -m ensurepip

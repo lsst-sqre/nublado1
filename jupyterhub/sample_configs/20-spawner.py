@@ -284,8 +284,12 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             image_name = image[(s_idx + 1):]
             if c_idx > 0:
                 image_name = image[(s_idx + 1):c_idx]
-                tag = image[(c_idx + 1):].replace('_', '')
-        pn_template = image_name + "-{username}-" + tag
+                tag = image[(c_idx + 1):].replace('_', '-')
+        abbr_pn = image_name
+        if image_name == 'sciplat-lab':
+            # Saving characters because tags can be long
+            abbr_pn = "nb"
+        pn_template = abbr_pn + "-{username}-" + tag
         pod_name = self._expand_user_properties(pn_template)
         self.pod_name = pod_name
         self.log.info("Replacing pod name from options form: %s" %

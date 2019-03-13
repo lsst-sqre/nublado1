@@ -58,8 +58,7 @@ TAG=${1}
 if [ -z "${TAG}" ] || [ $# -gt 1 ]; then
     usage
 fi
-VERSION=${TAG//_/}
-VERSION=${VERSION/#v/r}
+VERSION=${TAG/#v/r}
 if [ "${EXPERIMENTAL}" -eq 1 ]; then
     VERSION="exp_${VERSION}"
 fi

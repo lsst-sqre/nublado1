@@ -210,12 +210,12 @@ spec:
               path: jupyterhub_config.d/20-spawner.py
             - key: 30-environment.py
               path: jupyterhub_config.d/30-environment.py
-      - configMap:
-            #  Create with `kubectl create configmap jwt-cert \
-            #   config/signing-certificate.pem`
-          defaultMode: 420
-          items:
-          - key: signing-certificate.pem
-            path: signing-certificate.pem
+        - configMap:
+              #  Create with `kubectl create configmap jwt-cert \
+              #   config/signing-certificate.pem`
+            defaultMode: 420
+            items:
+            - key: signing-certificate.pem
+              path: signing-certificate.pem
+            name: jwt-cert
           name: jwt-cert
-        name: jwt-cert

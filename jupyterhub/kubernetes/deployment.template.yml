@@ -85,6 +85,8 @@ spec:
               value: '{{AUTO_REPO_URLS}}'
             - name: SIZE_INDEX
               value: '{{SIZE_INDEX}}'
+            - name: EXTERNAL_FILESERVER_IP
+              value: '{{EXTERNAL_FILESERVER_IP}}'
             - name: EXTERNAL_FIREFLY_URL
               value: '{{EXTERNAL_FIREFLY_URL}}'
             - name: EXTERNAL_URL
@@ -156,6 +158,8 @@ spec:
               mountPath: /home/jupyter
             - name: hub-config
               mountPath: /opt/lsst/software/jupyterhub/config
+            - name: nfs-mounts
+              mountPath: /opt/lsst/software/jupyterhub/mounts
         #
         # This is for CloudSQL and does not work correctly yet.
         #
@@ -212,10 +216,19 @@ spec:
               path: jupyterhub_config.d/30-environment.py
         - configMap:
               #  Create with `kubectl create configmap jwt-cert \
-              #   config/signing-certificate.pem`
+              #   --from-file=config/signing-certificate.pem`
             defaultMode: 420
             items:
             - key: signing-certificate.pem
               path: signing-certificate.pem
             name: jwt-cert
           name: jwt-cert
+        - configMap:
+              #  Create with `kubectl create configmap nfs-mounts \
+              #   --from-file=config/mountpoints.json`
+            defaultMode: 420
+            items:
+            - key: mountpoints.json
+              path: mountpoints.json
+            name: nfs-mounts
+          name: nfs-mounts

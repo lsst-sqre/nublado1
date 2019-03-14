@@ -7,7 +7,6 @@
   },
   {
     "mountpoint": "/home",
-    "fileserver-export": "/exports/jhome",
     "mode": "rw"
   },
   {

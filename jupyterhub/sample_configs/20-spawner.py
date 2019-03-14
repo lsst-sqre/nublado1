@@ -47,7 +47,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         service_account = "dask"
     # Change some defaults.
     delete_namespace_on_stop = True
-    duplicate_nfs_pvs_to_namespace = True
     # To add quota support:
     #  set enable_namespace_quotas = True
     # and then add a method:
@@ -327,27 +326,29 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             already_vols = [x["name"] for x in self.volumes]
         vollist = self._get_volume_list()
         for vol in vollist:
-            volname = self._get_volume_name_for_mount(vol["mountpoint"])
+            volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
             if volname in already_vols:
-                next
+                continue
             mode = "ReadOnlyMany"
-            if vol["mode"] == "ro":
+            vmro = True
+            if vol["mode"] == "rw":
                 mode = "ReadWriteMany"
+                vmro = False
             self.volumes.append({
                 "name": volname,
                 "nfs": {
-                    "server": vol["fileserver-host"],
-                    "path": vol["fileserver-export"]
-                    },
-                "accessModes": [mode]
-                }
-            )
-            self.volume_mounts.append({
+                    "server": vol["host"],
+                    "path": vol["export"],
+                    "accessModes": [mode]
+                },
+            })
+            vmount = {
                 "name": volname,
-                "accessModes": [mode],
                 "mountPath": vol["mountpoint"]
-                }
-            )
+            }
+            if vmro:
+                vmount["readOnly"] = True
+            self.volume_mounts.append(vmount)
         self.log.debug("Volumes: %s" % json.dumps(self.volumes,
                                                   indent=4,
                                                   sort_keys=True))
@@ -409,33 +410,41 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         return pod
 
     def _get_volume_list(self):
-        """Override this in a subclass if you like.  Maybe move to jhu?
+        """Override this in a subclass if you like.
         """
         vollist = []
-        config = json.load("/opt/lsst/software/jupyterhub/mountpoints.json")
+        config = []
+        cfile = "/opt/lsst/software/jupyterhub/mounts/mountpoints.json"
+        with open(cfile, "r") as fp:
+            config = json.load(fp)
         for mtpt in config:
+            self.log.debug("mtpt: %r" % mtpt)
+            mountpoint = mtpt["mountpoint"]  # Fatal error if it doesn't exist
             if mtpt.get("disabled"):
-                next
-            mountpoint = mtpt["mountpoint"] # Fatal error if it doesn't exist
+                self.log.debug("Skipping disabled mountpoint %s" % mountpoint)
+                continue
             if mountpoint[0] != "/":
                 mountpoint = "/" + mountpoint
             host = mtpt.get("fileserver-host") or os.getenv(
+                "EXTERNAL_FILESERVER_IP") or os.getenv(
                 "FILESERVER_SERVICE_HOST")
             export = mtpt.get("fileserver-export") or (
-                "/export" + mountpoint)
+                "/exports" + mountpoint)
             mode = (mtpt.get("mode") or "ro").lower()
-            vollist[mtpt] = {
+            vollist.append({
                 "mountpoint": mountpoint,
                 "host": host,
                 "export": export,
                 "mode": mode
-            }
+            })
+        self.log.debug("Volume list: %r" % vollist)
         return vollist
 
-    def _get_volume_name_for_mountpoint(self,mountpoint):
+    def _get_volume_name_for_mountpoint(self, mountpoint):
         podname = self.pod_name
+        namespace = self.get_user_namespace()
         mtname = mountpoint[1:].replace("/", "-")
-        return mtname + "-" + podname
+        return "{}-{}-{}".format(mtname, namespace, podname)
 
     def options_from_form(self, formdata=None):
         options = None

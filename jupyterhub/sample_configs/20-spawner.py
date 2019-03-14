@@ -322,37 +322,32 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if auto_repo_urls:
             pod_env['AUTO_REPO_URLS'] = auto_repo_urls
 
-        # The standard set of LSST volumes is mountpoints at...
-        #  /home
-        #  /project
-        #  /scratch
-        #  /datasets
-        # Where datasets is read/only and the others are read/write
         already_vols = []
         if self.volumes:
             already_vols = [x["name"] for x in self.volumes]
-        for vol in ["home", "project", "scratch"]:
-            volname = vol
+        vollist = self._get_volume_list()
+        for vol in vollist:
+            volname = self._get_volume_name_for_mount(vol["mountpoint"])
             if volname in already_vols:
-                continue
-            self.volumes.extend([
-                {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname,
-                                           "accessModes": "ReadWriteMany"}}])
-            self.volume_mounts.extend([
-                {"mountPath": "/" + vol,
-                 "name": volname}])
-        for vol in ["datasets"]:
-            volname = vol
-            if volname in already_vols:
-                continue
-            self.volumes.extend([
-                {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname,
-                                           "accessModes": "ReadOnlyMany"}}])
-            self.volume_mounts.extend([
-                {"mountPath": "/" + vol,
-                 "name": volname}])
+                next
+            mode = "ReadOnlyMany"
+            if vol["mode"] == "ro":
+                mode = "ReadWriteMany"
+            self.volumes.append({
+                "name": volname,
+                "nfs": {
+                    "server": vol["fileserver-host"],
+                    "path": vol["fileserver-export"]
+                    },
+                "accessModes": [mode]
+                }
+            )
+            self.volume_mounts.append({
+                "name": volname,
+                "accessModes": [mode],
+                "mountPath": vol["mountpoint"]
+                }
+            )
         self.log.debug("Volumes: %s" % json.dumps(self.volumes,
                                                   indent=4,
                                                   sort_keys=True))
@@ -412,6 +407,35 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             logger=self.log,
         )
         return pod
+
+    def _get_volume_list(self):
+        """Override this in a subclass if you like.  Maybe move to jhu?
+        """
+        vollist = []
+        config = json.load("/opt/lsst/software/jupyterhub/mountpoints.json")
+        for mtpt in config:
+            if mtpt.get("disabled"):
+                next
+            mountpoint = mtpt["mountpoint"] # Fatal error if it doesn't exist
+            if mountpoint[0] != "/":
+                mountpoint = "/" + mountpoint
+            host = mtpt.get("fileserver-host") or os.getenv(
+                "FILESERVER_SERVICE_HOST")
+            export = mtpt.get("fileserver-export") or (
+                "/export" + mountpoint)
+            mode = (mtpt.get("mode") or "ro").lower()
+            vollist[mtpt] = {
+                "mountpoint": mountpoint,
+                "host": host,
+                "export": export,
+                "mode": mode
+            }
+        return vollist
+
+    def _get_volume_name_for_mountpoint(self,mountpoint):
+        podname = self.pod_name
+        mtname = mountpoint[1:].replace("/", "-")
+        return mtname + "-" + podname
 
     def options_from_form(self, formdata=None):
         options = None

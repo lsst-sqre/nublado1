@@ -1,0 +1,24 @@
+[
+  { "disabled": true,
+    "mountpoint": "/example -- if it doesn't start with '/' we add it",
+    "fileserver-host": "omit to use Hub settings",
+    "fileserver-export": "defaults to '/exports<mountpoint>'",
+    "mode": "rw or ro, defaults to 'ro'"
+  },
+  {
+    "mountpoint": "/home",
+    "fileserver-export": "/exports/jhome",
+    "mode": "rw"
+  },
+  {
+    "mountpoint": "/datasets"
+  },
+  {
+    "mountpoint": "/project",
+    "mode": "rw"
+  },
+  {
+    "mountpoint": "/scratch",
+    "mode": "rw"
+  }
+]

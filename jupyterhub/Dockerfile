@@ -2,10 +2,9 @@ FROM centos:7
 USER root
 RUN  yum install -y epel-release
 RUN  yum repolist
-RUN  yum -y  upgrade
+RUN  yum -y upgrade
 RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
       git patch python-alembic mariadb mysql python36 python36-devel
-# Python 3.6: install from EPEL
 RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
       python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools
@@ -43,5 +42,5 @@ RUN  groupadd -g 768 jupyter
 RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.13.3"
+	     version="0.13.4"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

@@ -47,7 +47,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         service_account = "dask"
     # Change some defaults.
     delete_namespace_on_stop = True
-    duplicate_nfs_pvs_to_namespace = True
     # To add quota support:
     #  set enable_namespace_quotas = True
     # and then add a method:
@@ -322,37 +321,34 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if auto_repo_urls:
             pod_env['AUTO_REPO_URLS'] = auto_repo_urls
 
-        # The standard set of LSST volumes is mountpoints at...
-        #  /home
-        #  /project
-        #  /scratch
-        #  /datasets
-        # Where datasets is read/only and the others are read/write
         already_vols = []
         if self.volumes:
             already_vols = [x["name"] for x in self.volumes]
-        for vol in ["home", "project", "scratch"]:
-            volname = vol
+        vollist = self._get_volume_list()
+        for vol in vollist:
+            volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
             if volname in already_vols:
                 continue
-            self.volumes.extend([
-                {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname,
-                                           "accessModes": "ReadWriteMany"}}])
-            self.volume_mounts.extend([
-                {"mountPath": "/" + vol,
-                 "name": volname}])
-        for vol in ["datasets"]:
-            volname = vol
-            if volname in already_vols:
-                continue
-            self.volumes.extend([
-                {"name": volname,
-                 "persistentVolumeClaim": {"claimName": volname,
-                                           "accessModes": "ReadOnlyMany"}}])
-            self.volume_mounts.extend([
-                {"mountPath": "/" + vol,
-                 "name": volname}])
+            mode = "ReadOnlyMany"
+            vmro = True
+            if vol["mode"] == "rw":
+                mode = "ReadWriteMany"
+                vmro = False
+            self.volumes.append({
+                "name": volname,
+                "nfs": {
+                    "server": vol["host"],
+                    "path": vol["export"],
+                    "accessModes": [mode]
+                },
+            })
+            vmount = {
+                "name": volname,
+                "mountPath": vol["mountpoint"]
+            }
+            if vmro:
+                vmount["readOnly"] = True
+            self.volume_mounts.append(vmount)
         self.log.debug("Volumes: %s" % json.dumps(self.volumes,
                                                   indent=4,
                                                   sort_keys=True))
@@ -412,6 +408,43 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             logger=self.log,
         )
         return pod
+
+    def _get_volume_list(self):
+        """Override this in a subclass if you like.
+        """
+        vollist = []
+        config = []
+        cfile = "/opt/lsst/software/jupyterhub/mounts/mountpoints.json"
+        with open(cfile, "r") as fp:
+            config = json.load(fp)
+        for mtpt in config:
+            self.log.debug("mtpt: %r" % mtpt)
+            mountpoint = mtpt["mountpoint"]  # Fatal error if it doesn't exist
+            if mtpt.get("disabled"):
+                self.log.debug("Skipping disabled mountpoint %s" % mountpoint)
+                continue
+            if mountpoint[0] != "/":
+                mountpoint = "/" + mountpoint
+            host = mtpt.get("fileserver-host") or os.getenv(
+                "EXTERNAL_FILESERVER_IP") or os.getenv(
+                "FILESERVER_SERVICE_HOST")
+            export = mtpt.get("fileserver-export") or (
+                "/exports" + mountpoint)
+            mode = (mtpt.get("mode") or "ro").lower()
+            vollist.append({
+                "mountpoint": mountpoint,
+                "host": host,
+                "export": export,
+                "mode": mode
+            })
+        self.log.debug("Volume list: %r" % vollist)
+        return vollist
+
+    def _get_volume_name_for_mountpoint(self, mountpoint):
+        podname = self.pod_name
+        namespace = self.get_user_namespace()
+        mtname = mountpoint[1:].replace("/", "-")
+        return "{}-{}-{}".format(mtname, namespace, podname)
 
     def options_from_form(self, formdata=None):
         options = None

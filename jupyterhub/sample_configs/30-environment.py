@@ -37,9 +37,11 @@ if hub_route != '/':
 # Set the Hub URLs
 c.JupyterHub.bind_url = 'http://0.0.0.0:8000' + hub_route
 c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
-k8s_svc_address = os.environ.get('HUB_SERVICE_HOST') or public_ips()[0]
-c.JupyterHub.hub_connect_url = "http://" + k8s_svc_address + ":8081" + \
-                               hub_route
+hub_svc_address = os.environ.get('HUB_SERVICE_HOST') or public_ips()[0]
+hub_api_port = os.environ.get('HUB_SERVICE_PORT_API') or '8081'
+c.JupyterHub.hub_connect_url = "http://{}:{}{}".format(hub_svc_address,
+                                                       hub_api_port,
+                                                       hub_route)
 
 # External proxy
 c.ConfigurableHTTPProxy.should_start = False

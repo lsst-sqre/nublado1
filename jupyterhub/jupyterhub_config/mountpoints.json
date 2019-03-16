@@ -1,23 +1,10 @@
 [
   { "disabled": true,
     "mountpoint": "/example -- if it doesn't start with '/' we add it",
+    "mode": "rw or ro, defaults to 'ro'",
+    "kubernetes-volume": "this overrides host, export, and options",
     "fileserver-host": "omit to use Hub settings",
     "fileserver-export": "defaults to '/exports<mountpoint>'",
-    "mode": "rw or ro, defaults to 'ro'"
-  },
-  {
-    "mountpoint": "/home",
-    "mode": "rw"
-  },
-  {
-    "mountpoint": "/datasets"
-  },
-  {
-    "mountpoint": "/project",
-    "mode": "rw"
-  },
-  {
-    "mountpoint": "/scratch",
-    "mode": "rw"
+    "options": "whatever NFS options are desired, e.g. local_lock=all"
   }
 ]

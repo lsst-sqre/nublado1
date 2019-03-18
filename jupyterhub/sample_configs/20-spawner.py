@@ -2,6 +2,7 @@
 """
 import datetime
 import json
+from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubespawner.objects import make_pod
 import namespacedkubespawner
 import os
@@ -320,12 +321,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
 
         vollist = self._get_volume_list()
         self._splice_volumes(vollist)
-        self.log.debug("Volumes: %s" % json.dumps(self.volumes,
-                                                  indent=4,
-                                                  sort_keys=True))
-        self.log.debug("Volume mounts: %s" % json.dumps(self.volume_mounts,
-                                                        indent=4,
-                                                        sort_keys=True))
         self.image = image
         self.log.debug("Image: %s" % json.dumps(image,
                                                 indent=4,
@@ -426,8 +421,14 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         already_vols = []
         if self.volumes:
             already_vols = [x["name"] for x in self.volumes]
+            self.logger.debug("Already_vols: %r" % already_vols)
         for vol in vollist:
             volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
+            shortname = vol["mountpoint"][1:].replace("/", "-")
+            if volname in already_vols:
+                self.log.info(
+                    "Volume '{}' already exists for pod.".format(volname))
+                continue
             k8s_vol = vol["k8s_vol"]
             if k8s_vol:
                 # Create shadow PV and namespaced PVC for volume
@@ -435,25 +436,20 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 ns_vol = self._replicate_nfs_pv_with_suffix(
                     kvol, namespace)
                 self._create_pvc_for_pv(ns_vol)
-                # Update volume name to match
-                volname = ns_vol.metadata.name
-            if volname in already_vols:
-                self.log.info(
-                    "Volume '{}' already exists for pod.".format(volname))
-                continue
             mode = "ReadOnlyMany"
             vmro = True
             if vol["mode"] == "rw":
                 mode = "ReadWriteMany"
                 vmro = False
             vvol = {
-                "name": volname,
+                "name": shortname,
             }
             if k8s_vol:
-                vvol["persistent_volume_claim"] = {
-                    "claim_name": volname,
-                    "read_only": vmro
-                }
+                pvcvs = V1PersistentVolumeClaimVolumeSource(
+                    claim_name=ns_vol.metadata.name,
+                    read_only=vmro
+                )
+                vvol["persistent_volume_claim"] = pvcvs
             else:
                 vvol["nfs"] = {
                     "server": vol["host"],
@@ -471,7 +467,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 #  appropriate volumes in the first place.
                 vvol["nfs"]["mount_options"] = optlist
             vmount = {
-                "name": volname,
+                "name": shortname,
                 "mountPath": vol["mountpoint"]
             }
             if vmro:

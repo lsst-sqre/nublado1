@@ -2,17 +2,13 @@
 """
 import datetime
 import json
-# import kubespawner
+from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubespawner.objects import make_pod
 import namespacedkubespawner
 import os
 from urllib.error import HTTPError
 from tornado import gen
-# https://github.com/lsst-sqre/jupyterhubutils, used to be jupyterutils
-try:
-    from jupyterhubutils import ScanRepo
-except ImportError:
-    from jupyterutils import ScanRepo
+from jupyterhubutils import ScanRepo
 # Spawn the pod with custom settings retrieved via token additional scope.
 
 
@@ -47,6 +43,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         service_account = "dask"
     # Change some defaults.
     delete_namespace_on_stop = True
+    delete_namespaced_pvs_on_stop = True
     # To add quota support:
     #  set enable_namespace_quotas = True
     # and then add a method:
@@ -196,7 +193,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             fs_gid = self.fs_gid
 
         if callable(self.supplemental_gids):
-            supplemental_gids = yield gen.maybe_future(self.supplemental_gids(self))
+            supplemental_gids = yield gen.maybe_future(
+                self.supplemental_gids(self))
         else:
             supplemental_gids = self.supplemental_gids
 
@@ -321,40 +319,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if auto_repo_urls:
             pod_env['AUTO_REPO_URLS'] = auto_repo_urls
 
-        already_vols = []
-        if self.volumes:
-            already_vols = [x["name"] for x in self.volumes]
         vollist = self._get_volume_list()
-        for vol in vollist:
-            volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
-            if volname in already_vols:
-                continue
-            mode = "ReadOnlyMany"
-            vmro = True
-            if vol["mode"] == "rw":
-                mode = "ReadWriteMany"
-                vmro = False
-            self.volumes.append({
-                "name": volname,
-                "nfs": {
-                    "server": vol["host"],
-                    "path": vol["export"],
-                    "accessModes": [mode]
-                },
-            })
-            vmount = {
-                "name": volname,
-                "mountPath": vol["mountpoint"]
-            }
-            if vmro:
-                vmount["readOnly"] = True
-            self.volume_mounts.append(vmount)
-        self.log.debug("Volumes: %s" % json.dumps(self.volumes,
-                                                  indent=4,
-                                                  sort_keys=True))
-        self.log.debug("Volume mounts: %s" % json.dumps(self.volume_mounts,
-                                                        indent=4,
-                                                        sort_keys=True))
+        self._splice_volumes(vollist)
         self.image = image
         self.log.debug("Image: %s" % json.dumps(image,
                                                 indent=4,
@@ -431,11 +397,15 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             export = mtpt.get("fileserver-export") or (
                 "/exports" + mountpoint)
             mode = (mtpt.get("mode") or "ro").lower()
+            options = mtpt.get("options")  # Doesn't work yet.
+            k8s_vol = mtpt.get("kubernetes-volume")
             vollist.append({
                 "mountpoint": mountpoint,
+                "k8s_vol": k8s_vol,
                 "host": host,
                 "export": export,
-                "mode": mode
+                "mode": mode,
+                "options": options
             })
         self.log.debug("Volume list: %r" % vollist)
         return vollist
@@ -445,6 +415,64 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         namespace = self.get_user_namespace()
         mtname = mountpoint[1:].replace("/", "-")
         return "{}-{}-{}".format(mtname, namespace, podname)
+
+    def _splice_volumes(self, vollist):
+        namespace = self.get_user_namespace()
+        already_vols = []
+        if self.volumes:
+            already_vols = [x["name"] for x in self.volumes]
+            self.logger.debug("Already_vols: %r" % already_vols)
+        for vol in vollist:
+            volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
+            shortname = vol["mountpoint"][1:].replace("/", "-")
+            if volname in already_vols:
+                self.log.info(
+                    "Volume '{}' already exists for pod.".format(volname))
+                continue
+            k8s_vol = vol["k8s_vol"]
+            if k8s_vol:
+                # Create shadow PV and namespaced PVC for volume
+                kvol = self._get_nfs_volume(k8s_vol)
+                ns_vol = self._replicate_nfs_pv_with_suffix(
+                    kvol, namespace)
+                self._create_pvc_for_pv(ns_vol)
+            mode = "ReadOnlyMany"
+            vmro = True
+            if vol["mode"] == "rw":
+                mode = "ReadWriteMany"
+                vmro = False
+            vvol = {
+                "name": shortname,
+            }
+            if k8s_vol:
+                pvcvs = V1PersistentVolumeClaimVolumeSource(
+                    claim_name=ns_vol.metadata.name,
+                    read_only=vmro
+                )
+                vvol["persistent_volume_claim"] = pvcvs
+            else:
+                vvol["nfs"] = {
+                    "server": vol["host"],
+                    "path": vol["export"],
+                    "accessModes": [mode]
+                }
+
+            self.volumes.append(vvol)
+            options = vol.get("options")
+            if options:
+                optlist = options.split(',')
+                # This does not work.
+                # To get NFS with mount_options, you need to specify the
+                #  'kubernetes-volume' parameter and create your PV with the
+                #  appropriate volumes in the first place.
+                vvol["nfs"]["mount_options"] = optlist
+            vmount = {
+                "name": shortname,
+                "mountPath": vol["mountpoint"]
+            }
+            if vmro:
+                vmount["readOnly"] = True
+            self.volume_mounts.append(vmount)
 
     def options_from_form(self, formdata=None):
         options = None

@@ -1,14 +1,15 @@
 """The spawner is the KubeSpawner, modified to use the options form data.
 """
+import base64
 import datetime
 import json
-from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
-from kubespawner.objects import make_pod
 import namespacedkubespawner
 import os
-from urllib.error import HTTPError
-from tornado import gen
+from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
+from kubespawner.objects import make_pod
 from jupyterhubutils import ScanRepo
+from tornado import gen
+from urllib.error import HTTPError
 # Spawn the pod with custom settings retrieved via token additional scope.
 
 
@@ -323,6 +324,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
 
         vollist = self._get_volume_list()
         self._splice_volumes(vollist)
+
+        pod_env['DASK_VOLUME_B64'] = self._get_dask_volume_b64()
         self.image = image
         self.log.debug("Image: %s" % json.dumps(image,
                                                 indent=4,
@@ -376,6 +379,45 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             logger=self.log,
         )
         return pod
+
+    def _get_dask_volume_b64(self):
+        vols = self.volumes
+        vmts = self.volume_mounts
+        rstr = ""
+        dyaml = "Constructing dask yaml for "
+        if vmts:
+            rstr += "    volumeMounts:\n"
+            for vm in vmts:
+                self.log.debug(dyaml + vm["name"])
+                rstr += "      - name: {}\n".format(vm["name"])
+                rstr += "        mountPath: {}\n".format(vm["mountPath"])
+                if vm.get("readOnly"):
+                    rstr += "        readOnly: true\n"
+        if vols:
+            rstr += "  volumes:\n"
+            for vol in vols:
+                self.log.debug(dyaml + vol["name"])
+                rstr += "    - name: {}\n".format(vol["name"])
+                if vol.get("persistent_volume_claim"):
+                    rstr += "      persistentVolumeClaim:\n"
+                    pvc = vol.get("persistent_volume_claim")
+                    rstr += "        claimName: {}\n".format(pvc.claim_name)
+                    if hasattr(pvc, "read_only") and pvc.read_only:
+                        rstr += "        accessMode: ReadOnlyMany\n"
+                    else:
+                        rstr += "        accessMode: ReadWriteMany\n"
+                elif vol.get("nfs"):
+                    nfs = vol.get("nfs")
+                    # Just a dict
+                    self.log.debug("NFS: %r" % nfs)
+                    rstr += "      nfs:\n"
+                    rstr += "        server: {}\n".format(nfs["server"])
+                    rstr += "        path: {}\n".format(nfs["path"])
+                    rstr += "        accessMode: {}\n".format(
+                        nfs["accessModes"][0])
+        self.log.debug("Dask yaml:\n%s" % rstr)
+        benc = base64.b64encode(rstr.encode('utf-8')).decode('utf-8')
+        return benc
 
     def _get_volume_list(self):
         """Override this in a subclass if you like.

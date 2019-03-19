@@ -34,6 +34,9 @@ function create_dask_yml() {
         -e "s/{{DEBUG}}/${debug}/" \
         /opt/lsst/software/jupyterlab/dask_worker.template.yml \
         > "${dw}"
+    # Add mounts
+    echo -n "${DASK_VOLUME_B64}" | base64 -d >> "${dw}"
+    # Add restriction
     if [ -n "${RESTRICT_DASK_NODES}" ]; then
         mv ${dw} ${dw}.unrestricted
         sed -e "s/# nodeSelector:/nodeSelector:/" \

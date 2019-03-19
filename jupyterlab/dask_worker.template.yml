@@ -36,29 +36,5 @@ spec:
       requests:
         cpu: {{CPU_GUARANTEE}}
         memory: "{{MEM_GUARANTEE}}M"
-    volumeMounts:
-      - name: home
-        mountPath: /home
-      - name: scratch
-        mountPath: /scratch
-      - name: project
-        mountPath: /project
-      - name: datasets
-        mountPath: /datasets
-  volumes:
-    - name: home
-      persistentVolumeClaim:
-        claimName: home
-        accessMode: ReadWriteMany
-    - name: scratch
-      persistentVolumeClaim:
-         claimName: scratch
-         accessMode: ReadWriteMany
-    - name: project
-      persistentVolumeClaim:
-         claimName: project
-         accessMode: ReadWriteMany
-    - name: datasets
-      persistentVolumeClaim:
-         claimName: datasets
-         accessMode: ReadOnlyMany
+    # VolumeMounts and Volumes will be fed in next, so the template file
+    # must end here.

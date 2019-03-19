@@ -27,7 +27,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     # The fields need to be defined; we don't use them.
     fs_gid = None
     supplemental_gids = []
-    extra_labels = []
+    extra_labels = {}
+    if os.getenv("RESTRICT_LAB_SPAWN"):
+        extra_labels["jupyterlab"] = "ok"
     extra_annotations = []
     image_pull_secrets = None
     privileged = False

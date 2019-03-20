@@ -42,7 +42,7 @@ setup(
     keywords='lsst',
     packages=find_packages(exclude=['docs', 'tests*']),
     install_requires=[
-        'PyYAML>=3.0.0,<4.0.0',
+        'PyYAML>=3.10,<4.0.0',
         'awscli>=1.11.0,<2.0.0',
         'Jinja2>=2.0.0,<3.0.0',
         'dnspython>=1.0.0,<2.0.0',

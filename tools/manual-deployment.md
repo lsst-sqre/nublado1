@@ -8,7 +8,7 @@ If you are here, consider one of the more automated deployment methods:
 ### Requirements
  
 * Begin by cloning this repository: `git clone
-  https://github.com/lsst-sqre/jupyterlabdemo`.  You will be working
+  https://github.com/lsst-sqre/nublado`.  You will be working
   with the kubernetes deployment files inside it, so it will probably be
   convenient to `cd` inside it.
 

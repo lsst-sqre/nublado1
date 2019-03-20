@@ -3,12 +3,12 @@ K8S_NAMESPACE=""
 if [ -n "${1}" ]; then
     K8S_NAMESPACE="${1}"
 fi
-if [ -z "${K8S_CONTEXT}" ]; then
-    K8S_CONTEXT="gke_plasma-geode-127520_us-central1-a_jupyterlabdemo-lsst-codes"
-fi
 # Get current context
 CC=$(kubectl config current-context)
 ccl="cluster: ${CC}"
+if [ -z "${K8S_CONTEXT}" ]; then
+    K8S_CONTEXT="${CC}"
+fi
 # Get current namespace
 CNM=$(kubectl config view | grep -A1 "${ccl}" | grep namespace | \
 	  cut -d ':' -f 2 | cut -d ' ' -f 2)

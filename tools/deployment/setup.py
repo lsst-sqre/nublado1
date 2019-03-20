@@ -8,8 +8,8 @@ PACKAGENAME = 'lsst-nb-deploy'
 DESCRIPTION = 'LSST Science Platform Notebook Aspect deployment tools'
 AUTHOR = 'Adam Thornton'
 AUTHOR_EMAIL = 'athornton@lsst.org'
-URL = 'https://github.com/lsst-sqre/jupyterlabdemo'
-VERSION = '0.0.4'
+URL = 'https://github.com/lsst-sqre/nublado'
+VERSION = '0.0.5'
 LICENSE = 'MIT'
 
 

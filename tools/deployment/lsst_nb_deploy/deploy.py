@@ -8,7 +8,7 @@ at the moment, assumes the following:
     have chosen a FQDN for your application.
 3) You are running this from an execution context where gcloud, kubectl,
     and aws have all been set up to run authenticated from the command
-    line.
+    line (not required if all you are doing is generating configuration).
 4) At least your external endpoint TLS certs are already generated and
     exist on the local filesystem.  If you need certificates for ELK
     stack communication, those must also be present on the local filesystem.
@@ -25,7 +25,7 @@ at the moment, assumes the following:
 6) Either all of this information has been encoded in a YAML file that you
     reference with the -f switch during deployment, or it's in a series of
     environment variables starting with "LSST_NB_", or you enter it at a
-    terminal prompt.
+    terminal prompt, or some combination thereof.
     - If you specify a directory for TLS certificates, the
       certificate, key, and root chain files must be named "cert.pem",
       "key.pem", and "chain.pem" respectively.  If you already have a
@@ -1965,7 +1965,7 @@ def get_cli_options():
                           "Incompatible with -t."),
                     default=None)
     pr.add_argument("-f", "--file", "--input-file",
-                    help=("YAML file specifying demo parameters.  " +
+                    help=("YAML file specifying nublado parameters.  " +
                           "Respected for undeployment as well.  If " +
                           "present, used instead of environment or " +
                           "prompt."),

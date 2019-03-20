@@ -1,3 +1,1 @@
-#!/bin/bash
-./bld_1 || exit 2
-./deploy || exit 2
+../tools/bld

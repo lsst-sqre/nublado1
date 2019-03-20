@@ -82,9 +82,9 @@ Here are the steps you need to perform:
     option on the `pip3` command below.
 
 6. Change to a working directory you like and clone this repository
-   (`git clone https://github.com/lsst-sqre/sqre-jupyterlabdemo`).
+   (`git clone https://github.com/lsst-sqre/nublado`).
    
-7. `cd sqre/jupyterlabdemo/tools/deployment`.  Then (making sure you are
+7. `cd nublado/tools/deployment`.  Then (making sure you are
    inside the activated virtualenv) `pip3 install -e .`.  If you chose
    to not use virtualenv, `pip3 install --user -e .`.
 

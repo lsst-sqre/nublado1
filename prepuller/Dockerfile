@@ -13,4 +13,4 @@ RUN  chmod 0755 /usr/bin/prepull
 CMD [ "/usr/bin/prepull" ]
 LABEL      description="nublado: image prepuller" \
              name="lsstsqre/prepuller" \
-             version="0.3.0"
+             version="0.3.1"

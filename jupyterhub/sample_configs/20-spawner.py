@@ -465,7 +465,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         already_vols = []
         if self.volumes:
             already_vols = [x["name"] for x in self.volumes]
-            self.logger.debug("Already_vols: %r" % already_vols)
+            self.log.debug("Already_vols: %r" % already_vols)
         for vol in vollist:
             volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
             shortname = vol["mountpoint"][1:].replace("/", "-")

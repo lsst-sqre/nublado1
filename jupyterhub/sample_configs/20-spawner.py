@@ -53,6 +53,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     #  self.get_resource_quota_spec()
     #   which should return a kubernetes.client.V1ResourceQuotaSpec
     enable_namespace_quotas = True
+    # stash quota values to pass to spawned environment
+    _quota = {}
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -326,6 +328,15 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         self._splice_volumes(vollist)
 
         pod_env['DASK_VOLUME_B64'] = self._get_dask_volume_b64()
+        if self._quota:
+            pod_env['NAMESPACE_CPU_LIMIT'] = self._quota["limits.cpu"]
+            nmlimit = self._quota["limits.memory"]
+            if nmlimit[-2:] == "Mi":
+                # Not technically correct, but matches mem_limit
+                nmlimit = nmlimit[:-2] + "M"
+            pod_env['NAMESPACE_MEM_LIMIT'] = nmlimit
+        pod_env['CPU_LIMIT'] = str(cpu_limit)
+        pod_env['MEM_LIMIT'] = str(mem_limit)
         self.image = image
         self.log.debug("Image: %s" % json.dumps(image,
                                                 indent=4,
@@ -570,6 +581,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             hard={"limits.cpu": total_cpu,
                   "limits.memory": total_mem})
         self.log.info("Resource quota spec: %r" % qs)
+        self._quota = qs.hard
         return qs
 
 

@@ -38,9 +38,10 @@ RUN  sed -i -e \
      /usr/local/share/jupyterhub/templates/page.html
 # jupyterhub_config.py is stored in a ConfigMap
 ENV  LANG=C.UTF-8
-RUN  groupadd -g 768 jupyter
-RUN  useradd -m -g jupyter -u 768 -c "JupyterHub User" jupyter
+RUN  groupadd -g 768 jovyan
+RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
+USER jovyan
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.13.9"
+	     version="0.14.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

@@ -10,6 +10,10 @@ spec:
         spec:
           restartPolicy: "Never"
           serviceAccountName: prepuller
+          securityContext:
+            # Run as provisionator, not root.
+            runAsUser: 769
+            runAsGroup: 769
           containers:
             - name: prepuller
               imagePullPolicy: "Always"

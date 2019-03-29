@@ -10,6 +10,10 @@ spec:
         name: hub
     spec:
       serviceAccountName: hub
+      securityContext:
+        # Run as "jovyan" rather than root.
+        runAsUser: 768
+        runAsGroup: 768
       containers:
         - name: hub
           imagePullPolicy: "Always"

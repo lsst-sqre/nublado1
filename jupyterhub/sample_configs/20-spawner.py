@@ -480,7 +480,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         for vol in vollist:
             volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
             shortname = vol["mountpoint"][1:].replace("/", "-")
-            if volname in already_vols:
+            if shortname in already_vols:
                 self.log.info(
                     "Volume '{}' already exists for pod.".format(volname))
                 continue

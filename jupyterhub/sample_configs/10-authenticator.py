@@ -380,10 +380,10 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         self.redirect(_url)
 
     def validate_user_from_claims_groups(self, claims):
-        alist = self.allowed_groups.split('/')
+        alist = self.allowed_groups.split(',')
         dlist = []
         if self.forbidden_groups is not None:
-            dlist = self.forbidden_groups.split('/')
+            dlist = self.forbidden_groups.split(',')
         membership = [x["name"] for x in claims["isMemberOf"]]
         intersection = list(set(dlist) & set(membership))
         if intersection:

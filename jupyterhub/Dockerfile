@@ -21,7 +21,7 @@ RUN  pip3 install \
       cryptography \
       mysqlclient \
       jupyterhub-kubespawner \
-      'jupyterhubutils>=0.4.1' \
+      'jupyterhubutils>=0.5.2' \
       'namespacedkubespawner>=0.0.19' \
       git+https://github.com/jupyterhub/jupyterhub.git \
       git+https://github.com/mogthesprog/jwtauthenticator.git \
@@ -40,8 +40,9 @@ RUN  sed -i -e \
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jovyan
 RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
-USER jovyan
+# This must be numeric for k8s non-root contexts
+USER 768:768
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.14.3"
+	     version="0.15.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

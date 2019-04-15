@@ -380,7 +380,8 @@ RUN  sed -i -e \
 RUN  groupadd -g 769 provisionator
 RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
 WORKDIR /tmp
-USER provisionator
+# This needs to be numeric for k8s non-root contexts
+USER 769:769
 CMD [ "/opt/lsst/software/jupyterlab/provisionator.bash" ]
 LABEL description="LSST Science Platform Notebook Aspect: {{IMAGE_NAME}}" \
        name="{{IMAGE_NAME}}" \

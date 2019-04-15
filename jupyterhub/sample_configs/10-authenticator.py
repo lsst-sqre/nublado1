@@ -414,6 +414,9 @@ class LSSTJWTAuth(JSONWebTokenAuthenticator):
             return
         auth_state = yield user.get_auth_state()
         if auth_state:
+            token = auth_state.get("access_token")
+            if token:
+                spawner.environment["ACCESS_TOKEN"] = token
             claims = auth_state.get("claims")
             if claims:
                 # Get UID and GIDs from OAuth reply

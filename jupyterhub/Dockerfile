@@ -10,6 +10,7 @@ RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
 # Need master versions of authenticator and hub
+# Tornado 6 breaks the world
 RUN  pip3 install \
       'tornado<6.0.0' \
       jupyterlab \
@@ -44,5 +45,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
              name="lsstsqre/sciplat-hub" \
-	     version="0.15.0"
+	     version="0.15.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

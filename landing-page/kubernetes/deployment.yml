@@ -24,6 +24,9 @@ spec:
               value: '8080'
             - name: HTTP_CONTENT_DIR
               value: '/www'
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
       volumes:
         - name: landing-page-www
           configMap:

@@ -8,11 +8,15 @@ CMD ["/bin/sh"]
 
 FROM scratch
 COPY --from=builder /go/src/tinyserver/tinyserver /
+COPY passwd /etc/passwd
+COPY group /etc/group
+# Run as "nobody"
+USER 65534
 # Map in www directory with a ConfigMap
 # You need k8s 1.10 to do binary ConfigMaps, though.  So use COPY if you can't
 #  do 1.10 or later.
 #COPY www /www
 LABEL      description="Tiny static web server" \
              name="lsstsqre/tiny-static-server" \
-             version="0.0.1"
+             version="0.0.2"
 CMD ["/tinyserver"]

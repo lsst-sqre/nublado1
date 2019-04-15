@@ -32,6 +32,9 @@ spec:
             requests:
               memory: 512Mi
               cpu: 200m
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           ports:
             - containerPort: 8000
               name: http

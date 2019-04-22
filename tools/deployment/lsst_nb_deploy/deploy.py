@@ -1587,7 +1587,7 @@ class LSSTNotebookAspectDeployment(object):
         self._run(['kubectl', 'create', 'configmap', 'jwt-cert',
                    "--from-file=%s" % os.path.join(cfdir,
                                                    "signing-certificate.pem")])
-        self._run(['kubectl', 'create', 'configmap', 'nfs-mounts',
+        self._run(['kubectl', 'create', 'configmap', 'fs-mounts',
                    "--from-file=%s" % os.path.join(cfdir,
                                                    "mountpoints.json")])
         self._run_kubectl_create(os.path.join(
@@ -1623,7 +1623,7 @@ class LSSTNotebookAspectDeployment(object):
                  ["deployment", "hub"],
                  ["configmap", "hub-config"],
                  ["configmap", "jwt-cert"],
-                 ["configmap", "nfs-mounts"],
+                 ["configmap", "fs-mounts"],
                  ["rolebinding", "hub"],
                  ["role", "hub"],
                  ["clusterrolebinding", "hub"],

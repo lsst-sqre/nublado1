@@ -48,8 +48,8 @@ kubectl create configmap hub-config \
 kubectl delete configmap jwt-cert
 kubectl create configmap jwt-cert \
 	--from-file=kubernetes/config/signing-certificate.pem
-kubectl delete configmap nfs-mounts
-kubectl create configmap nfs-mounts \
+kubectl delete configmap fs-mounts
+kubectl create configmap fs-mounts \
 	--from-file=kubernetes/config/mountpoints.json
 kubectl delete deployment hub
 kubectl create -f kubernetes/deployment.yml

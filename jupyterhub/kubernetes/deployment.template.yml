@@ -162,7 +162,7 @@ spec:
               mountPath: /home/jupyter
             - name: hub-config
               mountPath: /opt/lsst/software/jupyterhub/config
-            - name: nfs-mounts
+            - name: fs-mounts
               mountPath: /opt/lsst/software/jupyterhub/mounts
         #
         # This is for CloudSQL and does not work correctly yet.
@@ -228,11 +228,11 @@ spec:
             name: jwt-cert
           name: jwt-cert
         - configMap:
-              #  Create with `kubectl create configmap nfs-mounts \
+              #  Create with `kubectl create configmap fs-mounts \
               #   --from-file=config/mountpoints.json`
             defaultMode: 420
             items:
             - key: mountpoints.json
               path: mountpoints.json
-            name: nfs-mounts
-          name: nfs-mounts
+            name: fs-mounts
+          name: fs-mounts

@@ -454,8 +454,10 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             mode = (mtpt.get("mode") or "ro").lower()
             options = mtpt.get("options")  # Doesn't work yet.
             k8s_vol = mtpt.get("kubernetes-volume")
+            hostpath = mtpt.get("hostpath")
             vollist.append({
                 "mountpoint": mountpoint,
+                "hostpath": hostpath,
                 "k8s_vol": k8s_vol,
                 "host": host,
                 "export": export,
@@ -478,14 +480,22 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             already_vols = [x["name"] for x in self.volumes]
             self.log.debug("Already_vols: %r" % already_vols)
         for vol in vollist:
-            volname = self._get_volume_name_for_mountpoint(vol["mountpoint"])
-            shortname = vol["mountpoint"][1:].replace("/", "-")
+            mountpoint = vol["mountpoint"]
+            if not mountpoint:
+                self.log.error(
+                    "Mountpoint not specified for volume '{}'!".format(volname)
+                )
+                continue
+            volname = self._get_volume_name_for_mountpoint(mountpoint)
+            shortname = mountpoint[1:].replace("/", "-")
             if shortname in already_vols:
                 self.log.info(
                     "Volume '{}' already exists for pod.".format(volname))
                 continue
             k8s_vol = vol["k8s_vol"]
-            if k8s_vol:
+            hostpath = vol["hostpath"]
+            if k8s_vol and not hostpath:
+                # If hostpath is set, k8s_vol should NOT be, but...
                 # Create shadow PV and namespaced PVC for volume
                 kvol = self._get_nfs_volume(k8s_vol)
                 ns_vol = self._replicate_nfs_pv_with_suffix(
@@ -499,7 +509,13 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             vvol = {
                 "name": shortname,
             }
-            if k8s_vol:
+            if hostpath:
+                vsrc = V1HostPathVolumeSource(
+                    path=hostpath,
+                    type="directory"
+                )
+                vvol["host_path"] = vsrc
+            elif k8s_vol:
                 pvcvs = V1PersistentVolumeClaimVolumeSource(
                     claim_name=ns_vol.metadata.name,
                     read_only=vmro
@@ -523,7 +539,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 vvol["nfs"]["mount_options"] = optlist
             vmount = {
                 "name": shortname,
-                "mountPath": vol["mountpoint"]
+                "mountPath": mountpoint
             }
             if vmro:
                 vmount["readOnly"] = True

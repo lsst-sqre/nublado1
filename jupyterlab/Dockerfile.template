@@ -16,7 +16,9 @@ RUN  yum -y install \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox \
       graphviz geos-devel hdf5-devel \
-      sqlite-devel
+      sqlite-devel \
+      mariadb mysql mysql-devel \
+      unzip nano file ed
 # Make EPEL Python 3.6 system Python 3 and install pip3
 RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
       python3 -m ensurepip
@@ -36,7 +38,7 @@ RUN  S="script.rpm.sh" && \
 RUN  mkdir -p /usr/share/git
 # Install Hub
 RUN  cd /tmp && \
-     V="2.5.1" && \
+     V="2.11.2" && \
      FN="hub-linux-amd64-${V}" && \
      F="${FN}.tgz" && \
      URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
@@ -48,7 +50,7 @@ RUN  cd /tmp && \
 # Install Snappy
 # First we need a newer cmake
 RUN  cd /tmp && \
-      V="3.13.2" && \
+      V="3.14.3" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
@@ -82,7 +84,7 @@ RUN  cd /usr/share/git && \
       make install
 # Install Pandoc
 RUN  cd /tmp && \
-      V="2.3.1" && \
+      V="2.7.2" && \
       FN="pandoc-${V}-linux" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
@@ -90,6 +92,20 @@ RUN  cd /tmp && \
       ${cmd} && \
       tar xvfz ${F} -C /usr --strip-components=1 && \
       rm -rf ${F}
+# This is for Fritz, and my nefarious plan to make the "te" in "Jupyter"
+#  TECO
+# We're not doing the "Make" alias--too likely to confuse
+RUN  cd /usr/share/git && \
+      git clone https://github.com/blakemcbride/TECOC.git && \
+      cd TECOC/src && \
+      make -f makefile.linux && \
+      install -m 0755 tecoc /usr/local/bin && \
+      mkdir -p /usr/local/share/doc/tecoc && \
+      cp ../doc/* /usr/local/share/doc/tecoc && \
+      cd /usr/local/bin && \
+      for i in teco inspect mung; do \
+          ln -s tecoc ${i} ; \
+      done
 # Install minimal LaTeX from TexLive
 COPY texlive.profile /tmp
 RUN  cd /tmp && \
@@ -166,7 +182,8 @@ RUN  pip3 install --upgrade \
        vaex-arrow \
        jupyterlabutils \
        jupyter-firefly-extensions \
-       firefly_client
+       firefly_client \
+       mysqlclient
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -224,7 +241,8 @@ RUN  source ${LOADSTACK} && \
        nbdime \
        jupyterlabutils \
        jupyter-firefly-extensions \
-       firefly_client
+       firefly_client \
+       mysqlclient
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \

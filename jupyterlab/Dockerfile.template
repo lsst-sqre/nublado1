@@ -163,7 +163,6 @@ RUN  pip3 install --upgrade --pre \
        tables \
        papermill \
        "dask[complete]" \
-       dask-kubernetes \
        "holoviews[recommended]" \
        datashader \
        ipyaladin \
@@ -182,7 +181,8 @@ RUN  pip3 install --upgrade --pre \
        jupyterlabutils \
        jupyter-firefly-extensions \
        firefly_client \
-       mysqlclient
+       mysqlclient \
+       git+https://github.com/lsst-sqre/dask-kubernetes@tickets/DM-18415
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -221,7 +221,6 @@ RUN  source ${LOADSTACK} && \
        tables \
        papermill \
        "dask[complete]" \
-       dask-kubernetes \
        "holoviews[recommended]" \
        datashader \
        vaex-core \
@@ -241,7 +240,8 @@ RUN  source ${LOADSTACK} && \
        jupyterlabutils \
        jupyter-firefly-extensions \
        firefly_client \
-       mysqlclient
+       mysqlclient \
+       git+https://github.com/lsst-sqre/dask-kubernetes@tickets/DM-18415       
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
@@ -295,22 +295,19 @@ RUN  cd /usr/share/git && \
       pip3 install -e . && \
       cd js && \
       jupyter labextension install --no-build
-# Install nbdime extension from source until npm is updated.
-# Actually skip nbdime for now.
-#RUN  cd /usr/share/git && \
-#      t="tickets/DM-18415" && \
-#      ls="https://github.com/lsst-sqre" && \
-#      git clone -b ${t} ${ls}/nbdime && \
-#      cd nbdime && \
-#      npm install --unsafe-perm && \
-#      pip3 install -e . && \
-#      jupyter serverextension enable --py nbdime --sys-prefix && \
-#      jupyter nbextension install --py nbdime --sys-prefix && \
-#      jupyter nbextension enable --py nbdime --sys-prefix
-# Here's the busted part
-#RUN  cd /usr/share/git/nbdime && \
-#      npm install --unsafe-perms -g ./packages/nbdime && \
-#      jupyter labextension install ./packages/labextension --no-build
+# nbdime update is in a pr
+RUN  cd /usr/share/git && \
+      pr="470" && \
+      git clone https://github.com/jupyter/nbdime && \
+      cd nbdime && \
+      git fetch origin pull/${pr}/head && \
+      git checkout -b pr${pr} FETCH_HEAD && \
+      npm install --unsafe-perm && \
+      pip3 install -e . && \
+      jupyter serverextension enable --py nbdime --sys-prefix && \
+      jupyter nbextension install --py nbdime --sys-prefix && \
+      jupyter nbextension enable --py nbdime --sys-prefix && \
+      jupyter labextension install ./packages/labextension --no-build
 # Install jupyterlab-hub from source until npm is updated.
 RUN  gitxt="jupyterlab-savequit jupyterlab-hub jupyterlab-lsstquery \
       pyviz_comms jupyterlab_bokeh" && \
@@ -339,18 +336,17 @@ RUN  t="tickets/DM-18415" && \
       jlpm run build && \
       jupyter labextension install --no-build
 RUN  gitxt="pyviz_comms ipyaladin jupyterlab-savequit jupyterlab-hub \
-      jupyterlab-lsstquery jupyterlab-server-proxy" && \
+      jupyterlab-lsstquery jupyterlab-server-proxy ndbime" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
-# Can't install nbdime.
 ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  npm cache clean && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.
-RUN  groupadd -g 768 jupyter && \
+RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \
      jl="jupyter/lab" && \
      u="${scl}/${jl}" && \
@@ -360,7 +356,7 @@ RUN  groupadd -g 768 jupyter && \
      mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
      set -e && \
      for i in /usr/share/git ${u}/staging; do \
-         chgrp -R jupyter ${i} && \
+         chgrp -R jovyan ${i} && \
          chmod -R g+w ${i} ; \
      done
 # More TeX stuff we need for PDF export

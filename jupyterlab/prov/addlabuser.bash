@@ -85,7 +85,7 @@ if [ -n "${DEBUG}" ]; then
 fi
 homedirs="/home"
 default_shell="/bin/bash"
-suppgrp="-G jupyter"
+suppgrp="-G jovyan"
 username=""
 external_uid=""
 external_groups=""

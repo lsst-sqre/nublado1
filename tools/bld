@@ -21,9 +21,9 @@ if [ -z "${VERSION}" ]; then
        echo 1>&2 "Could not determine version from Dockerfile."
        exit 2
 fi
-squash=""
-if [ -n "${SQUASH}" ]; then
-    squash="--squash"
+squash="--squash"
+if [ -n "${NOSQUASH}" ]; then
+    squash=""
 fi
 docker build ${squash} -t ${IMAGE}:${VERSION} .
 rc=$?

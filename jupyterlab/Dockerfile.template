@@ -1,5 +1,6 @@
 FROM {{BASE_IMAGE}}:{{TAG_PREFIX}}{{TAG}}
 USER root
+SHELL ["/bin/bash", "-lc"]
 # If we don't have locales set correctly, the pip install pieces can fail.
 ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
@@ -68,7 +69,7 @@ RUN  cd /usr/share/git && \
       git checkout -b ${V} && \
       mkdir build && \
       cd build && \
-      cmake -DBUILD_SHARED_LIBS=1 ../ && \
+      /usr/local/bin/cmake -DBUILD_SHARED_LIBS=1 ../ && \
       make && \
       make install
 # Install newer Proj -- but 6.0 is not cartopy-happy yet.
@@ -107,13 +108,14 @@ RUN  cd /usr/share/git && \
           ln -s tecoc ${i} ; \
       done
 # Install minimal LaTeX from TexLive
-# http://ftp.math.purdue.edu/mirrors/ctan.org/systems/texlive/tlnet
 COPY texlive.profile /tmp
 RUN  cd /tmp && \
       FN="install-tl-unx.tar.gz" && \
       wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
       tar xvpfz ${FN} && \
-      ./install-tl-*/install-tl --profile /tmp/texlive.profile && \
+      ./install-tl-*/install-tl --repository \
+        http://ctan.math.illinois.edu/systems/texlive/tlnet \
+        --profile /tmp/texlive.profile && \
       rm -rf /tmp/${FN} /tmp/install-tl*
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools
@@ -127,8 +129,7 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-RUN  pip3 install --upgrade \
-       "tornado<6.0.0" \
+RUN  pip3 install --upgrade --pre \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
@@ -162,7 +163,6 @@ RUN  pip3 install --upgrade \
        tables \
        papermill \
        "dask[complete]" \
-       dask-kubernetes \
        "holoviews[recommended]" \
        datashader \
        ipyaladin \
@@ -170,7 +170,6 @@ RUN  pip3 install --upgrade \
        nclib \
        python-snappy \
        graphviz \
-       nbdime \
        vaex-core \
        vaex-viz \
        vaex-server \
@@ -182,7 +181,8 @@ RUN  pip3 install --upgrade \
        jupyterlabutils \
        jupyter-firefly-extensions \
        firefly_client \
-       mysqlclient
+       mysqlclient \
+       git+https://github.com/dask/dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -190,7 +190,8 @@ RUN  source ${LOADSTACK} && \
       cd /usr/share/git && \
       pip install kapteyn/
 RUN  source ${LOADSTACK} && \
-      pip install --upgrade pip \
+      pip install --upgrade --pre \
+       pip \
        "tornado<6.0.0" \
        jupyterlab \
        jupyterlab_server \
@@ -220,7 +221,6 @@ RUN  source ${LOADSTACK} && \
        tables \
        papermill \
        "dask[complete]" \
-       dask-kubernetes \
        "holoviews[recommended]" \
        datashader \
        vaex-core \
@@ -237,11 +237,11 @@ RUN  source ${LOADSTACK} && \
        python-snappy \
        cython \
        graphviz \
-       nbdime \
        jupyterlabutils \
        jupyter-firefly-extensions \
        firefly_client \
-       mysqlclient
+       mysqlclient \
+       git+https://github.com/dask/dask-kubernetes
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
@@ -260,19 +260,17 @@ RUN source ${LOADSTACK} && \
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
+ENV  NODE_OPTIONS=--max-old-space-size=6144
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery nbdime \
+ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
           jupyter_firefly_extensions"
-ENV NBXT="widgetsnbextension ipyevents nbdime"
-# Leave out jupyterlab-hub for now.
+ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
-          @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
-          @pyviz/jupyterlab_pyviz \
-          bqplot dask-labextension ipyevents ipyvolume jupyter-threejs \
-          jupyterlab_bokeh nbdime-jupyterlab \
-          jupyter_firefly_extensions jupyterlab-server-proxy"
+          bqplot ipyevents ipyvolume jupyter-threejs \
+          dask-labextension@0.4.0-pre \
+          jupyter_firefly_extensions"
 # jupyterlab/hub-extension not updated yet
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
@@ -298,30 +296,57 @@ RUN  cd /usr/share/git && \
       pip3 install -e . && \
       cd js && \
       jupyter labextension install --no-build
-# Skip Jupyterlab-hub: master wants 1.0.0-alpha, npm wants 0.34.
-#RUN  gitxt="jupyterlab-hub" && \
-#      cd /usr/share/git && \
-#      git clone https://github.com/jupyterhub/jupyterlab-hub && \
-#      set -e && \
-#      for d in ${gitxt}; do \
-#          cd ${d} ; \
-#          jlpm install --unsafe-perm ; \
-#          jlpm run build ; \
-#          jupyter labextension install --no-build ; \
-#          cd .. ; \
-#      done
-#RUN gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
-RUN gitxt="jupyterlab_bokeh pyviz_comms ipyaladin" && \
+# nbdime update is in a pr
+RUN  cd /usr/share/git && \
+      pr="470" && \
+      git clone https://github.com/jupyter/nbdime && \
+      cd nbdime && \
+      git fetch origin pull/${pr}/head && \
+      git checkout -b pr${pr} FETCH_HEAD && \
+      npm install --unsafe-perm && \
+      pip3 install -e . && \
+      jupyter serverextension enable --py nbdime --sys-prefix && \
+      jupyter nbextension install --py nbdime --sys-prefix && \
+      jupyter nbextension enable --py nbdime --sys-prefix && \
+      jupyter labextension install ./packages/labextension --no-build
+# Install jupyterlab-hub from source until npm is updated.
+RUN  gitxt="jupyterlab-savequit jupyterlab-hub jupyterlab-lsstquery \
+      pyviz_comms jupyterlab_bokeh" && \
+      t="tickets/DM-18415" && \
+      ls="https://github.com/lsst-sqre" && \
+      cd /usr/share/git && \
+      git clone -b ${t} ${ls}/pyviz_comms.git && \
+      git clone -b ${t} ${ls}/jupyterlab-savequit.git && \
+      git clone -b ${t} ${ls}/jupyterlab-lsstquery.git && \
+      git clone -b ${t} ${ls}/jupyterlab-hub.git && \
+      git clone -b ${t} ${ls}/jupyterlab_bokeh.git && \
+      set -e && \
+      for d in ${gitxt}; do \
+          cd ${d} ; \
+          jlpm install --unsafe-perm ; \
+          jlpm run build ; \
+          jupyter labextension install --no-build ; \
+          cd .. ; \
+      done
+RUN  t="tickets/DM-18415" && \
+      ls="https://github.com/lsst-sqre" && \
+      cd /usr/share/git && \
+      git clone -b ${t} ${ls}/jupyter-server-proxy.git && \
+      cd jupyter-server-proxy/jupyterlab-server-proxy && \
+      jlpm install --unsafe-perm && \
+      jlpm run build && \
+      jupyter labextension install --no-build
+RUN  gitxt="pyviz_comms ipyaladin jupyterlab-savequit jupyterlab-hub \
+      jupyterlab-lsstquery jupyterlab-server-proxy ndbime" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
-ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  npm cache clean && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.
-RUN  groupadd -g 768 jupyter && \
+RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \
      jl="jupyter/lab" && \
      u="${scl}/${jl}" && \
@@ -331,20 +356,23 @@ RUN  groupadd -g 768 jupyter && \
      mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
      set -e && \
      for i in /usr/share/git ${u}/staging; do \
-         chgrp -R jupyter ${i} && \
+         chgrp -R jovyan ${i} && \
          chmod -R g+w ${i} ; \
      done
 # More TeX stuff we need for PDF export
-RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
+RUN  PATH=/usr/local/texlive/2018/bin/x86_64-linux:${PATH} && \
      tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
      upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
      mathpazo
 # This, bizarrely, has to be installed on its own to get the binaries.
-RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
+RUN  PATH=/usr/local/texlive/2018/bin/x86_64-linux:${PATH} && \
      tlmgr install xetex && \
-     ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
-           /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
+     ln -s /usr/local/texlive/2018/bin/x86_64-linux/xelatex \
+           /usr/local/texlive/2018/bin/x86_64-linux/bibtex \
            /usr/bin
+# Clear caches
+RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
+      yum clean all
 # Custom local files
 COPY local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \

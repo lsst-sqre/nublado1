@@ -182,7 +182,7 @@ RUN  pip3 install --upgrade --pre \
        jupyter-firefly-extensions \
        firefly_client \
        mysqlclient \
-       git+https://github.com/dask/dask-kubernetes
+       git+https://github.com/lsst-sqre/dask-kubernetes@tickets/DM-18415
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -241,7 +241,7 @@ RUN  source ${LOADSTACK} && \
        jupyter-firefly-extensions \
        firefly_client \
        mysqlclient \
-       git+https://github.com/dask/dask-kubernetes
+       git+https://github.com/lsst-sqre/dask-kubernetes@tickets/DM-18415       
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
@@ -318,7 +318,7 @@ RUN  gitxt="jupyterlab-savequit jupyterlab-hub jupyterlab-lsstquery \
       git clone -b ${t} ${ls}/jupyterlab-savequit.git && \
       git clone -b ${t} ${ls}/jupyterlab-lsstquery.git && \
       git clone -b ${t} ${ls}/jupyterlab-hub.git && \
-      git clone -b ${t} ${ls}/jupyterlab_bokeh.git && \
+      git clone -b ${t} ${ls}/jupyterlab_bokeh.git && \      
       set -e && \
       for d in ${gitxt}; do \
           cd ${d} ; \

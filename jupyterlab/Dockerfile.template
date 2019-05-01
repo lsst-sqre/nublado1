@@ -270,11 +270,10 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
           @pyviz/jupyterlab_pyviz \
-          bqplot ipyevents ipyvolume jupyter-threejs \
+          bqplot dask-labextension ipyevents ipyvolume jupyter-threejs \
           jupyterlab_bokeh nbdime-jupyterlab \
           jupyter_firefly_extensions jupyterlab-server-proxy"
 # jupyterlab/hub-extension not updated yet
-# Using private dask-labextension with exponential backoff
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 RUN  set -e && \
@@ -300,12 +299,9 @@ RUN  cd /usr/share/git && \
       cd js && \
       jupyter labextension install --no-build
 # Install jupyterlab-hub from source until npm is updated.
-#  Our private dask-labextension too
-RUN  gitxt="jupyterlab-hub dask-labextension" && \
+RUN  gitxt="jupyterlab-hub" && \
       cd /usr/share/git && \
       git clone https://github.com/jupyterhub/jupyterlab-hub && \
-      git clone -b tickets/DM-18415c \
-        https://github.com/lsst-sqre/dask-labextension && \
       set -e && \
       for d in ${gitxt}; do \
           cd ${d} ; \
@@ -315,7 +311,6 @@ RUN  gitxt="jupyterlab-hub dask-labextension" && \
           cd .. ; \
       done
 RUN gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
-      gitxt="${gitxt} dask-labextension" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

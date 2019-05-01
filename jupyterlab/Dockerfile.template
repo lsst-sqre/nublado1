@@ -260,7 +260,6 @@ RUN source ${LOADSTACK} && \
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
-ENV  NODE_OPTIONS=--max-old-space-size=6144
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
@@ -342,6 +341,7 @@ RUN  gitxt="pyviz_comms ipyaladin jupyterlab-savequit jupyterlab-hub \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
+ENV  NODE_OPTIONS=--max-old-space-size=4096
 RUN  npm cache clean && \
       jupyter lab clean && \
       jupyter lab build

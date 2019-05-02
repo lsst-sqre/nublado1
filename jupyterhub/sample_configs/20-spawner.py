@@ -6,6 +6,7 @@ import json
 import namespacedkubespawner
 import os
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client.models import V1HostPathVolumeSource
 from kubespawner.objects import make_pod
 from jupyterhubutils import ScanRepo
 from tornado import gen
@@ -426,6 +427,12 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                     rstr += "        path: {}\n".format(nfs["path"])
                     rstr += "        accessMode: {}\n".format(
                         nfs["accessModes"][0])
+                elif vol.get("host_path"):
+                    hp = vol.get("host_path")
+                    self.log.debug("HostPath: %r" % hp)
+                    rstr += "      hostPath:\n"
+                    rstr += "        type: Directory\n"
+                    rstr += "        path: {}\n".format(hp.path)
         self.log.debug("Dask yaml:\n%s" % rstr)
         benc = base64.b64encode(rstr.encode('utf-8')).decode('utf-8')
         return benc
@@ -512,7 +519,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             if hostpath:
                 vsrc = V1HostPathVolumeSource(
                     path=hostpath,
-                    type="directory"
+                    type="Directory"
                 )
                 vvol["host_path"] = vsrc
             elif k8s_vol:

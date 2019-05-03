@@ -83,6 +83,8 @@ fi
 if [ -n "${CLEAR_DOTLOCAL}" ]; then
     clear_dotlocal
 fi
+# Unset SUDO env vars so that Conda doesn't misbehave
+unset SUDO_USER SUDO_UID SUDO_GID SUDO_COMMAND
 # Add paths
 source /etc/profile.d/local05-path.sh
 # Set up SCLs

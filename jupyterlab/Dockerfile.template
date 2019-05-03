@@ -107,14 +107,13 @@ RUN  cd /usr/share/git && \
           ln -s tecoc ${i} ; \
       done
 # Install minimal LaTeX from TexLive
+# http://ftp.math.purdue.edu/mirrors/ctan.org/systems/texlive/tlnet
 COPY texlive.profile /tmp
 RUN  cd /tmp && \
       FN="install-tl-unx.tar.gz" && \
       wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
       tar xvpfz ${FN} && \
-      ./install-tl-*/install-tl --repository \
-        http://ctan.math.illinois.edu/systems/texlive/tlnet \
-        --profile /tmp/texlive.profile && \
+      ./install-tl-*/install-tl --profile /tmp/texlive.profile && \
       rm -rf /tmp/${FN} /tmp/install-tl*
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools
@@ -266,6 +265,7 @@ COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery nbdime \
           jupyter_firefly_extensions"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
+# Leave out jupyterlab-hub for now.
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           @lsst-sqre/jupyterlab-savequit @lsst-sqre/jupyterlab-lsstquery \
@@ -298,19 +298,20 @@ RUN  cd /usr/share/git && \
       pip3 install -e . && \
       cd js && \
       jupyter labextension install --no-build
-# Install jupyterlab-hub from source until npm is updated.
-RUN  gitxt="jupyterlab-hub" && \
-      cd /usr/share/git && \
-      git clone https://github.com/jupyterhub/jupyterlab-hub && \
-      set -e && \
-      for d in ${gitxt}; do \
-          cd ${d} ; \
-          jlpm install --unsafe-perm ; \
-          jlpm run build ; \
-          jupyter labextension install --no-build ; \
-          cd .. ; \
-      done
-RUN gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
+# Skip Jupyterlab-hub: master wants 1.0.0-alpha, npm wants 0.34.
+#RUN  gitxt="jupyterlab-hub" && \
+#      cd /usr/share/git && \
+#      git clone https://github.com/jupyterhub/jupyterlab-hub && \
+#      set -e && \
+#      for d in ${gitxt}; do \
+#          cd ${d} ; \
+#          jlpm install --unsafe-perm ; \
+#          jlpm run build ; \
+#          jupyter labextension install --no-build ; \
+#          cd .. ; \
+#      done
+#RUN gitxt="jupyterlab-hub jupyterlab_bokeh pyviz_comms ipyaladin" && \
+RUN gitxt="jupyterlab_bokeh pyviz_comms ipyaladin" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
@@ -334,15 +335,15 @@ RUN  groupadd -g 768 jupyter && \
          chmod -R g+w ${i} ; \
      done
 # More TeX stuff we need for PDF export
-RUN  PATH=/usr/local/texlive/2018/bin/x86_64-linux:${PATH} && \
+RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
      upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
      mathpazo
 # This, bizarrely, has to be installed on its own to get the binaries.
-RUN  PATH=/usr/local/texlive/2018/bin/x86_64-linux:${PATH} && \
+RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install xetex && \
-     ln -s /usr/local/texlive/2018/bin/x86_64-linux/xelatex \
-           /usr/local/texlive/2018/bin/x86_64-linux/bibtex \
+     ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
+           /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
            /usr/bin
 # Custom local files
 COPY local02-hub.sh local03-showmotd.sh  \

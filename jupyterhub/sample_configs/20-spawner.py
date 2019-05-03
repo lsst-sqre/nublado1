@@ -117,7 +117,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         custtag = saveimg[:colon] + ":__custom"
         optform += " value=\"%s\"> or select image tag " % custtag
         optform += "          "
-        optform += "<select name=\"image_tag\">\n"
+        optform += "<select name=\"image_tag\" onchange=\"document.forms['spawn_form'].kernel_image.value='%s'\">\n" % custtag
         optform += "          "
         optform += "<option value=\"latest\"><br /></option>\n"
         for tag in all_tags:

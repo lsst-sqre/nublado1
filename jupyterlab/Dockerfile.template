@@ -319,12 +319,13 @@ RUN  gitxt="jupyterlab-hub jupyterlab-savequit jupyterlab-lsstquery \
           cd .. ; \
       done
 RUN  d="jupyter_firefly_extensions" && \
-      t="tickets/DM-18415" && \
-      ls="https://github.com/lsst-sqre" && \
+      p="pull/4/head" && \
+      r="https://github.com/Caltech-IPAC" && \
       cd /usr/share/git && \
       set -e && \
-      git clone -b ${t} ${ls}/${d} && \
+      git clone ${r}/${d} && \
       cd ${d} ; \
+      git pull origin ${p} && \
       pip3 install -e .
 RUN  t="tickets/DM-18415" && \
       ls="https://github.com/lsst-sqre" && \

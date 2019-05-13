@@ -464,10 +464,8 @@ class LSSTJWTAuth(JSONWebTokenAuthenticator):
 # Set scope for GitHub
 c.LSSTGitHubAuth.scope = [u'public_repo', u'read:org', u'user:email']
 
-# Set scope, skin, and provider for CILogon
+# Set scope for CILogon
 c.LSSTCILogonAuth.scope = ['openid', 'org.cilogon.userinfo']
-c.LSSTCILogonAuth.skin = "LSST"
-#c.LSSTCILogonAuth.idp = "https://idp.ncsa.illinois.edu/idp/shibboleth"
 
 # Default to GitHub
 c.JupyterHub.authenticator_class = LSSTGitHubAuth

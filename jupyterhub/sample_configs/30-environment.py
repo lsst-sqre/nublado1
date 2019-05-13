@@ -49,3 +49,11 @@ proxy_host = os.getenv('PROXY_SERVICE_HOST') or '127.0.0.1'
 proxy_port = os.getenv('PROXY_SERVICE_PORT_API') or '8001'
 proxy_url = "http://" + proxy_host + ":" + proxy_port
 c.ConfigurableHTTPProxy.api_url = proxy_url
+
+# Skin and restricted IDP for CILogon
+c.LSSTCILogonAuth.scope = ['openid', 'org.cilogon.userinfo']
+skin = os.getenv("CILOGON_SKIN") or "LSST"
+c.LSSTCILogonAuth.skin = skin
+idp = os.getenv("CILOGON_IDP_SELECTION")
+if idp:
+    c.LSSTCILogonAuth.idp = idp

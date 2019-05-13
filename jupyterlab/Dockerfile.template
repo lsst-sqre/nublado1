@@ -117,6 +117,17 @@ RUN  cd /tmp && \
         http://ctan.math.illinois.edu/systems/texlive/tlnet \
         --profile /tmp/texlive.profile && \
       rm -rf /tmp/${FN} /tmp/install-tl*
+# More TeX stuff we need for PDF export
+RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
+     tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
+     upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
+     mathpazo
+# This, bizarrely, has to be installed on its own to get the binaries.
+RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
+     tlmgr install xetex && \
+     ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
+           /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
+           /usr/bin
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools
 # Tornado 6 breaks the world.
@@ -181,6 +192,7 @@ RUN  pip3 install --upgrade --pre \
        jupyterlabutils \
        firefly_client \
        mysqlclient \
+       jupyter-firefly-extensions \
        git+https://github.com/dask/dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -233,12 +245,12 @@ RUN  source ${LOADSTACK} && \
        ipyaladin \
        jupyterlab_lsstquery \
        nclib \
-       python-snappy \
-       cython \
+       python-snappy cython \
        graphviz \
        jupyterlabutils \
        firefly_client \
        mysqlclient \
+       jupyter-firefly-extensions \
        git+https://github.com/dask/dask-kubernetes
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -261,12 +273,14 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS=--max-old-space-size=6144
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery"
+ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
+          jupyter_firefly_extensions"
 ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           bqplot ipyevents ipyvolume jupyter-threejs \
-          dask-labextension@0.4.0-pre"
+          dask-labextension@0.4.0-pre \
+          jupyter_firefly_extensions"
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 RUN  set -e && \
@@ -318,15 +332,22 @@ RUN  gitxt="jupyterlab-hub jupyterlab-savequit jupyterlab-lsstquery \
           jupyter labextension install --no-build ; \
           cd .. ; \
       done
-RUN  d="jupyter_firefly_extensions" && \
-      p="pull/4/head" && \
-      r="https://github.com/Caltech-IPAC" && \
-      cd /usr/share/git && \
-      set -e && \
-      git clone ${r}/${d} && \
-      cd ${d} ; \
-      git pull origin ${p} && \
-      pip3 install -e .
+#RUN  d="jupyter_firefly_extensions" && \
+#      p="pull/5/head" && \
+#      r="https://github.com/Caltech-IPAC" && \
+#      cd /usr/share/git && \
+#      set -e && \
+#      git clone ${r}/${d} && \
+#      cd ${d} && \
+#      git config user.email "athornton@lsst.org" && \
+#      git config user.name "Adam Thornton" && \
+#      git pull origin ${p} && \
+#      rm yarn.lock && \
+#      npm install --unsafe-perm && \
+#      jupyter labextension link . && \
+#      mkdir -p lib && \
+#      pip3 install -e . && \
+#      jupyter serverextension enable --py jupyter_firefly_extensions
 RUN  t="tickets/DM-18415" && \
       ls="https://github.com/lsst-sqre" && \
       cd /usr/share/git && \
@@ -336,7 +357,8 @@ RUN  t="tickets/DM-18415" && \
       jlpm run build && \
       jupyter labextension install --no-build
 RUN  gitxt="pyviz_comms ipyaladin jupyterlab-savequit jupyterlab-hub \
-      jupyterlab-lsstquery jupyterlab-server-proxy ndbime" && \
+      jupyterlab-lsstquery jupyterlab-server-proxy ndbime \
+      jupyterlab_firefly_extensions" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
@@ -358,17 +380,6 @@ RUN  groupadd -g 768 jovyan && \
          chgrp -R jovyan ${i} && \
          chmod -R g+w ${i} ; \
      done
-# More TeX stuff we need for PDF export
-RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
-     tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
-     upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
-     mathpazo
-# This, bizarrely, has to be installed on its own to get the binaries.
-RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
-     tlmgr install xetex && \
-     ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
-           /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
-           /usr/bin
 # Clear caches
 RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
       yum clean all

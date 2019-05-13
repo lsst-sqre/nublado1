@@ -26,6 +26,7 @@ if [ -n "${SQUASH}" ]; then
     squash="--squash"
 fi
 DOCKER_BUILDKIT=1 # Use buildkit if available; if not, ignored.
+export DOCKER_BUILDKIT
 docker build ${squash} -t ${IMAGE}:${VERSION} .
 rc=$?
 if [ "${rc}" -ne 0 ]; then

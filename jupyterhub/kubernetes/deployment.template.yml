@@ -134,8 +134,14 @@ spec:
                   key: oauth_callback_url
             # You want this if you're using CILogon rather than GitHub
             #  and not using 'cilogon.org'
-            - name: CILOGON_HOST
-              value: 'test.cilogon.org'
+            # - name: CILOGON_HOST
+            #   value: 'test.cilogon.org'
+            # Use this to restrict the list of available ID Providers
+            #- name: CILOGON_IDP_SELECTION
+            #  value: 'https://idp.ncsa.illinois.edu/idp/shibboleth'
+            # Use this to set the CILogon skin
+            #- name: CILOGON_SKIN
+            #  value: 'LSST'
             # This may contain credentials, so it should be a secret
             - name: SESSION_DB_URL
               valueFrom:

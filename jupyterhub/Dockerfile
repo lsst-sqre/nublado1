@@ -10,10 +10,8 @@ RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
 # Need master versions of authenticator and hub
-# Tornado 6 breaks the world
 RUN  pip3 install \
-      'tornado<6.0.0' \
-      jupyterlab \
+      tornado \
       ipykernel \
       pyyaml \
       pycurl \
@@ -27,6 +25,8 @@ RUN  pip3 install \
       git+https://github.com/jupyterhub/jupyterhub.git \
       git+https://github.com/mogthesprog/jwtauthenticator.git \
       git+https://github.com/jupyterhub/oauthenticator.git
+RUN pip3 install --upgrade --pre \
+      jupyterlab
 RUN jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  mkdir -p /opt/lsst/software/jupyterhub/config
 RUN  mkdir /opt/lsst/software/jupyterhub/templates
@@ -43,7 +43,7 @@ RUN  groupadd -g 768 jovyan
 RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 # This must be numeric for k8s non-root contexts
 USER 768:768
-LABEL      description="Science Platform Notebook Aspect: jupyterhub" \
-             name="lsstsqre/sciplat-hub" \
-	     version="0.15.1"
+LABEL description="Science Platform Notebook Aspect: jupyterhub" \
+       name="lsstsqre/sciplat-hub" \
+       version="0.15.2"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

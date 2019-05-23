@@ -121,7 +121,7 @@ RUN  cd /tmp && \
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
      upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
-     mathpazo
+     mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx
 # This, bizarrely, has to be installed on its own to get the binaries.
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install xetex && \
@@ -130,7 +130,6 @@ RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
            /usr/bin
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools
-# Tornado 6 breaks the world.
 # Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
@@ -203,7 +202,7 @@ RUN  source ${LOADSTACK} && \
 RUN  source ${LOADSTACK} && \
       pip install --upgrade --pre \
        pip \
-       "tornado<6.0.0" \
+       tornado \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
@@ -332,22 +331,6 @@ RUN  gitxt="jupyterlab-hub jupyterlab-savequit jupyterlab-lsstquery \
           jupyter labextension install --no-build ; \
           cd .. ; \
       done
-#RUN  d="jupyter_firefly_extensions" && \
-#      p="pull/5/head" && \
-#      r="https://github.com/Caltech-IPAC" && \
-#      cd /usr/share/git && \
-#      set -e && \
-#      git clone ${r}/${d} && \
-#      cd ${d} && \
-#      git config user.email "athornton@lsst.org" && \
-#      git config user.name "Adam Thornton" && \
-#      git pull origin ${p} && \
-#      rm yarn.lock && \
-#      npm install --unsafe-perm && \
-#      jupyter labextension link . && \
-#      mkdir -p lib && \
-#      pip3 install -e . && \
-#      jupyter serverextension enable --py jupyter_firefly_extensions
 RUN  t="tickets/DM-18415" && \
       ls="https://github.com/lsst-sqre" && \
       cd /usr/share/git && \

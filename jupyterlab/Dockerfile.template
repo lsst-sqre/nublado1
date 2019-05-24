@@ -278,7 +278,11 @@ ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           bqplot ipyevents ipyvolume jupyter-threejs \
-          dask-labextension@0.4.0-pre \
+          dask-labextension \
+          @pyviz/jupyterlab_pyviz \
+          @jupyterlab/hub-extension \
+          @lsst-sqre/jupyterlab-savequit \
+          @lsst-sqre/jupyterlab-lsstquery \
           jupyter_firefly_extensions"
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
@@ -307,7 +311,7 @@ RUN  cd /usr/share/git && \
 # nbdime update is in a pr
 RUN  cd /usr/share/git && \
       pr="470" && \
-      git clone https://github.com/jupyter/nbdime && \
+      git clone https://github.com/jupyter/nbdime.git && \
       cd nbdime && \
       git fetch origin pull/${pr}/head && \
       git checkout -b pr${pr} FETCH_HEAD && \
@@ -317,31 +321,28 @@ RUN  cd /usr/share/git && \
       jupyter nbextension install --py nbdime --sys-prefix && \
       jupyter nbextension enable --py nbdime --sys-prefix && \
       jupyter labextension install ./packages/labextension --no-build
-RUN  gitxt="jupyterlab-hub jupyterlab-savequit jupyterlab-lsstquery \
-      pyviz_comms jupyterlab_bokeh" && \
-      t="tickets/DM-18415" && \
-      ls="https://github.com/lsst-sqre" && \
-      cd /usr/share/git && \
-      set -e && \
-      for d in ${gitxt}; do \
-          git clone -b ${t} ${ls}/${d} && \
-          cd ${d} ; \
-          jlpm install --unsafe-perm ; \
-          jlpm run build ; \
-          jupyter labextension install --no-build ; \
-          cd .. ; \
-      done
-RUN  t="tickets/DM-18415" && \
-      ls="https://github.com/lsst-sqre" && \
-      cd /usr/share/git && \
-      git clone -b ${t} ${ls}/jupyter-server-proxy.git && \
-      cd jupyter-server-proxy/jupyterlab-server-proxy && \
+RUN  cd /usr/share/git && \
+      pr="66" && \
+      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+      cd jupyterlab_bokeh && \
+      git fetch origin pull/${pr}/head && \
+      git checkout -b pr${pr} FETCH_HEAD && \
+      jlpm install --unsafe-perm ; \
+      jlpm run build ; \
+      jupyter labextension install --no-build
+RUN  cd /usr/share/git && \
+      pr="123" && \
+      git clone https://github.com/jupyterhub/jupyter-server-proxy.git && \
+      cd jupyter-server-proxy && \
+      git fetch origin pull/${pr}/head && \
+      git checkout -b pr${pr} FETCH_HEAD && \
+      cd jupyterlab-server-proxy && \
+      npm install --unsafe-perm && \
       jlpm install --unsafe-perm && \
       jlpm run build && \
       jupyter labextension install --no-build
-RUN  gitxt="pyviz_comms ipyaladin jupyterlab-savequit jupyterlab-hub \
-      jupyterlab-lsstquery jupyterlab-server-proxy ndbime \
-      jupyterlab_firefly_extensions" && \
+RUN  gitxt="pyviz_comms ipyaladin \
+      jupyterlab-server-proxy ndbime" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

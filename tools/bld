@@ -26,12 +26,20 @@ if [ -n "${SQUASH}" ]; then
     squash="--squash"
 fi
 DOCKER_BUILDKIT=1 # Use buildkit if available; if not, ignored.
+# Except that if you're running Docker unprivileged, then you may
+#  get "buildkit not supported by daemon"...
 export DOCKER_BUILDKIT
 docker build ${squash} -t ${IMAGE}:${VERSION} .
 rc=$?
 if [ "${rc}" -ne 0 ]; then
-    echo 1>&2 "Docker build failed."
-    exit 1
+    unset DOCKER_BUILDKIT
+    echo "Docker with buildkit failed; trying without."
+    docker build ${squash} -t ${IMAGE}:${VERSION} .
+    rc=$?
+    if [ "${rc}" -ne 0 ]; then
+	echo 1>&2 "Docker build failed."
+	exit 1
+    fi
 fi
 EXPERIMENTAL=0
 etag=$(echo "${VERSION}" | cut -d '_' -f 1)

@@ -316,18 +316,18 @@ RUN  cd /usr/share/git && \
       cd js && \
       jupyter labextension install --no-build
 # nbdime update is in a pr
-RUN  cd /usr/share/git && \
-      pr="470" && \
-      git clone https://github.com/jupyter/nbdime.git && \
-      cd nbdime && \
-      git fetch origin pull/${pr}/head && \
-      git checkout -b pr${pr} FETCH_HEAD && \
-      npm install --unsafe-perm && \
-      pip3 install -e . && \
-      jupyter serverextension enable --py nbdime --sys-prefix && \
-      jupyter nbextension install --py nbdime --sys-prefix && \
-      jupyter nbextension enable --py nbdime --sys-prefix && \
-      jupyter labextension install ./packages/labextension --no-build
+#RUN  cd /usr/share/git && \
+#      pr="470" && \
+#      git clone https://github.com/jupyter/nbdime.git && \
+#      cd nbdime && \
+#      git fetch origin pull/${pr}/head && \
+#      git checkout -b pr${pr} FETCH_HEAD && \
+#      npm install --unsafe-perm && \
+#      pip3 install -e . && \
+#      jupyter serverextension enable --py nbdime --sys-prefix && \
+#      jupyter nbextension install --py nbdime --sys-prefix && \
+#      jupyter nbextension enable --py nbdime --sys-prefix && \
+#      jupyter labextension install ./packages/labextension --no-build
 RUN  cd /usr/share/git && \
       pr="66" && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
@@ -354,7 +354,7 @@ RUN  gitxt="pyviz_comms ipyaladin \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
-RUN  npm cache clean && \
+RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.

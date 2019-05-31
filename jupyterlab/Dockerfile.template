@@ -13,7 +13,7 @@ RUN  yum -y upgrade
 RUN  yum -y install \
       git sudo \
       python36 python36-setuptools python36-devel \
-      http-parser nodejs perl-Digest-MD5 \
+      http-parser perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox \
       graphviz geos-devel hdf5-devel \
@@ -51,7 +51,7 @@ RUN  cd /tmp && \
 # Install Snappy
 # First we need a newer cmake
 RUN  cd /tmp && \
-      V="3.14.3" && \
+      V="3.14.4" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
@@ -72,7 +72,7 @@ RUN  cd /usr/share/git && \
       /usr/local/bin/cmake -DBUILD_SHARED_LIBS=1 ../ && \
       make && \
       make install
-# Install newer Proj -- but 6.0 is not cartopy-happy yet.
+# Install newer Proj -- but 6.0 is not cartopy-happy yet
 RUN  cd /usr/share/git && \
       V="5.2.0" && \
       git clone -b ${V} https://github.com/OSGeo/proj.4.git && \
@@ -194,6 +194,13 @@ RUN  pip3 install --upgrade --pre \
        jupyter-firefly-extensions \
        git+https://github.com/dask/dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
+# Install newer nodejs for system; needed for JupyterLab build
+RUN  cd /tmp && \
+      curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
+      chmod 0755 node_repo.sh && \
+      ./node_repo.sh && \
+      rm ./node_repo.sh && \
+      yum -y install nodejs
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
 RUN  source ${LOADSTACK} && \
@@ -309,18 +316,18 @@ RUN  cd /usr/share/git && \
       cd js && \
       jupyter labextension install --no-build
 # nbdime update is in a pr
-RUN  cd /usr/share/git && \
-      pr="470" && \
-      git clone https://github.com/jupyter/nbdime.git && \
-      cd nbdime && \
-      git fetch origin pull/${pr}/head && \
-      git checkout -b pr${pr} FETCH_HEAD && \
-      npm install --unsafe-perm && \
-      pip3 install -e . && \
-      jupyter serverextension enable --py nbdime --sys-prefix && \
-      jupyter nbextension install --py nbdime --sys-prefix && \
-      jupyter nbextension enable --py nbdime --sys-prefix && \
-      jupyter labextension install ./packages/labextension --no-build
+#RUN  cd /usr/share/git && \
+#      pr="470" && \
+#      git clone https://github.com/jupyter/nbdime.git && \
+#      cd nbdime && \
+#      git fetch origin pull/${pr}/head && \
+#      git checkout -b pr${pr} FETCH_HEAD && \
+#      npm install --unsafe-perm && \
+#      pip3 install -e . && \
+#      jupyter serverextension enable --py nbdime --sys-prefix && \
+#      jupyter nbextension install --py nbdime --sys-prefix && \
+#      jupyter nbextension enable --py nbdime --sys-prefix && \
+#      jupyter labextension install ./packages/labextension --no-build
 RUN  cd /usr/share/git && \
       pr="66" && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
@@ -347,7 +354,7 @@ RUN  gitxt="pyviz_comms ipyaladin \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
-RUN  npm cache clean && \
+RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build
 # Lab extensions require write permissions by running user.

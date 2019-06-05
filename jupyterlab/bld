@@ -23,34 +23,34 @@ IMAGE_NAME="lsstsqre/sciplat-lab"
 TAG_PREFIX="7-stack-lsst_distrib-"
 while getopts ':hdexp:n:b:t:' opt; do
     case $opt in
-	h)
-	    usage
-	    ;;
-	d)
-	    DRY_RUN=1
-	    ;;
-	e)
-	    EXPERIMENTAL=1
-	    ;;
-	x)
-	    NOPUSH=1
-	    ;;
-	p)
-	    _junk=${OPTARG}
-	    echo 1>&2 "-p PYVER is no longer supported.  Ignoring."
-	    ;;
-	b)
-	    BASE_IMAGE=${OPTARG}
-	    ;;
-	n)
-	    IMAGE_NAME=${OPTARG}
-	    ;;
-	t)
-	    TAG_PREFIX=${OPTARG}
-	    ;;
-	\?)
-	    usage
-	    ;;
+    h)
+        usage
+        ;;
+    d)
+        DRY_RUN=1
+        ;;
+    e)
+        EXPERIMENTAL=1
+        ;;
+    x)
+        NOPUSH=1
+        ;;
+    p)
+        _junk=${OPTARG}
+        echo 1>&2 "-p PYVER is no longer supported.  Ignoring."
+        ;;
+    b)
+        BASE_IMAGE=${OPTARG}
+        ;;
+    n)
+        IMAGE_NAME=${OPTARG}
+        ;;
+    t)
+        TAG_PREFIX=${OPTARG}
+        ;;
+    \?)
+        usage
+        ;;
     esac
 done
 shift $((OPTIND - 1))
@@ -76,4 +76,3 @@ if [ "${DRY_RUN}" -ne 0 ]; then
     exit 0
 fi
 ./bld_1
-

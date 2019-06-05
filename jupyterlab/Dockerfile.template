@@ -355,7 +355,11 @@ RUN  cd /usr/share/git && \
       git checkout -b pr${pr} FETCH_HEAD && \
       jlpm install --unsafe-perm ; \
       jlpm run build ; \
-      jupyter labextension install --no-build && \
+      jupyter labextension install --no-build  && \
+      pip install -e . && \
+      jupyter serverextension enable --sys-prefix dask_labextension && \
+      source ${LOADSTACK} && \
+      pip install -e . && \
       jupyter serverextension enable --sys-prefix dask_labextension
 RUN  gitxt="pyviz_comms ipyaladin \
       jupyterlab-server-proxy ndbime dask-labextension" && \

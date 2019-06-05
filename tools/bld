@@ -25,6 +25,7 @@ squash=""
 if [ -n "${SQUASH}" ]; then
     squash="--squash"
 fi
+
 # You probably want to set DOCKER_BUILDKIT in your environment if your
 #  Docker supports it.
 docker build ${squash} -t ${IMAGE}:${VERSION} .

@@ -140,7 +140,7 @@ RUN  pip3 install numpy cython && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
 RUN  pip3 install --upgrade --pre \
-       jupyterlab \
+       'jupyterlab==1.0.0a5' \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
@@ -210,7 +210,7 @@ RUN  source ${LOADSTACK} && \
       pip install --upgrade --pre \
        pip \
        tornado \
-       jupyterlab \
+       'jupyterlab==1.0.0a5' \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \

@@ -285,7 +285,6 @@ ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           bqplot ipyevents ipyvolume jupyter-threejs \
-          dask-labextension \
           @pyviz/jupyterlab_pyviz \
           @jupyterlab/hub-extension \
           @lsst-sqre/jupyterlab-savequit \
@@ -348,8 +347,22 @@ RUN  cd /usr/share/git && \
       jlpm install --unsafe-perm && \
       jlpm run build && \
       jupyter labextension install --no-build
+RUN  cd /usr/share/git && \
+      pr="63" && \
+      git clone https://github.com/dask/dask-labextension.git && \
+      cd dask-labextension && \
+      git fetch origin pull/${pr}/head && \
+      git checkout -b pr${pr} FETCH_HEAD && \
+      jlpm install --unsafe-perm ; \
+      jlpm run build ; \
+      jupyter labextension install --no-build  && \
+      pip install -e . && \
+      jupyter serverextension enable --sys-prefix dask_labextension && \
+      source ${LOADSTACK} && \
+      pip install -e . && \
+      jupyter serverextension enable --sys-prefix dask_labextension
 RUN  gitxt="pyviz_comms ipyaladin \
-      jupyterlab-server-proxy ndbime" && \
+      jupyterlab-server-proxy ndbime dask-labextension" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

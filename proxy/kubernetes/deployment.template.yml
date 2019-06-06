@@ -28,6 +28,8 @@ spec:
                 secretKeyRef:
                   name: hub
                   key: configproxy_auth_token
+            - name: NODE_OPTIONS
+                value: "--max-http-header-size={{MAX_HTTP_HEADER_SIZE}}"
           resources:
             requests:
               memory: 512Mi

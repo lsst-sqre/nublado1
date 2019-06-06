@@ -155,6 +155,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "restrict_dask_nodes",
     "external_firefly_url",
     "external_url",
+    "max_http_header_size",
     "debug"]
 MTPTS = ["home", "scratch", "project", "datasets", "software"]
 
@@ -533,6 +534,12 @@ class LSSTNotebookAspectDeployment(object):
                 'https://github.com/lsst-sqre/notebook-demo'
         if self._empty_param('size_index'):
             self.params['size_index'] = '1'
+        if self._empty_param('max_http_header_size'):
+            sz = 8192
+            if self.params['oauth_provider'] == 'jwt':
+                # JWT tokens can exceed 8K if you have many groups.
+                sz = 16384
+            self.params['max_http_header_size'] = sz
         return
 
     def _normalize_params(self):
@@ -868,6 +875,7 @@ class LSSTNotebookAspectDeployment(object):
                           FIREFLY_ROUTE=p['firefly_route'],
                           RESTRICT_DASK_NODES=p['restrict_dask_nodes'],
                           RESTRICT_LAB_NODES=p['restrict_lab_nodes'],
+                          MAX_HTTP_HEADER_SIZE=p['max_http_header_size'],
                           DB_IDENTIFIER='{{DB_IDENTIFIER}}',
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )

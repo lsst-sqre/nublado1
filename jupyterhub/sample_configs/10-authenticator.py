@@ -3,10 +3,12 @@ variable, which must be one of "github", "cilogon" or "jwt", and defaults to
 "github".
 '''
 
+import asyncio
 import json
 import os
 import oauthenticator
 import random
+from jupyterhub.handlers import LogoutHandler
 from jupyterhub.utils import url_path_join
 from jwtauthenticator.jwtauthenticator import JSONWebTokenAuthenticator
 from jwtauthenticator.jwtauthenticator import JSONWebTokenLoginHandler
@@ -306,7 +308,6 @@ class LSSTCILogonAuth(oauthenticator.CILogonOAuthenticator):
 
 
 class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
-
     # Slightly cheesy, but we know we are in fact using the NCSA IDP at
     #  CILogon as the source of truth
     allowed_groups = os.environ.get("CILOGON_GROUP_WHITELIST") or "lsst_users"
@@ -320,7 +321,6 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         header_name = self.authenticator.header_name
         param_name = self.authenticator.param_name
         header_is_authorization = self.authenticator.header_is_authorization
-
         auth_header_content = self.request.headers.get(header_name, "")
         auth_cookie_content = self.get_cookie("XSRF-TOKEN", "")
         signing_certificate = self.authenticator.signing_certificate
@@ -328,8 +328,9 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         username_claim_field = self.authenticator.username_claim_field
         audience = self.authenticator.expected_audience
         tokenParam = self.get_argument(param_name, default=False)
-
         if auth_header_content and tokenParam:
+            self.log.error("Authentication: both an authentication header " +
+                           "and tokenParam")
             raise web.HTTPError(400)
         elif auth_header_content:
             if header_is_authorization:
@@ -337,6 +338,7 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
                 #  AUTHORIZATION header.  If we do it could mean someone
                 #  coming in with a stale API token
                 if auth_header_content.split()[0].lower() != "bearer":
+                    self.log.error("Authorization header is not 'bearer'.")
                     raise web.HTTPError(403)
                 token = auth_header_content.split()[1]
             else:
@@ -346,6 +348,7 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         elif tokenParam:
             token = tokenParam
         else:
+            self.log.error("Could not determine authentication token.")
             raise web.HTTPError(401)
 
         claims = ""
@@ -355,6 +358,7 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             claims = self.verify_jwt_with_claims(token, signing_certificate,
                                                  audience)
         else:
+            self.log.error("Could not verify JWT.")
             raise web.HTTPError(401)
 
         username = self.retrieve_username(claims, username_claim_field)
@@ -368,8 +372,10 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         user = self.user_from_username(username)
         if not self.validate_user_from_claims_groups(claims):
             # We're either in a forbidden group, or not in any allowed group
+            self.log.error("User did not validate from claims groups.")
             raise web.HTTPError(403)
-        yield user.save_auth_state(auth_state)
+        modified_auth_state = self._mogrify_auth_state(auth_state)
+        yield user.save_auth_state(modified_auth_state)
         self.set_login_cookie(user)
 
         _url = url_path_join(self.hub.server.base_url, 'home')
@@ -378,6 +384,15 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             _url = next_url
 
         self.redirect(_url)
+
+    def _mogrify_auth_state(self,auth_state):
+        astate = dict(auth_state)
+        self.log.debug("Pre-mogrification auth state: %r" % astate)
+        #
+        # Do things here.
+        #
+        self.log.debug("Post-mogrification auth state: %r" % astate)
+        return astate
 
     def validate_user_from_claims_groups(self, claims):
         alist = self.allowed_groups.split(',')
@@ -395,6 +410,12 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             return False
         return True
 
+class LSSTJWTLogoutHandler(LogoutHandler):
+    """Redirect to OAuth2 sign_in"""
+
+    async def render_logout_page(self):
+        logout_url=os.getenv("LOGOUT_URL") or "/oauth2/sign_in"
+        self.redirect(logout_url, permanent=False)
 
 class LSSTJWTAuth(JSONWebTokenAuthenticator):
     enable_auth_state = True
@@ -403,6 +424,7 @@ class LSSTJWTAuth(JSONWebTokenAuthenticator):
     def get_handlers(self, app):
         return [
             (r'/login', LSSTJWTLoginHandler),
+            (r'/logout', LSSTJWTLogoutHandler)
         ]
 
     # We should refactor this out into a mixin class.

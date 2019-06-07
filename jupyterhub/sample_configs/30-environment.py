@@ -3,16 +3,25 @@ Put all the sections together.
 """
 import os
 from jupyter_client.localinterfaces import public_ips
+from urllib.parse import urlparse
 
 # Set up auth environment
 authtype = os.environ.get('OAUTH_PROVIDER') or ''
+c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+netloc = urlparse(c.LSSTAuth.oauth_callback_url).netloc
+scheme = urlparse(c.LSSTAuth.oauth_callback_url).scheme
+aud = None
+if netloc and scheme:
+    aud = scheme + "://" + netloc
 if authtype == 'jwt':
     # Parameters for JWT
     c.LSSTJWTAuth.signing_certificate = '/opt/jwt/signing-certificate.pem'
     c.LSSTJWTAuth.username_claim_field = 'uid'
-    c.LSSTJWTAuth.expected_audience = os.getenv('OAUTH_CLIENT_ID') or ''
+    c.LSSTJWTAuth.expected_audience = (aud or
+                                       os.getenv('OAUTH_CLIENT_ID') or '')
+    if netloc:
+        c.JupyterHub.logout_url =  netloc + "/oauth2/sign_in"
 else:
-    c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
     c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
     c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 

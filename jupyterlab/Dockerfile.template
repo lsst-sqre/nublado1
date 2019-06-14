@@ -190,8 +190,8 @@ RUN  pip3 install --upgrade --pre \
        vaex-arrow \
        jupyterlabutils \
        firefly_client \
-       mysqlclient \
        jupyter-firefly-extensions \
+       mysqlclient \
        dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 # Install newer nodejs for system; needed for JupyterLab build
@@ -255,8 +255,8 @@ RUN  source ${LOADSTACK} && \
        graphviz \
        jupyterlabutils \
        firefly_client \
-       mysqlclient \
        jupyter-firefly-extensions \
+       mysqlclient \
        dask-kubernetes
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -276,7 +276,7 @@ RUN source ${LOADSTACK} && \
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
-ENV  NODE_OPTIONS=--max-old-space-size=6144
+ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
@@ -286,9 +286,8 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           bqplot ipyevents ipyvolume jupyter-threejs \
           @pyviz/jupyterlab_pyviz \
-          @jupyterlab/hub-extension \
-          @lsst-sqre/jupyterlab-savequit \
           @lsst-sqre/jupyterlab-lsstquery \
+          @lsst-sqre/jupyterlab-savequit \
           jupyter_firefly_extensions"
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
@@ -327,15 +326,22 @@ RUN  cd /usr/share/git && \
 #      jupyter nbextension install --py nbdime --sys-prefix && \
 #      jupyter nbextension enable --py nbdime --sys-prefix && \
 #      jupyter labextension install ./packages/labextension --no-build
+#     pr="66" && \
+#      git fetch origin pull/${pr}/head && \
+#      git checkout -b pr${pr} FETCH_HEAD && \
 RUN  cd /usr/share/git && \
-      pr="66" && \
-      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+      b="tickets/DM-19974" && \
+      git clone -b ${b} https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
       cd jupyterlab_bokeh && \
-      git fetch origin pull/${pr}/head && \
-      git checkout -b pr${pr} FETCH_HEAD && \
       jlpm install --unsafe-perm ; \
       jlpm run build ; \
       jupyter labextension install --no-build
+#RUN  cd /usr/share/git && \
+#      git clone https://github.com/lsst-sqre/jupyterlab-savequit.git && \
+#      cd jupyterlab-savequit && \
+#      jlpm install --unsafe-perm ; \
+#      jlpm run build ; \
+#      jupyter labextension install --no-build
 RUN  cd /usr/share/git && \
       pr="134" && \
       git clone https://github.com/jupyterhub/jupyter-server-proxy.git && \
@@ -347,12 +353,13 @@ RUN  cd /usr/share/git && \
       jlpm install --unsafe-perm && \
       jlpm run build && \
       jupyter labextension install --no-build
+#      git fetch origin pull/${pr}/head && \
+#      git checkout -b pr${pr} FETCH_HEAD && \
+#      pr="63"
 RUN  cd /usr/share/git && \
-      pr="63" && \
-      git clone https://github.com/dask/dask-labextension.git && \
+      b="tickets/DM-19974" && \
+      git clone -b ${b} https://github.com/lsst-sqre/dask-labextension.git && \
       cd dask-labextension && \
-      git fetch origin pull/${pr}/head && \
-      git checkout -b pr${pr} FETCH_HEAD && \
       jlpm install --unsafe-perm ; \
       jlpm run build ; \
       jupyter labextension install --no-build  && \

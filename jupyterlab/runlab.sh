@@ -144,10 +144,18 @@ else
     ( source /opt/lsst/software/stack/loadLSST.bash && \
 	  eups admin clearCache )
 fi
+#if [ -z "${JUPYTERHUB_HOST}" ]; then
+#    if [ -n "${JUPYTERHUB_API_URL}" ]; then
+#	JUPYTERHUB_HOST=$(echo ${JUPYTERHUB_API_URL} | cut -d '/' -f -3)
+#    fi
+#fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}"
+#if [ -n "${JUPYTERHUB_HOST}" ]; then
+#    cmd="${cmd} --hub-host=${JUPYTERHUB_HOST}"
+#fi
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"
 fi

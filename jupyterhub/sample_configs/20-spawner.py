@@ -211,18 +211,18 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             return ldescs[0]
         # Now we have the hash of "recommended"; next we match it to
         #  another tag.
-        for lname in lnames:
-            if lname.endswith(":recommended"):
+        ltags = [ x.split(":")[-1] for x in lnames ]
+        for ltag in ltags:
+            if ltag == "recommended":
                 continue
-            idx = lnames.index(lname)
-            ltag = lname.split(":")[-1]
+            idx = ltags.index(ltag)
             tag = "manifests/" + ltag
             resp = requests.get(baseurl + tag, headers=headers,
                                 json=True)
             recjson = resp.json()
             imgdigest = self._get_layers(recjson)
             if imgdigest and imgdigest == digest:
-                self.recommended_tag = lname
+                self.recommended_tag = ltag
                 return "Recommended (%s)" % ldescs[idx]
         # Not in our displayed images.  Try the whole list...
         all_tags = []
@@ -352,10 +352,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                  os.getenv("LAB_IMAGE") or
                  "lsstsqre/sciplat-lab:latest")
         image_name = image
-        if (image.endswith(":recommended") and self.recommended_tag
-                and self.recommended_tag != "NOTFOUND"):
-            image = image[:-(len(":recommended"))] + ":" + self.recommended_tag
-
         size = None
         image_size = None
         # First pulls can be really slow for the LSST stack containers,
@@ -387,6 +383,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 if size:
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
+        if (image.endswith(":recommended") and self.recommended_tag
+            and self.recommended_tag != "NOTFOUND"):
+            image = image[:-(len(":recommended"))] + ":" + self.recommended_tag
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
         cpu_limit = os.getenv('LAB_CPU_LIMIT') or 1.0
         if image_size:
@@ -622,7 +621,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             mountpoint = vol["mountpoint"]
             if not mountpoint:
                 self.log.error(
-                    "Mountpoint not specified for volume '{}'!".format(volname)
+                    "Mountpoint not specified for volume '{}'!".format(vol)
                 )
                 continue
             volname = self._get_volume_name_for_mountpoint(mountpoint)

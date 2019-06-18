@@ -5,6 +5,7 @@ import datetime
 import json
 import namespacedkubespawner
 import os
+import requests
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1HostPathVolumeSource
 from kubespawner.objects import make_pod
@@ -43,6 +44,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     extra_pod_config = None
     extra_containers = []
     service_account = None
+    recommended_tag = None
     if os.getenv("ALLOW_DASK_SPAWN"):
         service_account = "dask"
     # Change some defaults.
@@ -81,6 +83,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             all_tags = scanner.get_all_tags()
         except AttributeError:
             all_tags = []
+        if lnames[0].endswith(":recommended"):
+            ldescs[0] = self._match_recommended(scanner)
         optform = "<label for=\"%s\">%s</label><br />\n" % (title, title)
         now = datetime.datetime.now()
         nowstr = now.ctime()
@@ -117,7 +121,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         custtag = saveimg[:colon] + ":__custom"
         optform += " value=\"%s\"> or select image tag " % custtag
         optform += "          "
-        optform += "<select name=\"image_tag\" onchange=\"document.forms['spawn_form'].kernel_image.value='%s'\">\n" % custtag
+        optform += "<select name=\"image_tag\""
+        optform += "onchange=\"document.forms['spawn_form']."
+        optform += "kernel_image.value='%s'\">\n" % custtag
         optform += "          "
         optform += "<option value=\"latest\"><br /></option>\n"
         for tag in all_tags:
@@ -172,6 +178,128 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         for esz in self._sizemap:
             if esz not in sizes:
                 del self._sizemap[esz]
+
+    def _match_recommended(self, scanner):
+        (lnames, ldescs) = scanner.extract_image_info()
+        if self.recommended_tag:
+            if self.recommended_tag == "NOTFOUND":
+                return ldescs[0]
+            if self.recommended_tag in lnames:
+                idx = -1
+                try:
+                    idx = lnames.index(self.recommended_tag)
+                except ValueError:
+                    pass
+                if idx != -1:
+                    return "Recommended (%s)" % ldescs[idx]
+        # We know lnames[0] ends with ":recommended"
+        # ldescs[0] is where we started (probably "Recommended")
+        authtok = self._get_auth_token(scanner)
+        if not authtok:
+            return ldescs[0]
+        baseurl = self._get_baseurl(scanner)
+        if not baseurl:
+            return ldescs[0]
+        headers = {}
+        if authtok != "NO-AUTH":
+            headers = {"Authorization": "Bearer {}".format(authtok)}
+        resp = requests.get(baseurl + "manifests/recommended",
+                            headers=headers, json=True)
+        recjson = resp.json()
+        digest = self._get_layers(recjson)
+        if not digest:
+            return ldescs[0]
+        # Now we have the hash of "recommended"; next we match it to
+        #  another tag.
+        ltags = [ x.split(":")[-1] for x in lnames ]
+        for ltag in ltags:
+            if ltag == "recommended":
+                continue
+            idx = ltags.index(ltag)
+            tag = "manifests/" + ltag
+            resp = requests.get(baseurl + tag, headers=headers,
+                                json=True)
+            recjson = resp.json()
+            imgdigest = self._get_layers(recjson)
+            if imgdigest and imgdigest == digest:
+                self.recommended_tag = ltag
+                return "Recommended (%s)" % ldescs[idx]
+        # Not in our displayed images.  Try the whole list...
+        all_tags = []
+        try:
+            all_tags = scanner.get_all_tags()
+        except AttributeError:
+            return ldescs[0]
+        for tag in all_tags:
+            if tag == "recommended":
+                continue
+            mtag = "manifests/" + tag
+            resp = requests.head(baseurl + mtag, headers=headers,
+                                 json=True)
+            recjson = resp.json()
+            imgdigest = self._get_layers(recjson)
+            if imgdigest and imgdigest == digest:
+                self.recommended_tag = lname
+                return "Recommended (%s)" % lname
+        # We didn't find it.
+        self.recommended_tag = "NOTFOUND"
+        return ldescs[0]
+
+    def _get_layers(self, recjson):
+        fsl = recjson.get("fsLayers")
+        if not fsl:
+            return None
+        return [x["blobSum"] for x in fsl]
+
+    def _get_auth_token(self, scanner):
+        baseurl = self._get_baseurl(scanner)
+        if not baseurl:
+            return None
+        url = baseurl + "manifests/recommended"
+        initial_response = requests.get(url)
+        sc = initial_response.status_code
+        if sc == 200:
+            return "NO-AUTH"
+        elif sc == 401:
+            magicheader = initial_response.headers['Www-Authenticate']
+            if magicheader[:7] == "Bearer ":
+                hd = {}
+                hl = magicheader[7:].split(",")
+                for hn in hl:
+                    il = hn.split("=")
+                    kk = il[0]
+                    vv = il[1].replace('"', "")
+                    hd[kk] = vv
+                if (not hd or "realm" not in hd or "service" not in hd
+                        or "scope" not in hd):
+                    return None
+                endpoint = hd["realm"]
+                del hd["realm"]
+                tresp = requests.get(endpoint, params=hd, json=True)
+                jresp = tresp.json()
+                return jresp.get("token")
+        else:
+            self.log.error("GET %s -> %d" % (url, sc))
+            return None
+
+    def _get_baseurl(self, scanner):
+        host = scanner.host
+        if host == "hub.docker.com":
+            host = "registry.hub.docker.com"
+        protocol = "https"
+        if scanner.insecure:
+            protocol = "http"
+        owner = scanner.owner
+        name = scanner.name
+        if not owner or not name:
+            if scanner.path:
+                pl = scanner.path.split('/')
+                owner = pl[3]
+                name = pl[4]
+        if not owner or not name:
+            return None
+        baseurl = protocol + "://" + host + "/v2/" + owner + "/" + name + "/"
+        return baseurl
 
     @property
     def options_form(self):
@@ -255,6 +383,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 if size:
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
+        if (image.endswith(":recommended") and self.recommended_tag
+            and self.recommended_tag != "NOTFOUND"):
+            image = image[:-(len(":recommended"))] + ":" + self.recommended_tag
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
         cpu_limit = os.getenv('LAB_CPU_LIMIT') or 1.0
         if image_size:
@@ -490,7 +621,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             mountpoint = vol["mountpoint"]
             if not mountpoint:
                 self.log.error(
-                    "Mountpoint not specified for volume '{}'!".format(volname)
+                    "Mountpoint not specified for volume '{}'!".format(vol)
                 )
                 continue
             volname = self._get_volume_name_for_mountpoint(mountpoint)

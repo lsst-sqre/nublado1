@@ -300,6 +300,9 @@ RUN  set -e && \
           jupyter nbextension install ${n} --py --sys-prefix && \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
       done
+# Workaround for bug in JL 1.0.0-a.9
+RUN  sed -i.bak -e 's/, quiet=True//' \
+      /usr/local/lib/python3.6/site-packages/jupyterlab/commands.py
 RUN  set -e && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \

@@ -307,6 +307,13 @@ RUN  set -e && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
+# Create package version docs.
+RUN  mkdir -p ${jl}/versions && \
+      pip3 freeze > ${jl}/versions/requirements-system.txt && \
+      source ${LOADSTACK} && \
+      pip3 freeze > ${jl}/versions/requirements-stack.txt && \
+      ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
+      echo ${ipa_commit} > ${jl}/versions/ipyaladin.commit
 # Install ipyaladin extension from source until npm is updated.
 RUN  cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
@@ -380,6 +387,9 @@ RUN  gitxt="pyviz_comms ipyaladin \
 RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build
+RUN  jupyter labextension list 2>&1 | \
+      grep '^      ' | grep -v ':' | \
+      awk '{print $1,$2}' | tr ' ' '@' > ${jl}/versions/labext.txt
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \

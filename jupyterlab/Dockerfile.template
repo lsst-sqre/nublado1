@@ -139,7 +139,7 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-RUN  pip3 install --upgrade --pre \
+RUN  pip3 install --upgrade \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
@@ -192,6 +192,7 @@ RUN  pip3 install --upgrade --pre \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
+       nbdime \
        dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 # Install newer nodejs for system; needed for JupyterLab build
@@ -207,7 +208,7 @@ RUN  source ${LOADSTACK} && \
       cd /usr/share/git && \
       pip install kapteyn/
 RUN  source ${LOADSTACK} && \
-      pip install --upgrade --pre \
+      pip install --upgrade \
        pip \
        tornado \
        jupyterlab \
@@ -257,6 +258,7 @@ RUN  source ${LOADSTACK} && \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
+       nbdime \
        dask-kubernetes
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -280,15 +282,19 @@ ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
-          jupyter_firefly_extensions"
-ENV NBXT="widgetsnbextension ipyevents"
+          jupyter_firefly_extensions nbdime"
+ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           bqplot ipyevents ipyvolume jupyter-threejs \
           @pyviz/jupyterlab_pyviz \
           @lsst-sqre/jupyterlab-lsstquery \
           @lsst-sqre/jupyterlab-savequit \
-          jupyter_firefly_extensions"
+          jupyter_firefly_extensions \
+          jupyterlab_bokeh \
+          @jupyterlab/hub-extension \
+          dask-labextension \
+          nbdime-jupyterlab"
 ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 RUN  set -e && \
@@ -307,72 +313,26 @@ RUN  set -e && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
+# Create package version docs.
+RUN  mkdir -p ${jl}/versions && \
+      pip3 freeze > ${jl}/versions/requirements-system.txt && \
+      source ${LOADSTACK} && \
+      pip3 freeze > ${jl}/versions/requirements-stack.txt && \
+      ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
+      echo ${ipa_commit} > ${jl}/versions/ipyaladin.commit
 # Install ipyaladin extension from source until npm is updated.
-RUN  cd /usr/share/git && \
+RUN   commit=$(cat ${jl}/versions/ipyaladin.commit) && \
+      cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
-      cd ipyaladin/js && \
+      cd ipyaladin && \
+      git checkout ${commit} && \
+      cd js && \
       npm install --unsafe-perm && \
       cd .. && \
       pip3 install -e . && \
       cd js && \
       jupyter labextension install --no-build
-# nbdime update is in a pr
-#RUN  cd /usr/share/git && \
-#      pr="470" && \
-#      git clone https://github.com/jupyter/nbdime.git && \
-#      cd nbdime && \
-#      git fetch origin pull/${pr}/head && \
-#      git checkout -b pr${pr} FETCH_HEAD && \
-#      npm install --unsafe-perm && \
-#      pip3 install -e . && \
-#      jupyter serverextension enable --py nbdime --sys-prefix && \
-#      jupyter nbextension install --py nbdime --sys-prefix && \
-#      jupyter nbextension enable --py nbdime --sys-prefix && \
-#      jupyter labextension install ./packages/labextension --no-build
-#     pr="66" && \
-#      git fetch origin pull/${pr}/head && \
-#      git checkout -b pr${pr} FETCH_HEAD && \
-RUN  cd /usr/share/git && \
-      b="tickets/DM-19974" && \
-      git clone -b ${b} https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
-      cd jupyterlab_bokeh && \
-      jlpm install --unsafe-perm ; \
-      jlpm run build ; \
-      jupyter labextension install --no-build
-#RUN  cd /usr/share/git && \
-#      git clone https://github.com/lsst-sqre/jupyterlab-savequit.git && \
-#      cd jupyterlab-savequit && \
-#      jlpm install --unsafe-perm ; \
-#      jlpm run build ; \
-#      jupyter labextension install --no-build
-RUN  cd /usr/share/git && \
-      pr="134" && \
-      git clone https://github.com/jupyterhub/jupyter-server-proxy.git && \
-      cd jupyter-server-proxy && \
-      git fetch origin pull/${pr}/head && \
-      git checkout -b pr${pr} FETCH_HEAD && \
-      cd jupyterlab-server-proxy && \
-      npm install --unsafe-perm && \
-      jlpm install --unsafe-perm && \
-      jlpm run build && \
-      jupyter labextension install --no-build
-#      git fetch origin pull/${pr}/head && \
-#      git checkout -b pr${pr} FETCH_HEAD && \
-#      pr="63"
-RUN  cd /usr/share/git && \
-      b="tickets/DM-19974" && \
-      git clone -b ${b} https://github.com/lsst-sqre/dask-labextension.git && \
-      cd dask-labextension && \
-      jlpm install --unsafe-perm ; \
-      jlpm run build ; \
-      jupyter labextension install --no-build  && \
-      pip install -e . && \
-      jupyter serverextension enable --sys-prefix dask_labextension && \
-      source ${LOADSTACK} && \
-      pip install -e . && \
-      jupyter serverextension enable --sys-prefix dask_labextension
-RUN  gitxt="pyviz_comms ipyaladin \
-      jupyterlab-server-proxy ndbime dask-labextension" && \
+RUN  gitxt="ipyaladin" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
@@ -380,6 +340,7 @@ RUN  gitxt="pyviz_comms ipyaladin \
 RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build
+RUN  /usr/local/bin/jupyter labextension list > ${jl}/versions/labext.txt 2>&1
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \

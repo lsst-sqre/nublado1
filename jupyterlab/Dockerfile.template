@@ -128,73 +128,6 @@ RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
            /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
            /usr/bin
-# Get newer setuptools before Python packages
-RUN  pip3 install --upgrade pip setuptools
-# Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
-#  following workaround does the trick:
-#  https://github.com/SheffieldML/GPy/issues/649
-#  ...but you need numpy and cython first.
-RUN  pip3 install numpy cython && \
-      cd /usr/share/git && \
-      git clone https://github.com/kapteyn-astro/kapteyn && \
-      find kapteyn -name '*.pyx' -exec cython {} \; && \
-      pip3 install kapteyn/
-RUN  pip3 install --upgrade \
-       jupyterlab \
-       jupyterlab_server \
-       jupyterhub \
-       jupyter-server-proxy \
-       virtualenv \
-       virtualenvwrapper \
-       pyshp \
-       ipykernel \
-       pipenv \
-       nbval \
-       numpy \
-       scipy \
-       pandas \
-       astropy \
-       pyvo \
-       pypandoc \
-       ipyevents \
-       ipywidgets \
-       matplotlib \
-       astroquery \
-       healpy \
-       bokeh \
-       pyarrow \
-       cloudpickle \
-       ipympl \
-       fastparquet \
-       paramnb \
-       ginga \
-       bqplot \
-       ipyvolume \
-       tables \
-       papermill \
-       "dask[complete]" \
-       "holoviews[recommended]" \
-       datashader \
-       ipyaladin \
-       jupyterlab_lsstquery \
-       nclib \
-       python-snappy \
-       graphviz \
-       vaex-core \
-       vaex-viz \
-       vaex-server \
-       vaex-hdf5 \
-       vaex-astro \
-       vaex-distributed \
-       vaex-jupyter \
-       vaex-arrow \
-       jupyterlabutils \
-       firefly_client \
-       jupyter-firefly-extensions \
-       mysqlclient \
-       nbdime \
-       dask-kubernetes
-# scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 # Install newer nodejs for system; needed for JupyterLab build
 RUN  cd /tmp && \
       curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
@@ -202,64 +135,34 @@ RUN  cd /tmp && \
       ./node_repo.sh && \
       rm ./node_repo.sh && \
       yum -y install nodejs
+# PROD branch only: Pin versions
+# Get newer setuptools before Python packages (Still need to pin these)
+RUN  pip3 install --upgrade pip setuptools
+# Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
+#  following workaround does the trick:
+#  https://github.com/SheffieldML/GPy/issues/649
+#  ...but you need numpy and cython first.
+ENV  jl=/opt/lsst/software/jupyterlab
+RUN  mkdir -p ${jl}/versions
+COPY versions/ipyaladin.commit versions/requirements-stack.txt \
+      versions/labext.txt versions/requirements-system.txt ${jl}/versions
+RUN  numpver=$(grep ^numpy ${jl}/versions | cut -d '=' -f 3) && \
+      cythver=$(grep ^Cython {jl}/versions | cut -d '=' -f 3) && \
+      pip3 install numpy==${numpver} \
+                   cython==${cythver} && \
+      cd /usr/share/git && \
+      git clone https://github.com/kapteyn-astro/kapteyn && \
+      find kapteyn -name '*.pyx' -exec cython {} \; && \
+      pip3 install kapteyn/
+RUN  pip3 install --upgrade -r {$jl}/requrements-system.txt
+# scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
 RUN  source ${LOADSTACK} && \
       cd /usr/share/git && \
       pip install kapteyn/
 RUN  source ${LOADSTACK} && \
-      pip install --upgrade \
-       pip \
-       tornado \
-       jupyterlab \
-       jupyterlab_server \
-       jupyterhub \
-       jupyter-server-proxy \
-       setuptools \
-       virtualenv \
-       virtualenvwrapper \
-       pyshp \
-       ipykernel \
-       pipenv \
-       nbval \
-       pypandoc \
-       pyvo \
-       astroquery \
-       ipywidgets \
-       ipyevents \
-       bokeh \
-       pyarrow \
-       cloudpickle \
-       ipympl \
-       fastparquet \
-       paramnb \
-       ginga \
-       bqplot \
-       ipyvolume \
-       tables \
-       papermill \
-       "dask[complete]" \
-       "holoviews[recommended]" \
-       datashader \
-       vaex-core \
-       vaex-viz \
-       vaex-server \
-       vaex-hdf5 \
-       vaex-astro \
-       vaex-distributed \
-       vaex-jupyter \
-       vaex-arrow \
-       ipyaladin \
-       jupyterlab_lsstquery \
-       nclib \
-       python-snappy cython \
-       graphviz \
-       jupyterlabutils \
-       firefly_client \
-       jupyter-firefly-extensions \
-       mysqlclient \
-       nbdime \
-       dask-kubernetes
+      pip install --upgrade -r ${jl}/versions/requirements-stack.txt
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
@@ -284,18 +187,6 @@ COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
           jupyter_firefly_extensions nbdime"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
-ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
-          @jupyter-widgets/jupyterlab-manager \
-          bqplot ipyevents ipyvolume jupyter-threejs \
-          @pyviz/jupyterlab_pyviz \
-          @lsst-sqre/jupyterlab-lsstquery \
-          @lsst-sqre/jupyterlab-savequit \
-          jupyter_firefly_extensions \
-          jupyterlab_bokeh \
-          @jupyterlab/hub-extension \
-          dask-labextension \
-          nbdime-jupyterlab"
-ENV  jl=/opt/lsst/software/jupyterlab
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
@@ -306,20 +197,11 @@ RUN  set -e && \
           jupyter nbextension install ${n} --py --sys-prefix && \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
       done
-# Workaround for bug in JL 1.0.0-a.9
-RUN  sed -i.bak -e 's/, quiet=True//' \
-      /usr/local/lib/python3.6/site-packages/jupyterlab/commands.py
 RUN  set -e && \
+      LBXT=$(cat ${jl}/versions/labext.txt) && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
-# Create package version docs.
-RUN  mkdir -p ${jl}/versions && \
-      pip3 freeze > ${jl}/versions/requirements-system.txt && \
-      source ${LOADSTACK} && \
-      pip3 freeze > ${jl}/versions/requirements-stack.txt && \
-      ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
-      echo ${ipa_commit} > ${jl}/versions/ipyaladin.commit
 # Install ipyaladin extension from source until npm is updated.
 RUN   commit=$(cat ${jl}/versions/ipyaladin.commit) && \
       cd /usr/share/git && \
@@ -333,6 +215,7 @@ RUN   commit=$(cat ${jl}/versions/ipyaladin.commit) && \
       cd js && \
       jupyter labextension install --no-build
 RUN  gitxt="ipyaladin" && \
+      LBXT=$(cat ${jl}/versions/labext.txt) && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

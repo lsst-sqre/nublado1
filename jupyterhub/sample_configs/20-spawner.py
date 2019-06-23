@@ -205,7 +205,10 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             headers = {"Authorization": "Bearer {}".format(authtok)}
         resp = requests.get(baseurl + "manifests/recommended",
                             headers=headers, json=True)
-        recjson = resp.json()
+        if resp:
+            recjson = resp.json()
+        else:
+            recjson = {}
         digest = self._get_layers(recjson)
         if not digest:
             return ldescs[0]
@@ -236,11 +239,14 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             mtag = "manifests/" + tag
             resp = requests.head(baseurl + mtag, headers=headers,
                                  json=True)
-            recjson = resp.json()
+            if resp:
+                recjson = resp.json()
+            else:
+                recjson = {}
             imgdigest = self._get_layers(recjson)
             if imgdigest and imgdigest == digest:
-                self.recommended_tag = lname
-                return "Recommended (%s)" % lname
+                self.recommended_tag = tag
+                return "Recommended (%s)" % tag
         # We didn't find it.
         self.recommended_tag = "NOTFOUND"
         return ldescs[0]

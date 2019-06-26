@@ -36,6 +36,17 @@ RUN  S="script.rpm.sh" && \
       yum -y install git-lfs && \
       source scl_source enable rh-git29 && \
       git lfs install
+# Install newer nodejs for system; needed for JupyterLab build
+RUN  cd /tmp && \
+      curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
+      chmod 0755 node_repo.sh && \
+      ./node_repo.sh && \
+      rm ./node_repo.sh && \
+      yum -y install nodejs
+# Install yarn repo and then yarn
+RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
+       > /etc/yum.repos.d/yarn.repo && \
+      yum -y install yarn
 RUN  mkdir -p /usr/share/git
 # Install Hub
 RUN  cd /tmp && \
@@ -172,7 +183,7 @@ RUN  pip3 install --upgrade --pre \
        ipyvolume \
        tables \
        papermill \
-       "dask[complete]" \
+       "dask[complete]<2.0" \
        "holoviews[recommended]" \
        datashader \
        ipyaladin \
@@ -192,15 +203,9 @@ RUN  pip3 install --upgrade --pre \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
+       gcsfs \
        dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
-# Install newer nodejs for system; needed for JupyterLab build
-RUN  cd /tmp && \
-      curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
-      chmod 0755 node_repo.sh && \
-      ./node_repo.sh && \
-      rm ./node_repo.sh && \
-      yum -y install nodejs
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
 RUN  source ${LOADSTACK} && \
@@ -237,7 +242,7 @@ RUN  source ${LOADSTACK} && \
        ipyvolume \
        tables \
        papermill \
-       "dask[complete]" \
+       "dask[complete]<2.0" \
        "holoviews[recommended]" \
        datashader \
        vaex-core \
@@ -257,6 +262,7 @@ RUN  source ${LOADSTACK} && \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
+       gcsfs \
        dask-kubernetes
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -283,13 +289,14 @@ ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
           jupyter_firefly_extensions"
 ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
-          @jupyter-widgets/jupyterlab-manager \
           bqplot ipyevents ipyvolume jupyter-threejs \
-          @pyviz/jupyterlab_pyviz \
           @lsst-sqre/jupyterlab-lsstquery \
           @lsst-sqre/jupyterlab-savequit \
           jupyter_firefly_extensions"
+#           @pyviz/jupyterlab_pyviz"
+#           @jupyter-widgets/jupyterlab-manager \
 ENV  jl=/opt/lsst/software/jupyterlab
+ENV  verdir="${jl}/versions"
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
@@ -308,12 +315,15 @@ RUN  set -e && \
           jupyter labextension install ${l} --no-build ; \
       done
 # Create package version docs.
-RUN  mkdir -p ${jl}/versions && \
-      pip3 freeze > ${jl}/versions/requirements-system.txt && \
+RUN  mkdir -p ${verdir} && \
+      pip3 freeze > ${verdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
-      pip3 freeze > ${jl}/versions/requirements-stack.txt && \
+      pip3 freeze > ${verdir}/requirements-stack.txt && \
       ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
-      echo ${ipa_commit} > ${jl}/versions/ipyaladin.commit
+      echo ${ipa_commit} > ${verdir}/ipyaladin.commit && \
+      yum list installed 2>/dev/null | grep -v ^Loaded | \
+       grep -v ^Installed | awk '{print $1,$2}' | sed -e 's/ /==/' > \
+       ${verdir}/rpmlist.txt
 # Install ipyaladin extension from source until npm is updated.
 RUN  cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
@@ -343,8 +353,8 @@ RUN  cd /usr/share/git && \
       b="tickets/DM-19974" && \
       git clone -b ${b} https://github.com/lsst-sqre/jupyterlab_bokeh.git && \
       cd jupyterlab_bokeh && \
-      jlpm install --unsafe-perm ; \
-      jlpm run build ; \
+      jlpm install --unsafe-perm && \
+      jlpm run build && \
       jupyter labextension install --no-build
 #RUN  cd /usr/share/git && \
 #      git clone https://github.com/lsst-sqre/jupyterlab-savequit.git && \
@@ -368,6 +378,13 @@ RUN  cd /usr/share/git && \
 #      pr="63"
 RUN  cd /usr/share/git && \
       b="tickets/DM-19974" && \
+      git clone -b ${b} https://github.com/lsst-sqre/pyviz_comms && \
+      cd pyviz_comms && \
+      jlpm install --unsafe-perm && \
+      jlpm run build && \
+      jupyter labextension install --no-build      
+RUN  cd /usr/share/git && \
+      b="tickets/DM-19974" && \
       git clone -b ${b} https://github.com/lsst-sqre/dask-labextension.git && \
       cd dask-labextension && \
       jlpm install --unsafe-perm ; \
@@ -388,7 +405,7 @@ RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build
 RUN  jupyter labextension list 2>&1 | \
-      grep '^      ' | grep -v ':' | \
+      grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
       awk '{print $1,$2}' | tr ' ' '@' > ${jl}/versions/labext.txt
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jovyan && \

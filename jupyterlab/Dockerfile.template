@@ -143,30 +143,33 @@ RUN  pip3 install --upgrade pip setuptools
 #  https://github.com/SheffieldML/GPy/issues/649
 #  ...but you need numpy and cython first.
 ENV  jl=/opt/lsst/software/jupyterlab
-RUN  mkdir -p ${jl}/versions
-COPY versions/ipyaladin.commit versions/requirements-stack.txt \
-      versions/labext.txt versions/requirements-system.txt ${jl}/versions
-RUN  numpver=$(grep ^numpy ${jl}/versions | cut -d '=' -f 3) && \
-      cythver=$(grep ^Cython {jl}/versions | cut -d '=' -f 3) && \
+COPY versions/* ${jl}/versions/
+RUN  numpver=$(grep ^numpy ${jl}/versions/requirements-system.txt \
+       | cut -d '=' -f 3) && \
+      cythver=$(grep ^Cython ${jl}/versions/requirements-system.txt \
+       | cut -d '=' -f 3) && \
+      sixver=$(grep ^six ${jl}/versions/requirements-system.txt \
+       | cut -d '=' -f 3) && \
       pip3 install numpy==${numpver} \
-                   cython==${cythver} && \
+                   cython==${cythver} \
+		   six==${sixver} && \
       cd /usr/share/git && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-RUN  pip3 install --upgrade -r {$jl}/requrements-system.txt
+RUN  pip3 install --upgrade -r ${jl}/versions/requirements-system.txt
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
 RUN  source ${LOADSTACK} && \
       cd /usr/share/git && \
       pip install kapteyn/
-RUN  source ${LOADSTACK} && \
-      pip install --upgrade -r ${jl}/versions/requirements-stack.txt
-# Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
+RUN  source ${LOADSTACK} && \
+      pip install --upgrade -r ${jl}/versions/requirements-stack.txt
+# Pip installing breaks for cartopy: 23 Jan 2019
 ENV  CARTOPY_VER="0.17.0"
 RUN  cd /usr/share/git && \
       git clone -b v${CARTOPY_VER} https://github.com/SciTools/cartopy

@@ -1,24 +1,17 @@
-JupyterLab v0.35.6
-Known labextensions:
-   app dir: /usr/local/share/jupyter/lab
-        @jupyter-widgets/jupyterlab-manager v0.38.1 [32m enabled [0m [32mOK[0m
-        @jupyterlab/celltags v0.1.4 [32m enabled [0m [32mOK[0m
-        @jupyterlab/hub-extension v0.12.0 [32m enabled [0m [32mOK[0m
-        @jupyterlab/toc v0.6.0 [32m enabled [0m [32mOK[0m
-        @lsst-sqre/jupyterlab-lsstquery v0.1.0 [32m enabled [0m [32mOK[0m
-        @lsst-sqre/jupyterlab-savequit v0.18.0 [32m enabled [0m [32mOK[0m
-        @pyviz/jupyterlab_pyviz v0.7.2 [32m enabled [0m [32mOK[0m
-        bqplot v0.4.5 [32m enabled [0m [32mOK[0m
-        dask-labextension v0.3.0 [32m enabled [0m [32mOK[0m
-        ipyaladin v0.1.5 [32m enabled [0m [32mOK[0m*
-        ipyevents v1.5.0 [32m enabled [0m [32mOK[0m
-        ipyvolume v0.5.1 [32m enabled [0m [32mOK[0m
-        jupyter-matplotlib v0.3.0 [32m enabled [0m [32mOK[0m
-        jupyter-threejs v2.1.0 [32m enabled [0m [32mOK[0m
-        jupyter_firefly_extensions v0.2.6 [32m enabled [0m [32mOK[0m
-        jupyterlab-datawidgets v6.1.0 [32m enabled [0m [32mOK[0m
-        jupyterlab_bokeh v0.6.3 [32m enabled [0m [32mOK[0m
-        nbdime-jupyterlab v0.6.1 [32m enabled [0m [32mOK[0m
-
-   local extensions:
-        ipyaladin: /usr/share/git/ipyaladin/js
+@jupyter-widgets/jupyterlab-manager@v0.38.1
+@jupyterlab/celltags@v0.1.4
+@jupyterlab/hub-extension@v0.12.0
+@jupyterlab/toc@v0.6.0
+@lsst-sqre/jupyterlab-lsstquery@v0.1.0
+@lsst-sqre/jupyterlab-savequit@v0.18.0
+@pyviz/jupyterlab_pyviz@v0.7.2
+bqplot@v0.4.5
+dask-labextension@v0.3.0
+ipyevents@v1.5.0
+ipyvolume@v0.5.1
+jupyter-matplotlib@v0.3.0
+jupyter-threejs@v2.1.0
+jupyter_firefly_extensions@v0.2.6
+jupyterlab-datawidgets@v6.1.0
+jupyterlab_bokeh@v0.6.3
+nbdime-jupyterlab@v0.6.1

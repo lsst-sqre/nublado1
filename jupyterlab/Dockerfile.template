@@ -206,6 +206,10 @@ RUN  pip3 install --upgrade --pre \
        mysqlclient \
        gcsfs \
        jupyterlabutils \
+       sidecar \
+       "python-socketio[client]" \
+       socketIO-client \
+       git+https://github.com/ericmandel/pyjs9.git \
        dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -266,6 +270,10 @@ RUN  source ${LOADSTACK} && \
        mysqlclient \
        gcsfs \
        jupyterlabutils \
+       sidecar \
+       "python-socketio[client]" \
+       socketIO-client \
+       git+https://github.com/ericmandel/pyjs9.git \
        dask-kubernetes
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -295,6 +303,7 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           bqplot ipyevents ipyvolume jupyter-threejs \
           @lsst-sqre/jupyterlab-lsstquery \
           @lsst-sqre/jupyterlab-savequit \
+	  @jupyter-widgets/jupyterlab-sidecar \
           jupyter_firefly_extensions"
 #           @pyviz/jupyterlab_pyviz"
 #           @jupyter-widgets/jupyterlab-manager \
@@ -395,6 +404,14 @@ RUN  cd /usr/share/git && \
       source ${LOADSTACK} && \
       pip install -e . && \
       jupyter serverextension enable --sys-prefix dask_labextension
+RUN  cd /usr/share/git && \
+      git clone https://github.com/mgckind/jjs9.git && \
+      cd jjs9 && \
+      pip install -e . && \
+      t="{\n  \"NotebookApp\": {\n    \"nbserver_extensions\": {\n" && \
+      t="${t}      \"js9server.js9ext\": true\n    }\n  }\n}\n" && \
+      f="/usr/local/etc/jupyter/jupyter_notebook_config.d/jjs.json" && \
+      printf "${t}" > ${f}
 RUN  gitxt="pyviz_comms ipyaladin \
       jupyterlab-server-proxy ndbime dask-labextension" && \
       set -e && \

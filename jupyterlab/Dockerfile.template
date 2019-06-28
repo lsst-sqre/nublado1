@@ -333,22 +333,16 @@ RUN  cd /usr/share/git && \
       pip3 install -e . && \
       cd js && \
       jupyter labextension install --no-build
-# nbdime update is in a pr
-#RUN  cd /usr/share/git && \
-#      pr="470" && \
-#      git clone https://github.com/jupyter/nbdime.git && \
-#      cd nbdime && \
-#      git fetch origin pull/${pr}/head && \
-#      git checkout -b pr${pr} FETCH_HEAD && \
-#      npm install --unsafe-perm && \
-#      pip3 install -e . && \
-#      jupyter serverextension enable --py nbdime --sys-prefix && \
-#      jupyter nbextension install --py nbdime --sys-prefix && \
-#      jupyter nbextension enable --py nbdime --sys-prefix && \
-#      jupyter labextension install ./packages/labextension --no-build
-#     pr="66" && \
-#      git fetch origin pull/${pr}/head && \
-#      git checkout -b pr${pr} FETCH_HEAD && \
+RUN  cd /usr/share/git && \
+      b="tickets/DM-19974" && \
+      git clone https://github.com/lsst-sqre/nbdime.git && \
+      cd nbdime && \
+      npm install --unsafe-perm && \
+      pip3 install -e . && \
+      jupyter serverextension enable --py nbdime --sys-prefix && \
+      jupyter nbextension install --py nbdime --sys-prefix && \
+      jupyter nbextension enable --py nbdime --sys-prefix && \
+      jupyter labextension install ./packages/labextension --no-build
 RUN  cd /usr/share/git && \
       b="tickets/DM-19974" && \
       git clone -b ${b} https://github.com/lsst-sqre/jupyterlab_bokeh.git && \

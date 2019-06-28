@@ -333,16 +333,16 @@ RUN  cd /usr/share/git && \
       pip3 install -e . && \
       cd js && \
       jupyter labextension install --no-build
-RUN  cd /usr/share/git && \
-      b="tickets/DM-19974" && \
-      git clone https://github.com/lsst-sqre/nbdime.git && \
-      cd nbdime && \
-      npm install -g typescript@3.5.1 && \
-      pip3 install -e . && \
-      jupyter serverextension enable --py nbdime --sys-prefix && \
-      jupyter nbextension install --py nbdime --sys-prefix && \
-      jupyter nbextension enable --py nbdime --sys-prefix && \
-      jupyter labextension install ./packages/labextension --no-build
+#RUN  cd /usr/share/git && \
+#      b="tickets/DM-19974" && \
+#      git clone -b ${b} https://github.com/lsst-sqre/nbdime.git && \
+#      cd nbdime && \
+#      jlpm install && \
+#      pip3 install -e . && \
+#      jupyter serverextension enable --py nbdime --sys-prefix && \
+#      jupyter nbextension install --py nbdime --sys-prefix && \
+#      jupyter nbextension enable --py nbdime --sys-prefix && \
+#      jupyter labextension install packages/labextension --no-build
 RUN  cd /usr/share/git && \
       b="tickets/DM-19974" && \
       git clone -b ${b} https://github.com/lsst-sqre/jupyterlab_bokeh.git && \

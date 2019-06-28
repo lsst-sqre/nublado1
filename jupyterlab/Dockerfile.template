@@ -337,7 +337,7 @@ RUN  cd /usr/share/git && \
       b="tickets/DM-19974" && \
       git clone https://github.com/lsst-sqre/nbdime.git && \
       cd nbdime && \
-      npm install --unsafe-perm && \
+      npm install -g typescript@3.5.1 && \
       pip3 install -e . && \
       jupyter serverextension enable --py nbdime --sys-prefix && \
       jupyter nbextension install --py nbdime --sys-prefix && \

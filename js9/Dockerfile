@@ -9,11 +9,7 @@ RUN  mkdir -p /src && \
       cd js9 && \
       ./configure --with-webdir=/www/js9 && \
       make && \
-      make install && \
-      cd /www/js9 && \
-      git clone https://github.com/ericmandel/js9data data && \
-      mv data/* . && \
-      rm -rf data
+      make install
 FROM golang:alpine as gobuilder
 ENV  CGO_ENABLED=0
 ENV  GOOS=linux
@@ -25,6 +21,7 @@ FROM scratch
 COPY --from=gobuilder /src/tinyserver/tinyserver /tinyserver
 COPY --from=jsbuilder /www/js9 /www/js9/js9
 COPY --from=jsbuilder /www/js9/index.html /www/js9/index.html
+COPY casa.fits.gz /www/js9/js9/fits/casa.fits.gz
 COPY passwd /etc/passwd
 COPY group /etc/group
 USER 65534

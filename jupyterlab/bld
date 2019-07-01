@@ -18,6 +18,7 @@ function usage() {
 OPTIND=1
 DRY_RUN=0
 EXPERIMENTAL=0
+SPECIAL=0
 NOPUSH=0
 BASE_IMAGE="lsstsqre/centos"
 IMAGE_NAME="lsstsqre/sciplat-lab"

@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/proxy-body-size: "0m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: {{FIREFLY_ROUTE}}
+    nginx.ingress.kubernetes.io/rewrite-target: {{FIREFLY_ROUTE}}/$2
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
@@ -21,7 +21,7 @@ spec:
   - host: {{HOSTNAME}}
     http:
       paths:
-      - path: {{FIREFLY_ROUTE}}
+      - path: {{FIREFLY_ROUTE}}(/|$)(.*)
         backend:
           serviceName: firefly
           servicePort: 8080

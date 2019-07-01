@@ -151,13 +151,14 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "size_index",
     "hub_route",
     "firefly_route",
+    "js9_route",
     "restrict_lab_nodes",
     "restrict_dask_nodes",
     "external_firefly_url",
     "external_url",
     "max_http_header_size",
     "debug"]
-MTPTS = ["home", "scratch", "project", "datasets", "software"]
+MTPTS = ["home", "scratch", "project", "datasets", "software", "teststand"]
 
 
 class LSSTNotebookAspectDeployment(object):
@@ -506,15 +507,18 @@ class LSSTNotebookAspectDeployment(object):
         if self._empty_param('lab_size_range'):
             self.params['lab_size_range'] = "4.0"
         if self._empty_param('hub_route'):
-            self.params['hub_route'] = "/nb/"
+            self.params['hub_route'] = "/nb"
         if self._empty_param('firefly_route'):
-            self.params['firefly_route'] = "/firefly/"
-        # Routes must start and end with slash; we know they are not empty.
-        for i in ['hub_route', 'firefly_route']:
+            self.params['firefly_route'] = "/firefly"
+        if self._empty_param('js9_route'):
+            self.params['firefly_route'] = "/js9"
+        # Routes must start, but not end, with slash.
+        # We know they are not empty.
+        for i in ['hub_route', 'firefly_route', 'js9_route']:
             if self.params[i][0] != "/":
                 self.params[i] = "/" + self.params[i]
-            if self.params[i][-1] != "/":
-                self.params[i] = self.params[i] + "/"
+            if self.params[i][-1] == "/" and self.params[i] != "/":
+                self.params[i] = self.params[i][:-1]
         if self.params['hub_route'] == '/':
             self.params['enable_landing_page'] = False
         # Sane defaults for Firefly servers
@@ -558,7 +562,7 @@ class LSSTNotebookAspectDeployment(object):
         self.params['oauth_callback_url'] = ("https://" +
                                              self.params['hostname'] +
                                              self.params['hub_route'] +
-                                             "hub/oauth_callback")
+                                             "/hub/oauth_callback")
         self.params["github_organization_whitelist"] = ','.join(
             self.params["github_organization_whitelist"])
         self.params["cilogon_group_whitelist"] = ','.join(

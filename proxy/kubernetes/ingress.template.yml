@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/proxy-body-size: "0m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: {{HUB_ROUTE}}
+    nginx.ingress.kubernetes.io/rewrite-target: {{HUB_ROUTE}}/$2
     #
     # If you're doing JWT auth, you also need:
     #
@@ -35,7 +35,7 @@ spec:
   - host: {{HOSTNAME}}
     http:
       paths:
-      - path: {{HUB_ROUTE}}
+      - path: {{HUB_ROUTE}}(/|$)(.*)
         backend:
           serviceName: proxy
           servicePort: 8000

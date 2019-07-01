@@ -6,8 +6,9 @@
 hostname: '{{FQDN}}'
 
 ### Routes
-# hub_route: '/nb/'
-# firefly_route: '/firefly/'
+# hub_route: '/nb'
+# firefly_route: '/firefly'
+# js9_route: '/js9'
 # If hub_route is '/', the landing page will not be installed; otherwise
 #  it will.
 

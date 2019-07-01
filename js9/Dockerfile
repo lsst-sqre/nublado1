@@ -1,7 +1,7 @@
 FROM debian:latest as jsbuilder
 RUN  apt-get update
 RUN  apt-get dist-upgrade
-RUN  apt-get install -y git make golang
+RUN  apt-get install -y git make
 # Later add libfuntools, cfitsio, and node
 RUN  mkdir -p /src && \
       cd /src && \

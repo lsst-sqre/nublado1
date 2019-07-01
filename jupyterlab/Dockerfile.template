@@ -150,7 +150,7 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-RUN  pip3 install --upgrade --pre \
+RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
        jupyterlab_server \
@@ -214,7 +214,7 @@ RUN  source ${LOADSTACK} && \
       cd /usr/share/git && \
       pip install kapteyn/
 RUN  source ${LOADSTACK} && \
-      pip install --upgrade --pre \
+      pip install --upgrade \
        pip \
        tornado \
        jupyterlab \
@@ -296,8 +296,8 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @lsst-sqre/jupyterlab-lsstquery \
           @lsst-sqre/jupyterlab-savequit \
           @jupyter-widgets/jupyterlab-manager \
-          jupyter_firefly_extensions"
-#           @pyviz/jupyterlab_pyviz"
+          jupyter_firefly_extensions \
+          @pyviz/jupyterlab_pyviz"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions"
 RUN  mkdir -p ${jl}
@@ -365,16 +365,6 @@ RUN  cd /usr/share/git && \
       jlpm install --unsafe-perm && \
       jlpm run build && \
       jupyter labextension install --no-build
-#      git fetch origin pull/${pr}/head && \
-#      git checkout -b pr${pr} FETCH_HEAD && \
-#      pr="63"
-RUN  cd /usr/share/git && \
-      b="tickets/DM-19974" && \
-      git clone -b ${b} https://github.com/lsst-sqre/pyviz_comms && \
-      cd pyviz_comms && \
-      jlpm install --unsafe-perm && \
-      jlpm run build && \
-      jupyter labextension install --no-build      
 RUN  cd /usr/share/git && \
       b="tickets/DM-19974" && \
       git clone -b ${b} https://github.com/lsst-sqre/dask-labextension.git && \
@@ -387,8 +377,7 @@ RUN  cd /usr/share/git && \
       source ${LOADSTACK} && \
       pip install -e . && \
       jupyter serverextension enable --sys-prefix dask_labextension
-RUN  gitxt="pyviz_comms ipyaladin \
-      jupyterlab-server-proxy ndbime dask-labextension" && \
+RUN  gitxt="ipyaladin jupyterlab-server-proxy ndbime dask-labextension" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

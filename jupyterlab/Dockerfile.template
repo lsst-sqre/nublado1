@@ -193,12 +193,20 @@ RUN  set -e && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
+# Create package version docs.
+RUN  mkdir -p ${verdir} && \
+      pip3 freeze > ${verdir}/requirements-system.txt && \
+      source ${LOADSTACK} && \
+      pip3 freeze > ${verdir}/requirements-stack.txt && \
+      ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
+      echo ${ipa_commit} > ${verdir}/ipyaladin.commit && \
+      rpm -qa | sort > ${verdir}/rpmlist.txt
 # Install ipyaladin extension from source until npm is updated.
 RUN   commit=$(cat ${jl}/versions/ipyaladin.commit) && \
       cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
       cd ipyaladin && \
-      git checkout ${commit} && \
+      git checkout $(cat ${verdir}/ipyaladin.commit) && \
       cd js && \
       npm install --unsafe-perm && \
       cd .. && \

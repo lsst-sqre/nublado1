@@ -7,34 +7,32 @@ ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
-RUN  yum install -y epel-release man man-pages
-RUN  yum repolist
-RUN  yum -y upgrade
-RUN  yum -y install \
-      git sudo \
-      python36 python36-setuptools python36-devel \
-      http-parser perl-Digest-MD5 \
-      make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      ack screen tmux tree vim-enhanced emacs-nox \
-      graphviz geos-devel hdf5-devel \
-      sqlite-devel \
-      mariadb mysql mysql-devel \
-      unzip nano file ed
-# Make EPEL Python 3.6 system Python 3 and install pip3
-RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
-      python3 -m ensurepip
-# Tkinter and git: install from SCL
-RUN  yum -y install centos-release-scl && \
-     yum -y install rh-git29
-# Install git-lfs repo and then git-lfs
+# PROD branch only: Pin versions
+# Install all the repos
 RUN  S="script.rpm.sh" && \
       curl -s \
        https://packagecloud.io/install/repositories/github/git-lfs/${S} \
        -o /tmp/script.rpm.sh && \
       bash /tmp/script.rpm.sh && \
-      rm /tmp/script.rpm.sh && \
-      yum -y install git-lfs && \
-      source scl_source enable rh-git29 && \
+      rm /tmp/script.rpm.sh
+RUN  cd /tmp && \
+      curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
+      chmod 0755 node_repo.sh && \
+      ./node_repo.sh && \
+      rm ./node_repo.sh
+ENV  epel_release="epel-release-7-11.noarch"
+ENV  jl=/opt/lsst/software/jupyterlab
+ENV  verdir=${jl}/versions
+COPY versions/* ${verdir}/
+RUN  yum install -y ${epel_release}
+RUN  yum repolist
+RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
+# Make EPEL Python 3.6 system Python 3 and install pip3
+RUN  alternatives --install /usr/bin/python3 python3 \
+      /usr/bin/python36 50 && \
+      python3 -m ensurepip
+# Install git-lfs
+RUN  source scl_source enable rh-git29 && \
       git lfs install
 RUN  mkdir -p /usr/share/git
 # Install Hub
@@ -128,22 +126,12 @@ RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
            /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
            /usr/bin
-# Install newer nodejs for system; needed for JupyterLab build
-RUN  cd /tmp && \
-      curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
-      chmod 0755 node_repo.sh && \
-      ./node_repo.sh && \
-      rm ./node_repo.sh && \
-      yum -y install nodejs
-# PROD branch only: Pin versions
 # Get newer setuptools before Python packages (Still need to pin these)
 RUN  pip3 install --upgrade pip setuptools
 # Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
 #  ...but you need numpy and cython first.
-ENV  jl=/opt/lsst/software/jupyterlab
-COPY versions/* ${jl}/versions/
 RUN  numpver=$(grep ^numpy ${jl}/versions/requirements-system.txt \
        | cut -d '=' -f 3) && \
       cythver=$(grep ^Cython ${jl}/versions/requirements-system.txt \

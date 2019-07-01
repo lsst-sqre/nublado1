@@ -321,7 +321,7 @@ RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
       ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
       echo ${ipa_commit} > ${verdir}/ipyaladin.commit && \
-      rpm -qa > ${verdir}/rpmlist.txt
+      rpm -qa | sort > ${verdir}/rpmlist.txt
 # Install ipyaladin extension from source until npm is updated.
 RUN  cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \

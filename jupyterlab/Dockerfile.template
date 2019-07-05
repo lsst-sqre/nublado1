@@ -176,8 +176,8 @@ ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
-          jupyter_firefly_extensions nbdime"
-ENV NBXT="widgetsnbextension ipyevents nbdime"
+          jupyter_firefly_extensions"
+ENV NBXT="widgetsnbextension ipyevents"
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \

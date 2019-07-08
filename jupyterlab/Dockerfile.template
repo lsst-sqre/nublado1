@@ -296,6 +296,7 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @lsst-sqre/jupyterlab-lsstquery \
           @lsst-sqre/jupyterlab-savequit \
           @jupyter-widgets/jupyterlab-manager \
+          jupyter-matplotlib \
           jupyter_firefly_extensions \
           @pyviz/jupyterlab_pyviz"
 ENV  jl=/opt/lsst/software/jupyterlab

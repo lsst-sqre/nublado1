@@ -207,6 +207,10 @@ RUN  pip3 install --upgrade \
        gcsfs \
        jupyterlabutils \
        hvplot \
+       intake \
+       intake-parquet \
+       jupyter-server-proxy \
+       dask_labextension \
        dask-kubernetes
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -268,6 +272,10 @@ RUN  source ${LOADSTACK} && \
        gcsfs \
        jupyterlabutils \
        hvplot \
+       intake \
+       intake-parquet \
+       jupyter-server-proxy \
+       dask_labextension \
        dask-kubernetes
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -290,8 +298,7 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_server_proxy jupyterlab_lsstquery \
-          jupyter_firefly_extensions"
+ENV SVXT="jupyterlab jupyterlab_lsstquery jupyter_firefly_extensions"
 ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           bqplot ipyevents ipyvolume jupyter-threejs \
@@ -300,6 +307,7 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
+          dask-labextension \
           @pyviz/jupyterlab_pyviz"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions"
@@ -344,6 +352,30 @@ RUN  cd /usr/share/git && \
 #      jupyter nbextension install --py nbdime --sys-prefix && \
 #      jupyter nbextension enable --py nbdime --sys-prefix && \
 #      jupyter labextension install packages/labextension --no-build
+#RUN  cd /usr/share/git && \
+#      pr="134" && \
+#      git clone https://github.com/jupyterhub/jupyter-server-proxy.git && \
+#      cd jupyter-server-proxy && \
+#      git fetch origin pull/${pr}/head:pr${pr} && \
+#      git checkout pr${pr} && \
+#      cd jupyterlab-server-proxy && \
+#      jlpm install --unsafe-perm && \
+#      jlpm run build && \
+#      jupyter labextension install --no-build
+#RUN  cd /usr/share/git && \
+#      pr="63" && \
+#      git clone https://github.com/dask/dask-labextension.git && \
+#      cd dask-labextension && \
+#      git fetch origin pull/${pr}/head:pr${pr} && \
+#      git checkout pr${pr} && \
+#      jlpm install --unsafe-perm ; \
+#      jlpm run build ; \
+#      jupyter labextension install --no-build  && \
+#      pip install -e . && \
+#      jupyter serverextension enable --sys-prefix dask_labextension && \
+#      source ${LOADSTACK} && \
+#      pip install -e . && \
+#      jupyter serverextension enable --sys-prefix dask_labextension
 RUN  cd /usr/share/git && \
       pr="66" && \
       git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
@@ -353,32 +385,7 @@ RUN  cd /usr/share/git && \
       jlpm install --unsafe-perm && \
       jlpm run build && \
       jupyter labextension install --no-build
-RUN  cd /usr/share/git && \
-      pr="134" && \
-      git clone https://github.com/jupyterhub/jupyter-server-proxy.git && \
-      cd jupyter-server-proxy && \
-      git fetch origin pull/${pr}/head:pr${pr} && \
-      git checkout pr${pr} && \
-      cd jupyterlab-server-proxy && \
-      jlpm install --unsafe-perm && \
-      jlpm run build && \
-      jupyter labextension install --no-build
-RUN  cd /usr/share/git && \
-      pr="63" && \
-      git clone https://github.com/dask/dask-labextension.git && \
-      cd dask-labextension && \
-      git fetch origin pull/${pr}/head:pr${pr} && \
-      git checkout pr${pr} && \
-      jlpm install --unsafe-perm ; \
-      jlpm run build ; \
-      jupyter labextension install --no-build  && \
-      pip install -e . && \
-      jupyter serverextension enable --sys-prefix dask_labextension && \
-      source ${LOADSTACK} && \
-      pip install -e . && \
-      jupyter serverextension enable --sys-prefix dask_labextension
-RUN  gitxt="ipyaladin jupyterlab-server-proxy dask-labextension \
-      jupyterlab_bokeh" && \
+RUN  gitxt="ipyaladin jupyterlab_bokeh" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

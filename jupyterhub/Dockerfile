@@ -9,7 +9,8 @@ RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
       python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
-# Need master versions of authenticator and hub
+# Need master versions of authenticators and hub
+#  Pin oauthenticator: shift from tornado to native async hurt.
 RUN  pip3 install \
       tornado \
       ipykernel \
@@ -20,17 +21,21 @@ RUN  pip3 install \
       cryptography \
       mysqlclient \
       jupyterhub-kubespawner \
+      'kubernetes>=9.0.0,<10.0.0' \
       'requests>=2.0.0,<3.0.0' \
       'jupyterhubutils>=0.5.3' \
       'namespacedkubespawner>=0.0.19' \
-      git+https://github.com/jupyterhub/jupyterhub.git \
+      jupyterlab \
+      jupyterhub \
       git+https://github.com/mogthesprog/jwtauthenticator.git \
-      git+https://github.com/jupyterhub/oauthenticator.git
-RUN pip3 install --upgrade --pre \
-      jupyterlab
-RUN jupyter serverextension enable --py jupyterlab --sys-prefix
-RUN  mkdir -p /opt/lsst/software/jupyterhub/config
-RUN  mkdir /opt/lsst/software/jupyterhub/templates
+      git+https://github.com/jupyterhub/oauthenticator.git@04d664e559275c0c705f1882ce1307cc47227594
+RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
+ENV  jh=/opt/lsst/software/jupyterhub
+ENV  verdir=${jh}/versions
+RUN  mkdir -p ${verdir}
+RUN  mkdir ${jh}/config ${jh}/templates
+RUN  pip3 freeze > ${verdir}/requirements.txt && \
+      rpm -qa | sort > ${verdir}/rpmlist.txt
 COPY hublauncher.sh /opt/lsst/software/jupyterhub/
 COPY title.html /opt/lsst/software/jupyterhub/templates/
 # The template override is not working.  Here is a nasty hack to get
@@ -46,5 +51,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.15.4"
+       version="exp_0.15.6"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

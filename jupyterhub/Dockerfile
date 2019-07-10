@@ -6,7 +6,7 @@ ENV  verdir=${jh}/versions
 RUN  mkdir -p ${verdir}
 COPY versions/* ${verdir}/
 RUN  yum install -y ${epel_release}
-RUN  yum repolist
+RUN  yum repolist && yum updateinfo
 RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
 # Make EPEL Python 3.6 system Python 3 and install pip3
 RUN  alternatives --install /usr/bin/python3 python3 \
@@ -37,5 +37,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.15.6"
+       version="0.15.9"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

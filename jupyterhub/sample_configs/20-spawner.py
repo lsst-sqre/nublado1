@@ -65,9 +65,17 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         owner = os.getenv("LAB_REPO_OWNER") or "lsstsqre"
         repo = os.getenv("LAB_REPO_NAME") or "sciplat-lab"
         host = os.getenv("LAB_REPO_HOST") or "hub.docker.com"
+        experimentals = int(os.getenv("PREPULLER_EXPERIMENTALS") or 0)
+        dailies = int(os.getenv("PREPULLER_DAILIES") or 3)
+        weeklies = int(os.getenv("PREPULLER_WEEKLIES") or 2)
+        releases = int(os.getenv("PREPULLER_RELEASES") or 1)
         scanner = ScanRepo(host=host,
                            owner=owner,
                            name=repo,
+                           experimentals=experimentals,
+                           dailies=dailies,
+                           weeklies=weeklies,
+                           releases=releases,
                            json=True,
                            )
         try:

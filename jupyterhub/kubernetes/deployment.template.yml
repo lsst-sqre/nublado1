@@ -36,7 +36,7 @@ spec:
             # Set to non-empty value to enable debugging.
             - name: DEBUG
               value: '{{DEBUG}}'
-            # One of "github" or "cilogon"
+            # One of "github", "cilogon", or "jwt"
             - name: OAUTH_PROVIDER
               value: '{{OAUTH_PROVIDER}}'
             # If set, enables running lab containers with k8s privileges
@@ -56,6 +56,17 @@ spec:
               value: '{{LAB_REPO_OWNER}}'
             - name: LAB_REPO_NAME
               value: '{{LAB_REPO_NAME}}'
+            # Set if you want to change number of experimentals/dailies/
+            #  weeklies/releases prepulled and displayed in menu
+            #  (usually 0/3/2/1)
+            - name: PREPULLER_EXPERIMENTALS
+              value: '{{PREPULLER_EXPERIMENTALS}}'
+            - name: PREPULLER_DAILIES
+              value: '{{PREPULLER_DAILIES}}'
+            - name: PREPULLER_WEEKLIES
+              value: '{{PREPULLER_WEEKLIES}}'
+            - name: PREPULLER_RELEASES
+              value: '{{PREPULLER_RELEASES}}'
             # Set if you do not want to scan a repository for images.
             - name: LAB_IMAGE
               value: '{{LAB_IMAGE}}'

@@ -44,6 +44,10 @@ resource "kubernetes_cron_job" "prepuller" {
                   name  = "PREPULLER_IMAGE_NAME"
                   value = "${var.image_name}"
                 },
+		{
+                  name  = "PREPULLER_EXPERIMENTALS"
+                  value = "${var.experimentals}"
+                },
                 {
                   name  = "PREPULLER_DAILIES"
                   value = "${var.dailies}"

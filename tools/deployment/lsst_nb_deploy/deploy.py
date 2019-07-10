@@ -124,6 +124,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "prepuller_repo",
     "prepuller_owner",
     "prepuller_image_name",
+    "prepuller_experimentals",
     "prepuller_dailies",
     "prepuller_weeklies",
     "prepuller_releases",
@@ -472,7 +473,8 @@ class LSSTNotebookAspectDeployment(object):
         #  empty for unused parameters
         for pname in ['prepuller_image_list', 'prepuller_no_scan',
                       'prepuller_repo', 'prepuller_owner',
-                      'prepuller_image_name', 'prepuller_dailies',
+                      'prepuller_image_name',
+                      'prepuller_experimentals' 'prepuller_dailies',
                       'prepuller_weeklies', 'prepuller_releases',
                       'prepuller_port', 'prepuller_sort_field',
                       'prepuller_command', 'prepuller_namespace']:
@@ -841,6 +843,7 @@ class LSSTNotebookAspectDeployment(object):
                           PREPULLER_REPO=p['prepuller_repo'],
                           PREPULLER_OWNER=p['prepuller_owner'],
                           PREPULLER_IMAGE_NAME=p['prepuller_image_name'],
+                          PREPULLER_EXPERIMENTALS=p['prepuller_experimentals'],
                           PREPULLER_DAILIES=p['prepuller_dailies'],
                           PREPULLER_WEEKLIES=p['prepuller_weeklies'],
                           PREPULLER_RELEASES=p['prepuller_releases'],

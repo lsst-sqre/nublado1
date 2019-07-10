@@ -64,6 +64,7 @@ module "prepuller" {
   image_list          = "${var.prepuller_image_list}"
   no_scan             = "${var.prepuller_no_scan}"
   image_name          = "${var.prepuller_image_name}"
+  experimentals       = "${var.prepuller_experimentals}"
   dailies             = "${var.prepuller_dailies}"
   weeklies            = "${var.prepuller_weeklies}"
   releases            = "${var.prepuller_releases}"

@@ -194,8 +194,13 @@ variable "prepuller_no_scan" {
   default     = ""
 }
 
-/* These control number of daily/weekly/release images to prepull.
+/* These control number of experimental/daily/weekly/release images to prepull.
    This requires a tag format like LSST/DM uses. */
+
+variable "prepuller_experimentals" {
+  description = "Number of experimental images to prepull"
+  default     = 0
+}
 
 variable "prepuller_dailies" {
   description = "Number of daily images to prepull"

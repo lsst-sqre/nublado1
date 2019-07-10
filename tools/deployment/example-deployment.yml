@@ -103,11 +103,12 @@ allowed_groups:
 #  prepuller_repo: 'hub.docker.com'
 #  prepuller_owner: 'lsstsqre'
 #  prepuller_image_name: 'sciplat-lab'
-# This controls number of daily/weekly/release images to prepull.
+# This controls number of experimental/daily/weekly/release images to prepull.
 # This requires a tag format like LSST/DM uses.
 #  prepuller_dailies: '3'
 #  prepuller_weekies: '2'
 #  prepuller_releases: '1'
+#  prepuller_experimentals: '0'
 # For private Docker repos, maybe you need to set the port or turn off TLS.
 #  prepuller_port: '443'
 #  prepuller_insecure: ''

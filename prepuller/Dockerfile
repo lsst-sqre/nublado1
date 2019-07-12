@@ -19,4 +19,4 @@ USER 768:768
 CMD [ "/usr/bin/prepull" ]
 LABEL      description="nublado: image prepuller" \
              name="lsstsqre/prepuller" \
-             version="0.4.5"
+             version="0.4.6"

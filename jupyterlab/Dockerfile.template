@@ -308,6 +308,7 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
           dask-labextension \
+          jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions"
@@ -376,16 +377,16 @@ RUN  cd /usr/share/git && \
 #      source ${LOADSTACK} && \
 #      pip install -e . && \
 #      jupyter serverextension enable --sys-prefix dask_labextension
-RUN  cd /usr/share/git && \
-      pr="66" && \
-      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
-      cd jupyterlab_bokeh && \
-      git fetch origin pull/${pr}/head:pr${pr} && \
-      git checkout pr${pr} && \
-      jlpm install --unsafe-perm && \
-      jlpm run build && \
-      jupyter labextension install --no-build
-RUN  gitxt="ipyaladin jupyterlab_bokeh" && \
+#RUN  cd /usr/share/git && \
+#      pr="66" && \
+#      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
+#      cd jupyterlab_bokeh && \
+#      git fetch origin pull/${pr}/head:pr${pr} && \
+#      git checkout pr${pr} && \
+#      jlpm install --unsafe-perm && \
+#      jlpm run build && \
+#      jupyter labextension install --no-build
+RUN  gitxt="ipyaladin" && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

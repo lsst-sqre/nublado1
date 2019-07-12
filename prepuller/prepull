@@ -15,6 +15,9 @@ fi
 if [ -n "${PREPULLER_IMAGE_NAME}" ]; then
     cmd="${cmd} -n ${PREPULLER_IMAGE_NAME}"
 fi
+if [ -n "${PREPULLER_EXPERIMENTALS}" ]; then
+    cmd="${cmd} -e ${PREPULLER_EXPERIMENTALS}"
+fi
 if [ -n "${PREPULLER_DAILIES}" ]; then
     cmd="${cmd} -q ${PREPULLER_DAILIES}"
 fi

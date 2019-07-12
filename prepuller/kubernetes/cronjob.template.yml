@@ -35,7 +35,9 @@ spec:
                 value: "{{PREPULLER_OWNER}}"
               - name: PREPULLER_IMAGE_NAME
                 value: "{{PREPULLER_IMAGE_NAME}}"
-              # Normally 3/2/1
+              # Normally 0/3/2/1
+              - name: PREPULLER_EXPERIMENTALS
+                value: "{{PREPULLER_EXPERIMENTALS}}"
               - name: PREPULLER_DAILIES
                 value: "{{PREPULLER_DAILIES}}"
               - name: PREPULLER_WEEKLIES

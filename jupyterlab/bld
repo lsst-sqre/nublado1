@@ -2,10 +2,11 @@
 set -e
 
 function usage() {
-    echo 1>&2 "Usage: $0 [-d] [-e] [-x] [-b BASE_IMAGE] \\"
+    echo 1>&2 "Usage: $0 [-d] [-e] [-x] [-s additional] [-b BASE_IMAGE] \\"
     echo 1>&2 "           [-n IMAGE_NAME ] [-t TAG_PREFIX ] TAG"
     echo 1>&2 "  -d enables dry run (no Docker build or push)"
     echo 1>&2 "  -e is experimental (exp_ before tag), no 'latest' tag."
+    echo 1>&2 "  -s additional adds '_additional' to end of exp. build."
     echo 1>&2 "  -x is 'do not push' (but does build)."
     echo 1>&2 "  default BASE_IMAGE='lsstsqre/centos'"
     echo 1>&2 "  default IMAGE_NAME='lsstsqre/sciplat-lab'"
@@ -17,11 +18,12 @@ function usage() {
 OPTIND=1
 DRY_RUN=0
 EXPERIMENTAL=0
+SPECIAL=0
 NOPUSH=0
 BASE_IMAGE="lsstsqre/centos"
 IMAGE_NAME="lsstsqre/sciplat-lab"
 TAG_PREFIX="7-stack-lsst_distrib-"
-while getopts ':hdexp:n:b:t:' opt; do
+while getopts ':hdexs:p:n:b:t:' opt; do
     case $opt in
     h)
         usage
@@ -32,6 +34,11 @@ while getopts ':hdexp:n:b:t:' opt; do
     e)
         EXPERIMENTAL=1
         ;;
+    s)
+	SPECIAL=1
+	EXPERIMENTAL=1
+	addltag=${OPTARG}
+	;;
     x)
         NOPUSH=1
         ;;
@@ -61,6 +68,9 @@ fi
 VERSION=${TAG/#v/r}
 if [ "${EXPERIMENTAL}" -eq 1 ]; then
     VERSION="exp_${VERSION}"
+fi
+if [ "${SPECIAL}" -eq 1 ] && [ -n "${addltag}" ]; then
+    VERSION="${VERSION}_${addltag}"
 fi
 if [ "${NOPUSH}" -eq 1 ]; then
     VERSION="nopush_${VERSION}"

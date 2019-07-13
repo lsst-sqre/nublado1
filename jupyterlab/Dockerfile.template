@@ -23,7 +23,7 @@ RUN  cd /tmp && \
 ENV  epel_release="epel-release-7-11.noarch"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir=${jl}/versions
-COPY versions/* ${verdir}/
+COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
 RUN  yum install -y ${epel_release}
 RUN  yum repolist
 RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
@@ -126,8 +126,13 @@ RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
            /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
            /usr/bin
-# Get newer setuptools before Python packages (Still need to pin these)
-RUN  pip3 install --upgrade pip setuptools
+COPY versions/requirements-system.txt ${verdir}/requirements-system.txt
+# Get newer setuptools before Python packages
+RUN  pipver=$(grep ^pip\= ${verdir}/requirements-system.txt \
+      | cut -d '=' -f 3) && \
+      setupver=$(grep ^setuptools ${verdir}/requirements-system.txt \
+      | cut -d '=' -f 3) && \
+      pip3 install --upgrade pip==${pipver} setuptools==${setupver}
 # Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
@@ -155,6 +160,7 @@ RUN  source ${LOADSTACK} && \
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
+COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt      
 RUN  source ${LOADSTACK} && \
       pip install --upgrade -r ${jl}/versions/requirements-stack.txt
 # Pip installing breaks for cartopy: 23 Jan 2019
@@ -188,22 +194,23 @@ RUN  set -e && \
           jupyter nbextension install ${n} --py --sys-prefix && \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
       done
+COPY versions/labext.txt ${verdir}/labext.txt
 RUN  set -e && \
       LBXT=$(cat ${jl}/versions/labext.txt) && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
 # Create package version docs.
+COPY versions/ipyaladin.commit ${verdir}/ipyaladin.commit
 RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
-      ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
-      echo ${ipa_commit} > ${verdir}/ipyaladin.commit && \
+      #ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
+      #echo ${ipa_commit} > ${verdir}/ipyaladin.commit && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
 # Install ipyaladin extension from source until npm is updated.
-RUN   commit=$(cat ${jl}/versions/ipyaladin.commit) && \
-      cd /usr/share/git && \
+RUN   cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
       cd ipyaladin && \
       git checkout $(cat ${verdir}/ipyaladin.commit) && \

@@ -58,8 +58,11 @@ h5py==2.9.0
 HeapDict==1.0.0
 holoviews==1.12.3
 html5lib==1.0.1
+hvplot==0.4.0
 idna==2.8
 imageio==2.5.0
+intake==0.5.1
+intake-parquet==0.2.1
 ipyaladin==0.1.6
 ipydatawidgets==4.0.0
 ipyevents==0.5.0
@@ -130,6 +133,7 @@ pbr==5.3.1
 pexpect==4.7.0
 pickleshare==0.7.5
 Pillow==6.0.0
+pip==19.1.1
 pipenv==2018.11.26
 pluggy==0.9.0
 progressbar2==3.42.0
@@ -177,6 +181,7 @@ s3transfer==0.2.1
 scikit-image==0.15.0
 scikit-learn==0.20.3
 scipy==1.2.1
+setuptools==41.0.1
 SecretStorage==3.1.1
 Send2Trash==1.5.0
 Shapely==1.6.4.post2

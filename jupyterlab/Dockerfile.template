@@ -22,7 +22,7 @@ RUN  cd /tmp && \
       rm ./node_repo.sh
 ENV  epel_release="epel-release-7-11.noarch"
 ENV  jl=/opt/lsst/software/jupyterlab
-ENV  verdir=${jl}/versions
+ENV  verdir=${jl}/versions.input
 COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
 RUN  yum install -y ${epel_release}
 RUN  yum repolist
@@ -137,11 +137,11 @@ RUN  pipver=$(grep ^pip\= ${verdir}/requirements-system.txt \
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
 #  ...but you need numpy and cython first.
-RUN  numpver=$(grep ^numpy ${jl}/versions/requirements-system.txt \
+RUN  numpver=$(grep ^numpy ${verdir}/requirements-system.txt \
        | cut -d '=' -f 3) && \
-      cythver=$(grep ^Cython ${jl}/versions/requirements-system.txt \
+      cythver=$(grep ^Cython ${verdir}/requirements-system.txt \
        | cut -d '=' -f 3) && \
-      sixver=$(grep ^six ${jl}/versions/requirements-system.txt \
+      sixver=$(grep ^six ${verdir}/requirements-system.txt \
        | cut -d '=' -f 3) && \
       pip3 install numpy==${numpver} \
                    cython==${cythver} \
@@ -150,7 +150,7 @@ RUN  numpver=$(grep ^numpy ${jl}/versions/requirements-system.txt \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-RUN  pip3 install --upgrade -r ${jl}/versions/requirements-system.txt
+RUN  pip3 install --upgrade -r ${verdir}/requirements-system.txt
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -162,7 +162,7 @@ RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
 COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt      
 RUN  source ${LOADSTACK} && \
-      pip install --upgrade -r ${jl}/versions/requirements-stack.txt
+      pip install --upgrade -r ${verdir}/requirements-stack.txt
 # Pip installing breaks for cartopy: 23 Jan 2019
 ENV  CARTOPY_VER="0.17.0"
 RUN  cd /usr/share/git && \
@@ -196,32 +196,33 @@ RUN  set -e && \
       done
 COPY versions/labext.txt ${verdir}/labext.txt
 RUN  set -e && \
-      LBXT=$(cat ${jl}/versions/labext.txt) && \
+      LBXT=$(cat ${verdir}/labext.txt) && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
 # Create package version docs.
 COPY versions/ipyaladin.commit ${verdir}/ipyaladin.commit
-RUN  mkdir -p ${verdir} && \
-      pip3 freeze > ${verdir}/requirements-system.txt && \
+ENV  instverdir=${jl}/versions.installed
+RUN  mkdir -p ${instverdir}
+RUN  pip3 freeze > ${instverdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
-      pip3 freeze > ${verdir}/requirements-stack.txt && \
-      #ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
-      #echo ${ipa_commit} > ${verdir}/ipyaladin.commit && \
-      rpm -qa | sort > ${verdir}/rpmlist.txt
+      pip3 freeze > ${instverdir}/requirements-stack.txt && \
+      rpm -qa | sort > ${instverdir}/rpmlist.txt
 # Install ipyaladin extension from source until npm is updated.
 RUN   cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
       cd ipyaladin && \
-      git checkout $(cat ${verdir}/ipyaladin.commit) && \
+      ipyver=$(cat ${verdir}/ipyaladin.commit) && \
+      git checkout ${ipyver} && \
       cd js && \
       npm install --unsafe-perm && \
       cd .. && \
       pip3 install -e . && \
       cd js && \
-      jupyter labextension install --no-build
+      jupyter labextension install --no-build && \
+      echo ${ipyver} > ${instverdir}/ipyaladin.commit
 RUN  gitxt="ipyaladin" && \
-      LBXT=$(cat ${jl}/versions/labext.txt) && \
+      LBXT=$(cat ${verdir}/labext.txt) && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
@@ -231,7 +232,7 @@ RUN  npm cache clean --force && \
       jupyter lab build
 RUN  jupyter labextension list 2>&1 | \
       grep '^      ' | grep -v ':' | \
-      awk '{print $1,$2}' | tr ' ' '@' > ${jl}/versions/labext.txt
+      awk '{print $1,$2}' | tr ' ' '@' > ${instverdir}/labext.txt
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \

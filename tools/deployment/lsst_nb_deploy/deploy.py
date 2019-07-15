@@ -153,10 +153,18 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "hub_route",
     "firefly_route",
     "js9_route",
+    "api_route",
+    "tap_route",
+    "soda_route",
     "restrict_lab_nodes",
     "restrict_dask_nodes",
     "external_firefly_url",
-    "external_url",
+    "external_js9_url",
+    "external_instance_url",
+    "external_api_url",
+    "external_tap_url",
+    "external_soda_url",
+    "external_hub_url",
     "max_http_header_size",
     "debug"]
 MTPTS = ["home", "scratch", "project", "datasets", "software", "teststand"]
@@ -514,13 +522,34 @@ class LSSTNotebookAspectDeployment(object):
             self.params['firefly_route'] = "/firefly"
         if self._empty_param('js9_route'):
             self.params['firefly_route'] = "/js9"
+        if self._empty_param('api_route'):
+            self.params['firefly_route'] = "/api"
+        if self._empty_param('tap_route'):
+            self.params['firefly_route'] = "/api/tap"
+        if self._empty_param('soda_route'):
+            self.params['firefly_route'] = "/api/image/soda"
         # Routes must start, but not end, with slash.
         # We know they are not empty.
-        for i in ['hub_route', 'firefly_route', 'js9_route']:
+        for i in ['hub_route', 'firefly_route', 'js9_route', 'api_route',
+                  'tap_route', 'soda_route']:
             if self.params[i][0] != "/":
                 self.params[i] = "/" + self.params[i]
             if self.params[i][-1] == "/" and self.params[i] != "/":
                 self.params[i] = self.params[i][:-1]
+        # External endpoints
+        if self._empty_param('external_instance'):
+            self.params['external_instance'] = "https://" + \
+                self.params['hostname']
+        # Set to internally-hosted if not specified
+        for i in ['firefly', 'js9', 'api', 'tap', 'soda']:
+            eep = 'external_' + i + '_url'
+            er = i + '_route'
+            if self.empty_param(eep):
+                self.params[eep] = self.params['external_instance'] + \
+                    self.params[er]
+        if self._empty_param('external_url'):
+            self.params['external_url'] = self.params['external_instance'] + \
+                self.params['hub_route']
         if self.params['hub_route'] == '/':
             self.params['enable_landing_page'] = False
         # Sane defaults for Firefly servers
@@ -880,6 +909,17 @@ class LSSTNotebookAspectDeployment(object):
                           FIREFLY_MAX_JVM_SIZE=p['firefly_max_jvm_size'],
                           FIREFLY_UID=p['firefly_uid'],
                           FIREFLY_ROUTE=p['firefly_route'],
+                          JS9_ROUTE=p['js9_route'],
+                          API_ROUTE=p['api_route'],
+                          TAP_ROUTE=p['tap_route'],
+                          SODA_ROUTE=p['soda_route'],
+                          EXTERNAL_INSTANCE_URL=p['external_instance_url'],
+                          EXTERNAL_FIREFLY_URL=p['external_firefly_url'],
+                          EXTERNAL_JS9_URL=p['external_js9_url'],
+                          EXTERNAL_API_URL=p['external_api_url'],
+                          EXTERNAL_TAP_URL=p['external_tap_url'],
+                          EXTERNAL_SODA_URL=p['external_soda_url'],
+                          EXTERNAL_URL=p['external_soda_url'],
                           RESTRICT_DASK_NODES=p['restrict_dask_nodes'],
                           RESTRICT_LAB_NODES=p['restrict_lab_nodes'],
                           MAX_HTTP_HEADER_SIZE=p['max_http_header_size'],

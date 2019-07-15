@@ -148,19 +148,84 @@ resource "kubernetes_deployment" "jupyterhub" {
           }
 
           env {
+            name  = "JS9_ROUTE"
+            value = "${var.js9_route}"
+          }
+
+          env {
+            name  = "API_ROUTE"
+            value = "${var.api_route}"
+          }
+
+          env {
+            name  = "TAP_ROUTE"
+            value = "${var.tap_route}"
+          }
+
+          env {
+            name  = "SODA_ROUTE"
+            value = "${var.soda_route}"
+          }
+
+          env {
             name  = "AUTO_REPO_URLS"
             value = "${var.auto_repo_urls}"
           }
 
           env {
-            name  = "EXTERNAL_URL"
-            value = "https://${var.hostname}"
+            name  = "EXTERNAL_INSTANCE_URL"
+            value = "${var.external_instance_url}"
           }
 
           env {
             name  = "EXTERNAL_FIREFLY_URL"
             value = "${var.external_firefly_url}"
           }
+
+	  env {
+            name  = "EXTERNAL_JS9_URL"
+            value = "${var.external_js9_url}"
+          }
+
+	  env {
+            name  = "EXTERNAL_API_URL"
+            value = "${var.external_api_url}"
+          }
+
+	  env {
+            name  = "EXTERNAL_TAP_URL"
+            value = "${var.external_tap_url}"
+          }
+
+	  env {
+            name  = "EXTERNAL_SODA_URL"
+            value = "${var.external_soda_url}"
+          }
+
+	  env {
+	    name  = "PREPULLER_EXPERIMENTALS"
+	    value = "${var.prepuller_experimentals}"
+	  }
+
+	  env {
+	    name  = "PREPULLER_EXPERIMENTALS"
+	    value = "${var.prepuller_experimentals}"
+	  }
+
+	  env {
+	    name  = "PREPULLER_DAILIES"
+	    value = "${var.prepuller_dailies}"
+	  }
+
+	  env {
+	    name  = "PREPULLER_WEEKLIES"
+	    value = "${var.prepuller_weeklies}"
+	  }
+
+	  env {
+	    name  = "PREPULLER_RELEASES"
+	    value = "${var.prepuller_releases}"
+	  }
 
           env {
             name = "GITHUB_ORGANIZATION_WHITELIST"

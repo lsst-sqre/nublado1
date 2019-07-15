@@ -145,6 +145,7 @@ RUN  pip3 install --upgrade pip setuptools
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
 #  ...but you need numpy and cython first.
+# 2019-07-15: remove ipyaladin for now.
 RUN  pip3 install numpy cython && \
       cd /usr/share/git && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
@@ -169,7 +170,7 @@ RUN  pip3 install --upgrade \
        pyvo \
        pypandoc \
        ipyevents \
-       'ipywidgets>=0.7.5rc0' \
+       ipywidgets \
        matplotlib \
        astroquery \
        healpy \
@@ -188,7 +189,6 @@ RUN  pip3 install --upgrade \
        "dask[complete]" \
        "holoviews[recommended]" \
        datashader \
-       ipyaladin \
        jupyterlab_lsstquery \
        nclib \
        python-snappy \
@@ -236,7 +236,7 @@ RUN  source ${LOADSTACK} && \
        pypandoc \
        pyvo \
        astroquery \
-       'ipywidgets>=0.7.5rc0' \
+       ipywidgets \
        ipyevents \
        bokeh \
        pyarrow \
@@ -261,7 +261,6 @@ RUN  source ${LOADSTACK} && \
        vaex-distributed \
        vaex-jupyter \
        vaex-arrow \
-       ipyaladin \
        jupyterlab_lsstquery \
        nclib \
        python-snappy cython \
@@ -332,20 +331,14 @@ RUN  mkdir -p ${verdir} && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
-# Install ipyaladin extension from PR until PyPi/npm are updated.
-RUN  cd /usr/share/git && \
-      git clone https://github.com/cds-astro/ipyaladin && \
-      cd ipyaladin && \
-      ipa_pr="18" && \
-      echo ${ipa_pr} > ${verdir}/ipyaladin.pr && \
-      git fetch origin pull/${ipa_pr}/head:pr${ipa_pr} && \
-      git checkout pr${ipa_pr} && \
-      cd js && \
-      npm install --unsafe-perm && \
-      cd .. && \
-      pip3 install -e . && \
-      cd js && \
-      jupyter labextension install --no-build
+#RUN  cd /usr/share/git && \
+#      git clone https://github.com/lsst-sqre/ipyaladin && \
+#      cd ipyaladin/js && \
+#      npm install --unsafe-perm && \
+#      cd .. && \
+#      pip3 install -e . && \
+#      cd js && \
+#      jupyter labextension install
 #RUN  cd /usr/share/git && \
 #      b="tickets/DM-19974" && \
 #      git clone -b ${b} https://github.com/lsst-sqre/nbdime.git && \
@@ -389,9 +382,9 @@ RUN  cd /usr/share/git && \
 #      jlpm install --unsafe-perm && \
 #      jlpm run build && \
 #      jupyter labextension install --no-build
-RUN  gitxt="ipyaladin" && \
-      set -e && \
-      for l in ${LBXT} ${gitxt} ; do \
+#RUN  gitxt="ipyaladin" && \
+RUN  set -e && \
+      for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \
       done
 RUN  npm cache clean --force && \

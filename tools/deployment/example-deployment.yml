@@ -6,11 +6,24 @@
 hostname: '{{FQDN}}'
 
 ### Routes
+# If hub_route is '/', the landing page will not be installed; otherwise
+#  it will.
 # hub_route: '/nb'
 # firefly_route: '/firefly'
 # js9_route: '/js9'
-# If hub_route is '/', the landing page will not be installed; otherwise
-#  it will.
+# api_route: '/api'
+# tap_route: '/api/tap'
+# soda_route: '/api/image/soda'
+
+### External URLS
+# You can override any of these.
+# external_instance_url: 'https:{{FQDN}}'
+# external_hub_url: 'https:{{FQDN}}/{{HUB_ROUTE}}'
+# external_firefly_url: 'https:{{FQDN}}/{{FIREFLY_ROUTE}}'
+# external_js9_url: 'https:{{FQDN}}/{{JS9_ROUTE}}'
+# external_api_url: 'https:{{FQDN}}/{{API_ROUTE}}'
+# external_tap_url: 'https:{{FQDN}}/{{TAP_ROUTE}}'
+# external_soda_url: 'https:{{FQDN}}/{{SODA_ROUTE}}'
 
 ### OAuth Provider
 # oauth_provider: '{{OAUTH_PROVIDER}}'
@@ -177,6 +190,9 @@ allowed_groups:
 # firefly_container_mem_limit: '4G'
 # firefly_container_cpu_limit: '3.0'
 # firefly_uid: '91'
+
+### May need to increase with jwt auth if your users are in many groups
+# max_http_header_size: '8192'
 
 ### Gets you more verbose Hub logging
 # debug: 'true'

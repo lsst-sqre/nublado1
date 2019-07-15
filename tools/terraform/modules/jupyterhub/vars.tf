@@ -26,6 +26,22 @@ variable "restrict_dask_nodes" {
   description = "Spawn Dask containers only on nodes with \"dask: ok\" labels"
 }
 
+variable "prepuller_experimentals" {
+  description = "Number of experimental images to display"
+}
+
+variable "prepuller_dailies" {
+  description = "Number of daily images to display"
+}
+
+variable "prepuller_weeklies" {
+  description = "Number of weekly images to display"
+}
+
+variable "prepuller_releases" {
+  description = "Number of release images to display"
+}
+
 variable "repo_host" {
   description = "Docker repository host for Lab images"
 }
@@ -78,6 +94,22 @@ variable "firefly_route" {
   description = "Route to firefly"
 }
 
+variable "js9_route" {
+  description = "Route to JS9 service"
+}
+
+variable "api_route" {
+  description = "Route to API service"
+}
+
+variable "tap_route" {
+  description = "Route to TAP service"
+}
+
+variable "soda_route" {
+  description = "Route to SODA image service"
+}
+
 variable "github_allowed_organizations" {
   description = "List of GitHub organizations allowed to use Jupyter"
 }
@@ -114,8 +146,28 @@ variable "cluster_admin" {
   description = "dummy to sequence cluster admin role creation first"
 }
 
+variable "external_instance_url" {
+  description = "URL of instance endpoint"
+}
+
 variable "external_firefly_url" {
   description = "URL of external Firefly server"
+}
+
+variable "external_js9_url" {
+  description = "URL of external JS9 server"
+}
+
+variable "external_api_url" {
+  description = "URL of external API server"
+}
+
+variable "external_tap_url" {
+  description = "URL of external TAP server"
+}
+
+variable "external_soda_url" {
+  description = "URL of external SODA server"
 }
 
 locals {

@@ -222,7 +222,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             return ldescs[0]
         # Now we have the hash of "recommended"; next we match it to
         #  another tag.
-        ltags = [ x.split(":")[-1] for x in lnames ]
+        ltags = [x.split(":")[-1] for x in lnames]
         for ltag in ltags:
             if ltag == "recommended":
                 continue
@@ -398,7 +398,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
         if (image.endswith(":recommended") and self.recommended_tag
-            and self.recommended_tag != "NOTFOUND"):
+                and self.recommended_tag != "NOTFOUND"):
             image = image[:-(len(":recommended"))] + ":" + self.recommended_tag
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
         cpu_limit = os.getenv('LAB_CPU_LIMIT') or 1.0
@@ -451,21 +451,46 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if os.getenv('LAB_NODEJS_MAX_MEM'):
             pod_env['NODE_OPTIONS'] = ("--max-old-space-size=" +
                                        os.getenv('LAB_NODEJS_MAX_MEM'))
-        if os.getenv('EXTERNAL_FIREFLY_URL'):
-            pod_env['EXTERNAL_FIREFLY_URL'] = os.getenv('EXTERNAL_FIREFLY_URL')
-        external_url = os.getenv('EXTERNAL_URL')
-        if not external_url:
+        external_hub_url = os.getenv('EXTERNAL_HUB_URL')
+        hub_route = os.getenv('HUB_ROUTE')
+        while (hub_route.endswith('/') and hub_route != "/"):
+            hub_route = hub_route[:-1]
+        if not external_hub_url:
             oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
             endstr = "/hub/oauth_callback"
             if oauth_callback and oauth_callback.endswith(endstr):
-                external_url = oauth_callback[:-len(endstr)]
-        pod_env['EXTERNAL_URL'] = external_url
+                external_hub_url = oauth_callback[:-len(endstr)]
+        # Guaranteed external endpoints
+        pod_env['EXTERNAL_URL'] = external_hub_url
+        pod_env['EXTERNAL_HUB_URL'] = external_hub_url
+        external_instance_url = os.getenv('EXTERNAL_INSTANCE_URL')
+        if not external_instance_url:
+            if external_hub_url.endswith(hub_route):
+                external_instance_url = external_hub_url[:-len(hub_route)]
+        pod_env['EXTERNAL_INSTANCE_URL'] = external_instance_url
         if os.getenv('DEBUG'):
             pod_env['DEBUG'] = os.getenv('DEBUG')
         if clear_dotlocal:
             pod_env['CLEAR_DOTLOCAL'] = "true"
+        # Add service routes
+        # Check if we need trailing slash anymore for firefly
+        hub_route = os.getenv('HUB_ROUTE') or "/nb"
         firefly_route = os.getenv('FIREFLY_ROUTE') or "/firefly/"
+        js9_route = os.getenv('JS9_ROUTE') or "/js9"
+        api_route = os.getenv('API_ROUTE') or "/api"
+        tap_route = os.getenv('TAP_ROUTE') or "/api/tap"
+        soda_route = os.getenv('SODA_ROUTE') or "/api/image/soda"
+        pod_env['HUB_ROUTE'] = hub_route
         pod_env['FIREFLY_ROUTE'] = firefly_route
+        pod_env['JS9_ROUTE'] = js9_route
+        pod_env['API_ROUTE'] = api_route
+        pod_env['TAP_ROUTE'] = tap_route
+        pod_env['SODA_ROUTE'] = soda_route
+        # Optional external endpoints
+        for i in ['firefly', 'js9', 'api', 'tap', 'soda']:
+            envvar = 'EXTERNAL_' + i.upper() + '_URL'
+            if os.getenv(envvar):
+                pod_env[envvar] = os.getenv(envvar)
         auto_repo_urls = os.getenv('AUTO_REPO_URLS')
         if auto_repo_urls:
             pod_env['AUTO_REPO_URLS'] = auto_repo_urls

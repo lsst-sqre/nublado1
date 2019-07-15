@@ -31,6 +31,8 @@ spec:
           env:
             - name: LOGLEVEL
               value: INFO
+            - name: FQDN
+              value: '{{FQDN}}'
             - name: LAB_SELECTOR_TITLE
               value: '{{LAB_SELECTOR_TITLE}}'
             # Set to non-empty value to enable debugging.
@@ -96,6 +98,14 @@ spec:
               value: '{{HUB_ROUTE}}'
             - name: FIREFLY_ROUTE
               value: '{{FIREFLY_ROUTE}}'
+            - name: JS9_ROUTE
+              value: '{{JS9_ROUTE}}'
+            - name: API_ROUTE
+              value: '{{API_ROUTE}}'
+            - name: TAP_ROUTE
+              value: '{{TAP_ROUTE}}'
+            - name: SODA_ROUTE
+              value: '{{SODA_ROUTE}}'
             - name: AUTO_REPO_URLS
               value: '{{AUTO_REPO_URLS}}'
             - name: SIZE_INDEX
@@ -104,8 +114,16 @@ spec:
               value: '{{EXTERNAL_FILESERVER_IP}}'
             - name: EXTERNAL_FIREFLY_URL
               value: '{{EXTERNAL_FIREFLY_URL}}'
-            - name: EXTERNAL_URL
-              value: '{{EXTERNAL_URL}}'
+            - name: EXTERNAL_JS9_URL
+              value: '{{EXTERNAL_JS9_URL}}'
+            - name: EXTERNAL_INSTANCE_URL
+              value: '{{EXTERNAL_INSTANCE_URL}}'
+            - name: EXTERNAL_API_URL
+              value: '{{EXTERNAL_API_URL}}'
+            - name: EXTERNAL_SODA_URL
+              value: '{{EXTERNAL_SODA_URL}}'
+            - name: EXTERNAL_HUB_URL
+              value: '{{EXTERNAL_HUB_URL}}'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:

@@ -103,6 +103,10 @@ module "jupyterhub" {
   repo_host                      = "${local.lab_repo_host}"
   repo_owner                     = "${local.lab_repo_owner}"
   repo_name                      = "${local.lab_repo_name}"
+  prepuller_experimentals        = "${var.prepuller_experimentals}"
+  prepuller_dailies              = "${var.prepuller_dailies}"
+  prepuller_weeklies             = "${var.prepuller_weeklies}"
+  prepuller_releases             = "${var.prepuller_releases}"
   lab_image                      = "${var.lab_image}"
   lab_idle_timeout               = "${var.lab_idle_timeout}"
   tiny_max_cpu                   = "${var.tiny_max_cpu}"
@@ -112,6 +116,10 @@ module "jupyterhub" {
   lab_nodejs_max_mem             = "${var.lab_nodejs_max_mem}"
   hub_route                      = "${var.hub_route}"
   firefly_route                  = "${var.firefly_route}"
+  js9_route                      = "${var.js9_route}"
+  api_route                      = "${var.api_route}"
+  tap_route                      = "${var.tap_route}"
+  soda_route                     = "${var.soda_route}"
   auto_repo_urls                 = "${join(",",var.auto_repo_urls)}"
   github_allowed_organizations   = "${local.github_allowed_organizations}"
   github_forbidden_organizations = "${local.github_forbidden_organizations}"
@@ -121,7 +129,11 @@ module "jupyterhub" {
   oauth_secret                   = "${var.oauth_secret}"
   session_db_url                 = "${var.session_db_url}"
   cluster_admin                  = "${local.cluster_admin}"
+  external_instance_url          = "${local.external_instance_url}"
   external_firefly_url           = "${var.external_firefly_url}"
+  external_js9_url               = "${var.external_js9_url}"
+  external_tap_url               = "${var.external_tap_url}"
+  external_soda_url              = "${var.external_soda_url}"
 }
 
 module "proxy" {

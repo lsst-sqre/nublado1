@@ -311,7 +311,7 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz"
 ENV  jl=/opt/lsst/software/jupyterlab
-ENV  verdir="${jl}/versions"
+ENV  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
@@ -331,13 +331,16 @@ RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
-      ipa_commit="a8fa9d3cca31b55dbd066a54d5007ceada8bae60" && \
-      echo ${ipa_commit} > ${verdir}/ipyaladin.commit && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
-# Install ipyaladin extension from source until npm is updated.
+# Install ipyaladin extension from PR until PyPi/npm are updated.
 RUN  cd /usr/share/git && \
       git clone https://github.com/cds-astro/ipyaladin && \
-      cd ipyaladin/js && \
+      cd ipyaladin && \
+      ipa_pr="18" && \
+      echo ${ipa_pr} > ${verdir}/ipyaladin.pr && \
+      git fetch origin pull/${ipa_pr}/head:pr${ipa_pr} && \
+      git checkout pr${ipa_pr} && \
+      cd js && \
       npm install --unsafe-perm && \
       cd .. && \
       pip3 install -e . && \
@@ -396,7 +399,7 @@ RUN  npm cache clean --force && \
       jupyter lab build
 RUN  jupyter labextension list 2>&1 | \
       grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
-      awk '{print $1,$2}' | tr ' ' '@' > ${jl}/versions/labext.txt
+      awk '{print $1,$2}' | tr ' ' '@' > ${verdir}/labext.txt
 # Lab extensions require write permissions by running user.
 RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \

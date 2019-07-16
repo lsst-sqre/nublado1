@@ -238,7 +238,7 @@ RUN  jupyter labextension list 2>&1 | \
 RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \
      jl="jupyter/lab" && \
-     u="${scl}/${jl}" && \
+     u="${uls}/${jl}" && \
 # If we recursively chown all of the lab directory, it gets rid of permission
 # errors on startup....but also radically slows down startup, by about
 # three minutes.

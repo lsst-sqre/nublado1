@@ -385,7 +385,7 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
 
         self.redirect(_url)
 
-    def _mogrify_auth_state(self,auth_state):
+    def _mogrify_auth_state(self, auth_state):
         astate = dict(auth_state)
         self.log.debug("Pre-mogrification auth state: %r" % astate)
         #
@@ -410,12 +410,14 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             return False
         return True
 
+
 class LSSTJWTLogoutHandler(LogoutHandler):
     """Redirect to OAuth2 sign_in"""
 
     async def render_logout_page(self):
-        logout_url=os.getenv("LOGOUT_URL") or "/oauth2/sign_in"
+        logout_url = os.getenv("LOGOUT_URL") or "/oauth2/sign_in"
         self.redirect(logout_url, permanent=False)
+
 
 class LSSTJWTAuth(JSONWebTokenAuthenticator):
     enable_auth_state = True

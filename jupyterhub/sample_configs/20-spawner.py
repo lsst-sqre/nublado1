@@ -58,6 +58,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     enable_namespace_quotas = True
     # stash quota values to pass to spawned environment
     _quota = {}
+    _custom_resources = {}
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -69,6 +70,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         dailies = int(os.getenv("PREPULLER_DAILIES") or 3)
         weeklies = int(os.getenv("PREPULLER_WEEKLIES") or 2)
         releases = int(os.getenv("PREPULLER_RELEASES") or 1)
+        self._set_custom_user_resources()
         scanner = ScanRepo(host=host,
                            owner=owner,
                            name=repo,
@@ -142,10 +144,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         checked = False
         sizemap = self._sizemap
         sizes = list(sizemap.keys())
-        si = os.environ.get('SIZE_INDEX') or '1'
-        size_index = int(si)
-        if size_index >= len(sizes):
-            size_index = 1
+        size_index = self._get_size_index()
         defaultsize = sizes[size_index]
         for size in sizemap:
             optform += "            "
@@ -186,6 +185,57 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         for esz in self._sizemap:
             if esz not in sizes:
                 del self._sizemap[esz]
+
+    def _get_size_index(self):
+        sizes = list(self._sizemap.keys())
+        si = self._custom_resources.get(
+            "size_index") or os.environ.get('SIZE_INDEX') or 1
+        size_index = int(si)
+        if size_index >= len(sizes):
+            size_index = len(sizes) - 1
+        return size_index
+
+    def _set_custom_user_resources(self):
+        gmapfile = "/opt/lsst/software/jupyterhub/resources/resourcemap.json"
+        resources = {
+            "size_index": 0,
+            "cpu_quota": 0,
+            "mem_quota": 0
+        }
+        try:
+            grpstr = self.environment.get("EXTERNAL_GROUPS") or ""
+            grplist = grpstr.split(",")
+            gnames = []
+            for grpdef in grplist:
+                if grpdef:
+                    gnames.append(grpdef.split(":")[0])
+            with open(gmapfile, "r") as gf:
+                resmap = json.load(gf)
+            for resdef in resmap:
+                apply = False
+                candidate = resdef["resources"]
+                self.log.debug(
+                    "Considering candidate resource map {}".format(candidate))
+                if resmap.get("disabled"):
+                    self.log.debug("Skipping disabled resource map.")
+                    continue
+                ruser = resmap.get("user")
+                rgroup = resmap.get("group")
+                if ruser and ruser == self.user.name:
+                    apply = True
+                if rgroup and rgroup in gnames:
+                    apply = True
+                if apply:
+                    for fld in ["size_index", "cpu_quota", "mem_quota"]:
+                        vv = candidate.get(fld)
+                        if vv and vv > resources["fld"]:
+                            resources[fld] = vv
+            self.log.info("Setting custom resources '{}'".format(resources))
+            self._custom_resources = resources
+        except Exception as exc:
+            self.log.error(
+                "Custom resource check got exception '{}'".format(exc))
+        return resources
 
     def _match_recommended(self, scanner):
         (lnames, ldescs) = scanner.extract_image_info()
@@ -740,9 +790,11 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         return options
 
     def get_resource_quota_spec(self):
-        '''We're going to return a resource quota spec that allows a max of
-        25 (chosen arbitrarily) of the largest-size machines available to
-        the user.
+        '''We're going to return a resource quota spec that checks whether we
+        have a custom resource map and uses that information.  If we do not
+        then our default quota allows a maximum of MAX_DASK_WORKERS or
+        25 (chosen arbitrarily) of the largest-size machines available to the
+        user.
 
         Note that you could get a lot fancier, and check the user group
         memberships to determine what class a user belonged to, or some other
@@ -750,24 +802,32 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         '''
         self.log.info("Entering get_resource_quota_spec()")
         from kubernetes.client import V1ResourceQuotaSpec
+        self.log.info("Calculating default resource quotas.")
         sizes = self.sizelist
-        max_machines = 25 + 1  # Arbitrary (the 25 is intended to represent
-        # the number of dask machines, and the 1 is the lab )
+        max_dask_workers = os.environ.get('MAX_DASK_WORKERS') or 25
+        max_machines = int(max_dask_workers) + 1  # (the 1 is the Lab)
         big_multiplier = 2 ** (len(sizes) - 1)
-        self.log.info("Max machines %r, multiplier %r" % (max_machines,
-                                                          big_multiplier))
         tiny_cpu = os.environ.get('TINY_MAX_CPU') or 0.5
         if type(tiny_cpu) is str:
             tiny_cpu = float(tiny_cpu)
         mem_per_cpu = os.environ.get('MB_PER_CPU') or 2048
         if type(mem_per_cpu) is str:
             mem_per_cpu = int(mem_per_cpu)
-        self.log.info("Tiny CPU: %r, Mem per cpu: %r" %
-                      (tiny_cpu, mem_per_cpu))
         total_cpu = max_machines * big_multiplier * tiny_cpu
         total_mem = str(int(total_cpu * mem_per_cpu + 0.5)) + "Mi"
         total_cpu = str(int(total_cpu + 0.5))
-
+        self.log.debug("Default quota sizes: CPU %r, mem %r" % (
+            total_cpu, total_mem))
+        if self._custom_resources:
+            self.log.debug("Have custom resources.")
+            cpuq = self._custom_resources.get("cpu_quota")
+            if cpuq:
+                self.log.debug("Overriding CPU quota.")
+                total_cpu = str(cpuq)
+            memq = self._custome_resources.get("mem_quota")
+            if memq:
+                self.log.debug("Overriding memory quota.")
+                total_mem = str(memq) + "Mi"
         self.log.info("Determined quota sizes: CPU %r, mem %r" % (
             total_cpu, total_mem))
         qs = V1ResourceQuotaSpec(

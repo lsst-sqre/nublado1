@@ -61,8 +61,10 @@ class LSSTGitHubAuth(oauthenticator.GitHubOAuthenticator):
         self.log.debug("Authenticating.")
         """Check for deny list membership too."""
         userdict = yield super().authenticate(handler, data)
-        self.log.debug("Superclass authentication succeeded.")
-        token = yield self.get_token_from_auth_state(userdict)
+        try:
+            token = userdict["auth_state"]["access_token"]
+        except (KeyError, TypeError):
+            self.log.warning("Could not extract access token.")
         if token:
             self.log.debug("Setting authenticator groups from token.")
             _ = yield self.set_groups_from_token(token)
@@ -81,19 +83,6 @@ class LSSTGitHubAuth(oauthenticator.GitHubOAuthenticator):
                 self.log.warning("Rejecting user: denylisted")
                 userdict = None
         return userdict
-
-    @gen.coroutine
-    def get_token_from_auth_state(self, userdict):
-        r = None
-        if ("auth_state" not in userdict or not userdict["auth_state"]):
-            self.log.warning("User doesn't have auth_state.")
-        else:
-            ast = userdict["auth_state"]
-            if ("access_token" not in ast or not ast["access_token"]):
-                self.log.warning("User doesn't have access token.")
-                r = ast["access_token"]
-        yield r
-        return
 
     @gen.coroutine
     def set_groups_from_token(self, token):

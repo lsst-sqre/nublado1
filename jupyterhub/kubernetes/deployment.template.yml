@@ -199,6 +199,11 @@ spec:
               mountPath: /opt/lsst/software/jupyterhub/config
             - name: fs-mounts
               mountPath: /opt/lsst/software/jupyterhub/mounts
+            - name: resourcemap
+              mountPath: /opt/lsst/software/jupyterhub/resources
+            - name: jwt-cert
+              mountPath: /opt/jwt
+              readOnly: true
         #
         # This is for CloudSQL and does not work correctly yet.
         #
@@ -271,3 +276,12 @@ spec:
               path: mountpoints.json
             name: fs-mounts
           name: fs-mounts
+        - configMap:
+              #  Create with `kubectl create configmap resourcemap \
+              #   --from-file=config/resourcemap.json`
+            defaultMode: 420
+            items:
+            - key: resourcemap.json
+              path: resourcemap.json
+            name: resourcemap
+          name: resourcemap

@@ -196,46 +196,58 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         return size_index
 
     def _set_custom_user_resources(self):
-        gmapfile = "/opt/lsst/software/jupyterhub/resources/resourcemap.json"
+        rfile = "/opt/lsst/software/jupyterhub/resources/resourcemap.json"
         resources = {
             "size_index": 0,
             "cpu_quota": 0,
             "mem_quota": 0
         }
         try:
-            grpstr = self.environment.get("EXTERNAL_GROUPS") or ""
-            grplist = grpstr.split(",")
-            gnames = []
-            for grpdef in grplist:
-                if grpdef:
-                    gnames.append(grpdef.split(":")[0])
-            with open(gmapfile, "r") as gf:
-                resmap = json.load(gf)
+            gnames = self._get_user_groupnames()
+            uname = self.user.name
+            self.log.debug("User '{}' / Groups '{}'".format(uname, gnames))
+            with open(rfile, "r") as rf:
+                resmap = json.load(rf)
             for resdef in resmap:
                 apply = False
-                candidate = resdef["resources"]
-                self.log.debug(
-                    "Considering candidate resource map {}".format(candidate))
-                if resmap.get("disabled"):
-                    self.log.debug("Skipping disabled resource map.")
+                if resdef.get("disabled"):
+                    self.log.debug(
+                        "Skipping disabled resource map {}.".format(resdef))
                     continue
-                ruser = resmap.get("user")
-                rgroup = resmap.get("group")
-                if ruser and ruser == self.user.name:
+                candidate = resdef.get("resources")
+                if not candidate:
+                    self.log.debug(
+                        "No resources in candidate {}".format(candidate))
+                    continue
+                self.log.debug(
+                    "Considering candidate resource map {}".format(resdef))
+                ruser = resdef.get("user")
+                rgroup = resdef.get("group")
+                if ruser and ruser == uname:
+                    self.log.debug("User resource map match.")
                     apply = True
                 if rgroup and rgroup in gnames:
+                    self.log.debug("Group resource map match.")
                     apply = True
                 if apply:
                     for fld in ["size_index", "cpu_quota", "mem_quota"]:
                         vv = candidate.get(fld)
-                        if vv and vv > resources["fld"]:
+                        if vv and vv > resources[fld]:
                             resources[fld] = vv
-            self.log.info("Setting custom resources '{}'".format(resources))
-            self._custom_resources = resources
+                    self.log.info(
+                        "Setting custom resources '{}'".format(resources))
+                    self._custom_resources = resources
         except Exception as exc:
             self.log.error(
                 "Custom resource check got exception '{}'".format(exc))
         return resources
+
+    def _get_user_groupnames(self):
+        try:
+            return self.authenticator.groups
+        except AttributeError:
+            self.log.error("Authenticator object has no groups attribute.")
+            return []
 
     def _match_recommended(self, scanner):
         (lnames, ldescs) = scanner.extract_image_info()
@@ -824,7 +836,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             if cpuq:
                 self.log.debug("Overriding CPU quota.")
                 total_cpu = str(cpuq)
-            memq = self._custome_resources.get("mem_quota")
+            memq = self._custom_resources.get("mem_quota")
             if memq:
                 self.log.debug("Overriding memory quota.")
                 total_mem = str(memq) + "Mi"

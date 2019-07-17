@@ -37,13 +37,38 @@ variable "dhparam_bits" {
 
 variable "hub_route" {
   description = "Route to JupyterHub.  If it is '/', the landing page will not be installed; otherwise it will"
-  default     = "/nb/"
+  default     = "/nb"
 }
 
 variable "firefly_route" {
   description = "Route to firefly.  If it is the empty string, firefly will not be installed"
   default     = "/firefly/"
 }
+
+variable "js9_route" {
+  description = "Route to js9."
+  default     = "/js9"
+}
+
+variable "api_route" {
+  description = "Route to API services"
+  default     = "/api"
+}
+
+variable "tap_route"
+  description = "Route to TAP services"
+  default     = "/api/tap"
+}
+
+variable "soda_route"
+  description = "Route to SODA services"
+  default     = "/api/image/soda"
+}
+
+locals {
+  "external_instance_url" = "https://${var.hostname}"
+}
+
 
 variable "aws_zone_id" {
   description = "Zone ID for Route 53 DNS"
@@ -164,6 +189,11 @@ variable "allow_dask_containers" {
   default     = true
 }
 
+variable "max_dask_workers" {
+  description = "Maximum number of dask pods per namespace"
+  default     = 25
+}
+
 /* Prepuller image parameters */
 
 variable "prepuller_repo" {
@@ -194,8 +224,13 @@ variable "prepuller_no_scan" {
   default     = ""
 }
 
-/* These control number of daily/weekly/release images to prepull.
+/* These control number of experimental/daily/weekly/release images to prepull.
    This requires a tag format like LSST/DM uses. */
+
+variable "prepuller_experimentals" {
+  description = "Number of experimental images to prepull"
+  default     = 0
+}
 
 variable "prepuller_dailies" {
   description = "Number of daily images to prepull"
@@ -387,6 +422,26 @@ variable "firefly_container_uid" {
 
 variable "external_firefly_url" {
   description = "URL of external Firefly server"
+  default     = ""
+}
+
+variable "external_js9_url" {
+  description = "URL of external JS9 server"
+  default     = ""
+}
+
+variable "external_api_url" {
+  description = "URL of external API server"
+  default     = ""
+}
+
+variable "external_tap_url" {
+  description = "URL of external TAP server"
+  default     = ""
+}
+
+variable "external_soda_url" {
+  description = "URL of external SODA server"
   default     = ""
 }
 

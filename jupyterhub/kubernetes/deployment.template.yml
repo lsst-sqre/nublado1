@@ -31,12 +31,14 @@ spec:
           env:
             - name: LOGLEVEL
               value: INFO
+            - name: FQDN
+              value: '{{FQDN}}'
             - name: LAB_SELECTOR_TITLE
               value: '{{LAB_SELECTOR_TITLE}}'
             # Set to non-empty value to enable debugging.
             - name: DEBUG
               value: '{{DEBUG}}'
-            # One of "github" or "cilogon"
+            # One of "github", "cilogon", or "jwt"
             - name: OAUTH_PROVIDER
               value: '{{OAUTH_PROVIDER}}'
             # If set, enables running lab containers with k8s privileges
@@ -49,6 +51,9 @@ spec:
               value: '{{RESTRICT_LAB_NODES}}'
             - name: RESTRICT_DASK_NODES
               value: '{{RESTRICT_DASK_NODES}}'
+            # Maximum number of dask worker pods
+            - name: MAX_DASK_WORKERS
+              value: '{{MAX_DASK_WORKERS}}'
             # Set to customize what repo and what images to scan.
             - name: LAB_REPO_HOST
               value: '{{LAB_REPO_HOST}}'
@@ -56,6 +61,17 @@ spec:
               value: '{{LAB_REPO_OWNER}}'
             - name: LAB_REPO_NAME
               value: '{{LAB_REPO_NAME}}'
+            # Set if you want to change number of experimentals/dailies/
+            #  weeklies/releases prepulled and displayed in menu
+            #  (usually 0/3/2/1)
+            - name: PREPULLER_EXPERIMENTALS
+              value: '{{PREPULLER_EXPERIMENTALS}}'
+            - name: PREPULLER_DAILIES
+              value: '{{PREPULLER_DAILIES}}'
+            - name: PREPULLER_WEEKLIES
+              value: '{{PREPULLER_WEEKLIES}}'
+            - name: PREPULLER_RELEASES
+              value: '{{PREPULLER_RELEASES}}'
             # Set if you do not want to scan a repository for images.
             - name: LAB_IMAGE
               value: '{{LAB_IMAGE}}'
@@ -85,6 +101,14 @@ spec:
               value: '{{HUB_ROUTE}}'
             - name: FIREFLY_ROUTE
               value: '{{FIREFLY_ROUTE}}'
+            - name: JS9_ROUTE
+              value: '{{JS9_ROUTE}}'
+            - name: API_ROUTE
+              value: '{{API_ROUTE}}'
+            - name: TAP_ROUTE
+              value: '{{TAP_ROUTE}}'
+            - name: SODA_ROUTE
+              value: '{{SODA_ROUTE}}'
             - name: AUTO_REPO_URLS
               value: '{{AUTO_REPO_URLS}}'
             - name: SIZE_INDEX
@@ -93,8 +117,16 @@ spec:
               value: '{{EXTERNAL_FILESERVER_IP}}'
             - name: EXTERNAL_FIREFLY_URL
               value: '{{EXTERNAL_FIREFLY_URL}}'
-            - name: EXTERNAL_URL
-              value: '{{EXTERNAL_URL}}'
+            - name: EXTERNAL_JS9_URL
+              value: '{{EXTERNAL_JS9_URL}}'
+            - name: EXTERNAL_INSTANCE_URL
+              value: '{{EXTERNAL_INSTANCE_URL}}'
+            - name: EXTERNAL_API_URL
+              value: '{{EXTERNAL_API_URL}}'
+            - name: EXTERNAL_SODA_URL
+              value: '{{EXTERNAL_SODA_URL}}'
+            - name: EXTERNAL_HUB_URL
+              value: '{{EXTERNAL_HUB_URL}}'
             - name: GITHUB_ORGANIZATION_WHITELIST
               valueFrom:
                 secretKeyRef:
@@ -170,6 +202,11 @@ spec:
               mountPath: /opt/lsst/software/jupyterhub/config
             - name: fs-mounts
               mountPath: /opt/lsst/software/jupyterhub/mounts
+            - name: resourcemap
+              mountPath: /opt/lsst/software/jupyterhub/resources
+            - name: jwt-cert
+              mountPath: /opt/jwt
+              readOnly: true
         #
         # This is for CloudSQL and does not work correctly yet.
         #
@@ -242,3 +279,12 @@ spec:
               path: mountpoints.json
             name: fs-mounts
           name: fs-mounts
+        - configMap:
+              #  Create with `kubectl create configmap resourcemap \
+              #   --from-file=config/resourcemap.json`
+            defaultMode: 420
+            items:
+            - key: resourcemap.json
+              path: resourcemap.json
+            name: resourcemap
+          name: resourcemap

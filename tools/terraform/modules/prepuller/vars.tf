@@ -16,6 +16,8 @@ variable "repo" {}
 
 variable "image_name" {}
 
+variable "experimentals" {}
+
 variable "dailies" {}
 
 variable "weeklies" {}

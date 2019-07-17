@@ -124,6 +124,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "prepuller_repo",
     "prepuller_owner",
     "prepuller_image_name",
+    "prepuller_experimentals",
     "prepuller_dailies",
     "prepuller_weeklies",
     "prepuller_releases",
@@ -148,16 +149,26 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_size_range",
     "auto_repo_urls",
     "allow_dask_spawn",
+    "max_dask_workers",
     "size_index",
     "hub_route",
     "firefly_route",
+    "js9_route",
+    "api_route",
+    "tap_route",
+    "soda_route",
     "restrict_lab_nodes",
     "restrict_dask_nodes",
     "external_firefly_url",
-    "external_url",
+    "external_js9_url",
+    "external_instance_url",
+    "external_api_url",
+    "external_tap_url",
+    "external_soda_url",
+    "external_hub_url",
     "max_http_header_size",
     "debug"]
-MTPTS = ["home", "scratch", "project", "datasets", "software"]
+MTPTS = ["home", "scratch", "project", "datasets", "software", "teststand"]
 
 
 class LSSTNotebookAspectDeployment(object):
@@ -463,7 +474,7 @@ class LSSTNotebookAspectDeployment(object):
                 # Not required if we aren't using CILogon.
                 self.params['cilogon_group_whitelist'] = ["dummy"]
         # Some parameters default to empty
-        for default_empty in ['debug', 'allow_dask_spawn',
+        for default_empty in ['debug', 'allow_dask_spawn', 'max_dask_workers',
                               'restrict_lab_nodes', 'restrict_dask_nodes']:
             if self._empty_param(default_empty):
                 self.params[default_empty] = ''  # Empty is correct
@@ -471,7 +482,8 @@ class LSSTNotebookAspectDeployment(object):
         #  empty for unused parameters
         for pname in ['prepuller_image_list', 'prepuller_no_scan',
                       'prepuller_repo', 'prepuller_owner',
-                      'prepuller_image_name', 'prepuller_dailies',
+                      'prepuller_image_name',
+                      'prepuller_experimentals' 'prepuller_dailies',
                       'prepuller_weeklies', 'prepuller_releases',
                       'prepuller_port', 'prepuller_sort_field',
                       'prepuller_command', 'prepuller_namespace']:
@@ -506,15 +518,39 @@ class LSSTNotebookAspectDeployment(object):
         if self._empty_param('lab_size_range'):
             self.params['lab_size_range'] = "4.0"
         if self._empty_param('hub_route'):
-            self.params['hub_route'] = "/nb/"
+            self.params['hub_route'] = "/nb"
         if self._empty_param('firefly_route'):
-            self.params['firefly_route'] = "/firefly/"
-        # Routes must start and end with slash; we know they are not empty.
-        for i in ['hub_route', 'firefly_route']:
+            self.params['firefly_route'] = "/firefly"
+        if self._empty_param('js9_route'):
+            self.params['firefly_route'] = "/js9"
+        if self._empty_param('api_route'):
+            self.params['firefly_route'] = "/api"
+        if self._empty_param('tap_route'):
+            self.params['firefly_route'] = "/api/tap"
+        if self._empty_param('soda_route'):
+            self.params['firefly_route'] = "/api/image/soda"
+        # Routes must start, but not end, with slash.
+        # We know they are not empty.
+        for i in ['hub_route', 'firefly_route', 'js9_route', 'api_route',
+                  'tap_route', 'soda_route']:
             if self.params[i][0] != "/":
                 self.params[i] = "/" + self.params[i]
-            if self.params[i][-1] != "/":
-                self.params[i] = self.params[i] + "/"
+            if self.params[i][-1] == "/" and self.params[i] != "/":
+                self.params[i] = self.params[i][:-1]
+        # External endpoints
+        if self._empty_param('external_instance'):
+            self.params['external_instance'] = "https://" + \
+                self.params['hostname']
+        # Set to internally-hosted if not specified
+        for i in ['firefly', 'js9', 'api', 'tap', 'soda']:
+            eep = 'external_' + i + '_url'
+            er = i + '_route'
+            if self.empty_param(eep):
+                self.params[eep] = self.params['external_instance'] + \
+                    self.params[er]
+        if self._empty_param('external_url'):
+            self.params['external_url'] = self.params['external_instance'] + \
+                self.params['hub_route']
         if self.params['hub_route'] == '/':
             self.params['enable_landing_page'] = False
         # Sane defaults for Firefly servers
@@ -558,7 +594,7 @@ class LSSTNotebookAspectDeployment(object):
         self.params['oauth_callback_url'] = ("https://" +
                                              self.params['hostname'] +
                                              self.params['hub_route'] +
-                                             "hub/oauth_callback")
+                                             "/hub/oauth_callback")
         self.params["github_organization_whitelist"] = ','.join(
             self.params["github_organization_whitelist"])
         self.params["cilogon_group_whitelist"] = ','.join(
@@ -837,6 +873,7 @@ class LSSTNotebookAspectDeployment(object):
                           PREPULLER_REPO=p['prepuller_repo'],
                           PREPULLER_OWNER=p['prepuller_owner'],
                           PREPULLER_IMAGE_NAME=p['prepuller_image_name'],
+                          PREPULLER_EXPERIMENTALS=p['prepuller_experimentals'],
                           PREPULLER_DAILIES=p['prepuller_dailies'],
                           PREPULLER_WEEKLIES=p['prepuller_weeklies'],
                           PREPULLER_RELEASES=p['prepuller_releases'],
@@ -861,6 +898,7 @@ class LSSTNotebookAspectDeployment(object):
                           LAB_SIZE_RANGE=p['lab_size_range'],
                           AUTO_REPO_URLS=p['auto_repo_urls'],
                           ALLOW_DASK_SPAWN=p['allow_dask_spawn'],
+                          MAX_DASK_WORKERS=p['max_dask_workers'],
                           SIZE_INDEX=p['size_index'],
                           HUB_ROUTE=p['hub_route'],
                           FIREFLY_ADMIN_PASSWORD=self.encode_value(
@@ -873,6 +911,17 @@ class LSSTNotebookAspectDeployment(object):
                           FIREFLY_MAX_JVM_SIZE=p['firefly_max_jvm_size'],
                           FIREFLY_UID=p['firefly_uid'],
                           FIREFLY_ROUTE=p['firefly_route'],
+                          JS9_ROUTE=p['js9_route'],
+                          API_ROUTE=p['api_route'],
+                          TAP_ROUTE=p['tap_route'],
+                          SODA_ROUTE=p['soda_route'],
+                          EXTERNAL_INSTANCE_URL=p['external_instance_url'],
+                          EXTERNAL_FIREFLY_URL=p['external_firefly_url'],
+                          EXTERNAL_JS9_URL=p['external_js9_url'],
+                          EXTERNAL_API_URL=p['external_api_url'],
+                          EXTERNAL_TAP_URL=p['external_tap_url'],
+                          EXTERNAL_SODA_URL=p['external_soda_url'],
+                          EXTERNAL_URL=p['external_soda_url'],
                           RESTRICT_DASK_NODES=p['restrict_dask_nodes'],
                           RESTRICT_LAB_NODES=p['restrict_lab_nodes'],
                           MAX_HTTP_HEADER_SIZE=p['max_http_header_size'],
@@ -1955,6 +2004,9 @@ def get_cli_options():
              "non-empty string, will allow user containers to spawn " +
              "additional pods; this is intended to allow them to " +
              "manipulate dask workers.\n\n")
+    desc += ("The 'max_dask_workers', if supplied, is the maximum number " +
+             "dask worker pods that will spawn, unless overridden in a " +
+             "resourcemap document.\n\n")
     desc += ("The 'size_index' parameter, if supplied, is the index of " +
              "the default image size--usually '1' indicating the " +
              "second-smallest.\n\n")

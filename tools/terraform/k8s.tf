@@ -98,6 +98,7 @@ module "jupyterhub" {
   lab_selector_title             = "${var.lab_selector_title}"
   oauth_provider                 = "${var.oauth_provider}"
   allow_dask_spawn               = "${var.allow_dask_containers ? "TRUE" : ""}"
+  max_dask_workers               = "${var.max_dask_workers}"
   restrict_lab_nodes             = "${var.restrict_lab_nodes ? "TRUE" : "" }"
   restrict_dask_nodes            = "${var.restrict_dask_nodes ? "TRUE" : "" }"
   repo_host                      = "${local.lab_repo_host}"

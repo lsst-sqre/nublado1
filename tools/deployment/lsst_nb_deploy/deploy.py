@@ -149,6 +149,7 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_size_range",
     "auto_repo_urls",
     "allow_dask_spawn",
+    "max_dask_workers",
     "size_index",
     "hub_route",
     "firefly_route",
@@ -473,7 +474,7 @@ class LSSTNotebookAspectDeployment(object):
                 # Not required if we aren't using CILogon.
                 self.params['cilogon_group_whitelist'] = ["dummy"]
         # Some parameters default to empty
-        for default_empty in ['debug', 'allow_dask_spawn',
+        for default_empty in ['debug', 'allow_dask_spawn', 'max_dask_workers',
                               'restrict_lab_nodes', 'restrict_dask_nodes']:
             if self._empty_param(default_empty):
                 self.params[default_empty] = ''  # Empty is correct
@@ -897,6 +898,7 @@ class LSSTNotebookAspectDeployment(object):
                           LAB_SIZE_RANGE=p['lab_size_range'],
                           AUTO_REPO_URLS=p['auto_repo_urls'],
                           ALLOW_DASK_SPAWN=p['allow_dask_spawn'],
+                          MAX_DASK_WORKERS=p['max_dask_workers'],
                           SIZE_INDEX=p['size_index'],
                           HUB_ROUTE=p['hub_route'],
                           FIREFLY_ADMIN_PASSWORD=self.encode_value(
@@ -2002,6 +2004,9 @@ def get_cli_options():
              "non-empty string, will allow user containers to spawn " +
              "additional pods; this is intended to allow them to " +
              "manipulate dask workers.\n\n")
+    desc += ("The 'max_dask_workers', if supplied, is the maximum number " +
+             "dask worker pods that will spawn, unless overridden in a " +
+             "resourcemap document.\n\n")
     desc += ("The 'size_index' parameter, if supplied, is the index of " +
              "the default image size--usually '1' indicating the " +
              "second-smallest.\n\n")

@@ -18,6 +18,10 @@ variable "allow_dask_spawn" {
   description = "Allow users to spawn dask workers"
 }
 
+variable "max_dask_workers" {
+  description = "Maximum number of dask worker pods"
+}
+
 variable "restrict_lab_nodes" {
   description = "Spawn Lab containers only on nodes with \"jupyterlab: ok\" labels"
 }

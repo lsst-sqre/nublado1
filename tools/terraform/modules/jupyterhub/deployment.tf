@@ -72,6 +72,11 @@ resource "kubernetes_deployment" "jupyterhub" {
             value = "${var.allow_dask_spawn}"
           }
 
+	  env {
+	    name  = "MAX_DASK_WORKERS"
+	    value = "${var.max_dask_workers}"
+	  }
+
           env {
             name  = "RESTRICT_LAB_NODES"
             value = "${var.restrict_lab_nodes}"

@@ -51,6 +51,9 @@ spec:
               value: '{{RESTRICT_LAB_NODES}}'
             - name: RESTRICT_DASK_NODES
               value: '{{RESTRICT_DASK_NODES}}'
+            # Maximum number of dask worker pods
+            - name: MAX_DASK_WORKERS
+              value: '{{MAX_DASK_WORKERS}}'
             # Set to customize what repo and what images to scan.
             - name: LAB_REPO_HOST
               value: '{{LAB_REPO_HOST}}'

@@ -189,6 +189,11 @@ variable "allow_dask_containers" {
   default     = true
 }
 
+variable "max_dask_workers" {
+  description = "Maximum number of dask pods per namespace"
+  default     = 25
+}
+
 /* Prepuller image parameters */
 
 variable "prepuller_repo" {

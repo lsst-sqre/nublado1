@@ -204,7 +204,7 @@ RUN  pip3 install --upgrade \
        jupyter-firefly-extensions \
        mysqlclient \
        gcsfs \
-       jupyterlabutils \
+       https://github.com/lsst-sqre/jupyterlabutils/archive/tickets/DM-20545.zip \
        hvplot \
        intake \
        intake-parquet \
@@ -268,7 +268,7 @@ RUN  source ${LOADSTACK} && \
        jupyter-firefly-extensions \
        mysqlclient \
        gcsfs \
-       jupyterlabutils \
+       https://github.com/lsst-sqre/jupyterlabutils/archive/tickets/DM-20545.zip \
        hvplot \
        intake \
        intake-parquet \
@@ -394,13 +394,13 @@ RUN  jupyter labextension list 2>&1 | \
       grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
       awk '{print $1,$2}' | tr ' ' '@' > ${verdir}/labext.txt
 # Lab extensions require write permissions by running user.
-RUN  groupadd -g 768 jovyan && \
-     uls="/usr/local/share" && \
-     jlb="jupyter/lab" && \
-     u="${scl}/${jlb}" && \
 # If we recursively chown all of the lab directory, it gets rid of permission
 # errors on startup....but also radically slows down startup, by about
 # three minutes.
+RUN  groupadd -g 768 jovyan && \
+     uls="/usr/local/share" && \
+     jlb="jupyter/lab" && \
+     u="${uls}/${jlb}" && \
      mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
      set -e && \
      for i in /usr/share/git ${u}/staging; do \

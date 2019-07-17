@@ -58,6 +58,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     enable_namespace_quotas = True
     # stash quota values to pass to spawned environment
     _quota = {}
+    _custom_resources = {}
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -69,6 +70,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         dailies = int(os.getenv("PREPULLER_DAILIES") or 3)
         weeklies = int(os.getenv("PREPULLER_WEEKLIES") or 2)
         releases = int(os.getenv("PREPULLER_RELEASES") or 1)
+        self._set_custom_user_resources()
         scanner = ScanRepo(host=host,
                            owner=owner,
                            name=repo,
@@ -142,10 +144,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         checked = False
         sizemap = self._sizemap
         sizes = list(sizemap.keys())
-        si = os.environ.get('SIZE_INDEX') or '1'
-        size_index = int(si)
-        if size_index >= len(sizes):
-            size_index = 1
+        size_index = self._get_size_index()
         defaultsize = sizes[size_index]
         for size in sizemap:
             optform += "            "
@@ -187,6 +186,69 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             if esz not in sizes:
                 del self._sizemap[esz]
 
+    def _get_size_index(self):
+        sizes = list(self._sizemap.keys())
+        si = self._custom_resources.get(
+            "size_index") or os.environ.get('SIZE_INDEX') or 1
+        size_index = int(si)
+        if size_index >= len(sizes):
+            size_index = len(sizes) - 1
+        return size_index
+
+    def _set_custom_user_resources(self):
+        rfile = "/opt/lsst/software/jupyterhub/resources/resourcemap.json"
+        resources = {
+            "size_index": 0,
+            "cpu_quota": 0,
+            "mem_quota": 0
+        }
+        try:
+            gnames = self._get_user_groupnames()
+            uname = self.user.name
+            self.log.debug("User '{}' / Groups '{}'".format(uname, gnames))
+            with open(rfile, "r") as rf:
+                resmap = json.load(rf)
+            for resdef in resmap:
+                apply = False
+                if resdef.get("disabled"):
+                    self.log.debug(
+                        "Skipping disabled resource map {}.".format(resdef))
+                    continue
+                candidate = resdef.get("resources")
+                if not candidate:
+                    self.log.debug(
+                        "No resources in candidate {}".format(candidate))
+                    continue
+                self.log.debug(
+                    "Considering candidate resource map {}".format(resdef))
+                ruser = resdef.get("user")
+                rgroup = resdef.get("group")
+                if ruser and ruser == uname:
+                    self.log.debug("User resource map match.")
+                    apply = True
+                if rgroup and rgroup in gnames:
+                    self.log.debug("Group resource map match.")
+                    apply = True
+                if apply:
+                    for fld in ["size_index", "cpu_quota", "mem_quota"]:
+                        vv = candidate.get(fld)
+                        if vv and vv > resources[fld]:
+                            resources[fld] = vv
+                    self.log.info(
+                        "Setting custom resources '{}'".format(resources))
+                    self._custom_resources = resources
+        except Exception as exc:
+            self.log.error(
+                "Custom resource check got exception '{}'".format(exc))
+        return resources
+
+    def _get_user_groupnames(self):
+        try:
+            return self.authenticator.groups
+        except AttributeError:
+            self.log.error("Authenticator object has no groups attribute.")
+            return []
+
     def _match_recommended(self, scanner):
         (lnames, ldescs) = scanner.extract_image_info()
         if self.recommended_tag:
@@ -222,7 +284,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             return ldescs[0]
         # Now we have the hash of "recommended"; next we match it to
         #  another tag.
-        ltags = [ x.split(":")[-1] for x in lnames ]
+        ltags = [x.split(":")[-1] for x in lnames]
         for ltag in ltags:
             if ltag == "recommended":
                 continue
@@ -398,7 +460,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
         if (image.endswith(":recommended") and self.recommended_tag
-            and self.recommended_tag != "NOTFOUND"):
+                and self.recommended_tag != "NOTFOUND"):
             image = image[:-(len(":recommended"))] + ":" + self.recommended_tag
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
         cpu_limit = os.getenv('LAB_CPU_LIMIT') or 1.0
@@ -451,21 +513,46 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if os.getenv('LAB_NODEJS_MAX_MEM'):
             pod_env['NODE_OPTIONS'] = ("--max-old-space-size=" +
                                        os.getenv('LAB_NODEJS_MAX_MEM'))
-        if os.getenv('EXTERNAL_FIREFLY_URL'):
-            pod_env['EXTERNAL_FIREFLY_URL'] = os.getenv('EXTERNAL_FIREFLY_URL')
-        external_url = os.getenv('EXTERNAL_URL')
-        if not external_url:
+        external_hub_url = os.getenv('EXTERNAL_HUB_URL')
+        hub_route = os.getenv('HUB_ROUTE')
+        while (hub_route.endswith('/') and hub_route != "/"):
+            hub_route = hub_route[:-1]
+        if not external_hub_url:
             oauth_callback = os.getenv('OAUTH_CALLBACK_URL')
             endstr = "/hub/oauth_callback"
             if oauth_callback and oauth_callback.endswith(endstr):
-                external_url = oauth_callback[:-len(endstr)]
-        pod_env['EXTERNAL_URL'] = external_url
+                external_hub_url = oauth_callback[:-len(endstr)]
+        # Guaranteed external endpoints
+        pod_env['EXTERNAL_URL'] = external_hub_url
+        pod_env['EXTERNAL_HUB_URL'] = external_hub_url
+        external_instance_url = os.getenv('EXTERNAL_INSTANCE_URL')
+        if not external_instance_url:
+            if external_hub_url.endswith(hub_route):
+                external_instance_url = external_hub_url[:-len(hub_route)]
+        pod_env['EXTERNAL_INSTANCE_URL'] = external_instance_url
         if os.getenv('DEBUG'):
             pod_env['DEBUG'] = os.getenv('DEBUG')
         if clear_dotlocal:
             pod_env['CLEAR_DOTLOCAL'] = "true"
+        # Add service routes
+        # Check if we need trailing slash anymore for firefly
+        hub_route = os.getenv('HUB_ROUTE') or "/nb"
         firefly_route = os.getenv('FIREFLY_ROUTE') or "/firefly/"
+        js9_route = os.getenv('JS9_ROUTE') or "/js9"
+        api_route = os.getenv('API_ROUTE') or "/api"
+        tap_route = os.getenv('TAP_ROUTE') or "/api/tap"
+        soda_route = os.getenv('SODA_ROUTE') or "/api/image/soda"
+        pod_env['HUB_ROUTE'] = hub_route
         pod_env['FIREFLY_ROUTE'] = firefly_route
+        pod_env['JS9_ROUTE'] = js9_route
+        pod_env['API_ROUTE'] = api_route
+        pod_env['TAP_ROUTE'] = tap_route
+        pod_env['SODA_ROUTE'] = soda_route
+        # Optional external endpoints
+        for i in ['firefly', 'js9', 'api', 'tap', 'soda']:
+            envvar = 'EXTERNAL_' + i.upper() + '_URL'
+            if os.getenv(envvar):
+                pod_env[envvar] = os.getenv(envvar)
         auto_repo_urls = os.getenv('AUTO_REPO_URLS')
         if auto_repo_urls:
             pod_env['AUTO_REPO_URLS'] = auto_repo_urls
@@ -715,9 +802,11 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         return options
 
     def get_resource_quota_spec(self):
-        '''We're going to return a resource quota spec that allows a max of
-        25 (chosen arbitrarily) of the largest-size machines available to
-        the user.
+        '''We're going to return a resource quota spec that checks whether we
+        have a custom resource map and uses that information.  If we do not
+        then our default quota allows a maximum of MAX_DASK_WORKERS or
+        25 (chosen arbitrarily) of the largest-size machines available to the
+        user.
 
         Note that you could get a lot fancier, and check the user group
         memberships to determine what class a user belonged to, or some other
@@ -725,24 +814,32 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         '''
         self.log.info("Entering get_resource_quota_spec()")
         from kubernetes.client import V1ResourceQuotaSpec
+        self.log.info("Calculating default resource quotas.")
         sizes = self.sizelist
-        max_machines = 25 + 1  # Arbitrary (the 25 is intended to represent
-        # the number of dask machines, and the 1 is the lab )
+        max_dask_workers = os.environ.get('MAX_DASK_WORKERS') or 25
+        max_machines = int(max_dask_workers) + 1  # (the 1 is the Lab)
         big_multiplier = 2 ** (len(sizes) - 1)
-        self.log.info("Max machines %r, multiplier %r" % (max_machines,
-                                                          big_multiplier))
         tiny_cpu = os.environ.get('TINY_MAX_CPU') or 0.5
         if type(tiny_cpu) is str:
             tiny_cpu = float(tiny_cpu)
         mem_per_cpu = os.environ.get('MB_PER_CPU') or 2048
         if type(mem_per_cpu) is str:
             mem_per_cpu = int(mem_per_cpu)
-        self.log.info("Tiny CPU: %r, Mem per cpu: %r" %
-                      (tiny_cpu, mem_per_cpu))
         total_cpu = max_machines * big_multiplier * tiny_cpu
         total_mem = str(int(total_cpu * mem_per_cpu + 0.5)) + "Mi"
         total_cpu = str(int(total_cpu + 0.5))
-
+        self.log.debug("Default quota sizes: CPU %r, mem %r" % (
+            total_cpu, total_mem))
+        if self._custom_resources:
+            self.log.debug("Have custom resources.")
+            cpuq = self._custom_resources.get("cpu_quota")
+            if cpuq:
+                self.log.debug("Overriding CPU quota.")
+                total_cpu = str(cpuq)
+            memq = self._custom_resources.get("mem_quota")
+            if memq:
+                self.log.debug("Overriding memory quota.")
+                total_mem = str(memq) + "Mi"
         self.log.info("Determined quota sizes: CPU %r, mem %r" % (
             total_cpu, total_mem))
         qs = V1ResourceQuotaSpec(

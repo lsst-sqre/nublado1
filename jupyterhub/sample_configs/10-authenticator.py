@@ -52,21 +52,48 @@ class LSSTGitHubAuth(oauthenticator.GitHubOAuthenticator):
 
     _state = None
 
+    groups = []
+
     login_handler = oauthenticator.GitHubLoginHandler
 
     @gen.coroutine
     def authenticate(self, handler, data=None):
+        self.log.debug("Authenticating.")
         """Check for deny list membership too."""
         userdict = yield super().authenticate(handler, data)
+        try:
+            token = userdict["auth_state"]["access_token"]
+        except (KeyError, TypeError):
+            self.log.warning("Could not extract access token.")
+        if token:
+            self.log.debug("Setting authenticator groups from token.")
+            _ = yield self.set_groups_from_token(token)
+        else:
+            self.log.debug("No token found.")
         denylist = os.environ.get('GITHUB_ORGANIZATION_DENYLIST')
         if denylist:
-            self.log.debug("Denylist `%s` found." % denylist)
-            denylist = denylist.split(',')
-            denied = yield self._check_denylist(userdict, denylist)
+            if not token:
+                self.log.warning("User does not have access token.")
+                userdict = None
+            else:
+                self.log.debug("Denylist `%s` found." % denylist)
+                denylist = denylist.split(',')
+                denied = yield self._check_denylist(userdict, denylist)
             if denied:
                 self.log.warning("Rejecting user: denylisted")
                 userdict = None
         return userdict
+
+    @gen.coroutine
+    def set_groups_from_token(self, token):
+        self.log.debug("Acquiring list of user organizations.")
+        gh_org = yield self._get_user_organizations(token)
+        if not gh_org:
+            self.log.warning("Could not get list of user organizations.")
+        self.groups = gh_org
+        self.log.debug("Set user organizations to '{}'.".format(gh_org))
+        yield
+        return
 
     @gen.coroutine
     def _check_denylist(self, userdict, denylist):
@@ -182,6 +209,7 @@ class LSSTCILogonAuth(oauthenticator.CILogonOAuthenticator):
     allowed_groups = os.environ.get("CILOGON_GROUP_WHITELIST") or "lsst_users"
     forbidden_groups = os.environ.get("CILOGON_GROUP_DENYLIST")
     additional_username_claims = ["uid"]
+    groups = []
 
     @gen.coroutine
     def authenticate(self, handler, data=None):
@@ -226,17 +254,18 @@ class LSSTCILogonAuth(oauthenticator.CILogonOAuthenticator):
         return True
 
     @gen.coroutine
-    def _return_groups(self, grouplist):
+    def _set_groups(self, grouplist):
         grps = [x["name"] for x in grouplist]
         self.log.debug("Groups: %s" % str(grps))
-        return grps
+        self.groups = grps
 
     @gen.coroutine
     def _check_member_of(self, grouplist):
         self.log.info("Using isMemberOf field.")
         allowed_groups = self.allowed_groups.split(",")
         forbidden_groups = self.forbidden_groups.split(",")
-        user_groups = yield self._return_groups(grouplist)
+        self._set_groups(grouplist)
+        user_groups = self.groups
         deny = list(set(forbidden_groups) & set(user_groups))
         if deny:
             self.log.warning("User in forbidden group: %s" % str(deny))
@@ -374,6 +403,11 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             # We're either in a forbidden group, or not in any allowed group
             self.log.error("User did not validate from claims groups.")
             raise web.HTTPError(403)
+        self.log.debug("Claims for user: {}".format(claims))
+        self.log.debug("Membership: {}".format(claims["isMemberOf"]))
+        gnames = [x["name"] for x in claims["isMemberOf"]]
+        self.log.debug("Setting authenticator groups: {}.".format(gnames))
+        self.authenticator.groups = gnames
         modified_auth_state = self._mogrify_auth_state(auth_state)
         yield user.save_auth_state(modified_auth_state)
         self.set_login_cookie(user)
@@ -385,7 +419,7 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
 
         self.redirect(_url)
 
-    def _mogrify_auth_state(self,auth_state):
+    def _mogrify_auth_state(self, auth_state):
         astate = dict(auth_state)
         self.log.debug("Pre-mogrification auth state: %r" % astate)
         #
@@ -410,16 +444,19 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             return False
         return True
 
+
 class LSSTJWTLogoutHandler(LogoutHandler):
     """Redirect to OAuth2 sign_in"""
 
     async def render_logout_page(self):
-        logout_url=os.getenv("LOGOUT_URL") or "/oauth2/sign_in"
+        logout_url = os.getenv("LOGOUT_URL") or "/oauth2/sign_in"
         self.redirect(logout_url, permanent=False)
+
 
 class LSSTJWTAuth(JSONWebTokenAuthenticator):
     enable_auth_state = True
     header_name = "X-Portal-Authorization"
+    groups = []
 
     def get_handlers(self, app):
         return [

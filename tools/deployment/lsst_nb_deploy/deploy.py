@@ -522,13 +522,13 @@ class LSSTNotebookAspectDeployment(object):
         if self._empty_param('firefly_route'):
             self.params['firefly_route'] = "/firefly"
         if self._empty_param('js9_route'):
-            self.params['firefly_route'] = "/js9"
+            self.params['js9_route'] = "/js9"
         if self._empty_param('api_route'):
-            self.params['firefly_route'] = "/api"
+            self.params['api_route'] = "/api"
         if self._empty_param('tap_route'):
-            self.params['firefly_route'] = "/api/tap"
+            self.params['tap_route'] = "/api/tap"
         if self._empty_param('soda_route'):
-            self.params['firefly_route'] = "/api/image/soda"
+            self.params['soda_route'] = "/api/image/soda"
         # Routes must start, but not end, with slash.
         # We know they are not empty.
         for i in ['hub_route', 'firefly_route', 'js9_route', 'api_route',
@@ -538,19 +538,20 @@ class LSSTNotebookAspectDeployment(object):
             if self.params[i][-1] == "/" and self.params[i] != "/":
                 self.params[i] = self.params[i][:-1]
         # External endpoints
-        if self._empty_param('external_instance'):
-            self.params['external_instance'] = "https://" + \
+        if self._empty_param('external_instance_url'):
+            self.params['external_instance_url'] = "https://" + \
                 self.params['hostname']
         # Set to internally-hosted if not specified
         for i in ['firefly', 'js9', 'api', 'tap', 'soda']:
             eep = 'external_' + i + '_url'
             er = i + '_route'
-            if self.empty_param(eep):
-                self.params[eep] = self.params['external_instance'] + \
+            if self._empty_param(eep):
+                self.params[eep] = self.params['external_instance_url'] + \
                     self.params[er]
         if self._empty_param('external_url'):
-            self.params['external_url'] = self.params['external_instance'] + \
-                self.params['hub_route']
+            self.params['external_url'] = (
+                self.params['external_instance_url'] +
+                self.params['hub_route'])
         if self.params['hub_route'] == '/':
             self.params['enable_landing_page'] = False
         # Sane defaults for Firefly servers
@@ -600,7 +601,7 @@ class LSSTNotebookAspectDeployment(object):
         self.params["cilogon_group_whitelist"] = ','.join(
             self.params["cilogon_group_whitelist"])
         if not self._empty_param("forbidden_groups"):
-            oap = self.param["oauth_provider"]
+            oap = self.params["oauth_provider"]
             pnm = "cilogon_group_denylist"
             if oap != "cilogon":
                 pnm = "github_organization_denylist"

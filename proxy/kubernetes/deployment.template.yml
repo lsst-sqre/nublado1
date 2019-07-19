@@ -29,7 +29,8 @@ spec:
                   name: hub
                   key: configproxy_auth_token
             - name: NODE_OPTIONS
-                value: "--max-http-header-size={{MAX_HTTP_HEADER_SIZE}}"
+              value: "--max-http-header-size={{MAX_HTTP_HEADER_SIZE}}"
+              # This needs to be 16K or more for JWT.  Value is in bytes.
           resources:
             requests:
               memory: 512Mi

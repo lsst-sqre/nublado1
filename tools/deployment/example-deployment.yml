@@ -194,7 +194,8 @@ allowed_groups:
 # firefly_container_cpu_limit: '3.0'
 # firefly_uid: '91'
 
-### May need to increase with jwt auth if your users are in many groups
+### May need to increase with jwt auth if your users are in many groups.
+#    LSST JWT needs at least 16384
 # max_http_header_size: '8192'
 
 ### Gets you more verbose Hub logging

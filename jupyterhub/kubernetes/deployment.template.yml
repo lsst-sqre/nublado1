@@ -32,7 +32,7 @@ spec:
             - name: LOGLEVEL
               value: INFO
             - name: FQDN
-              value: '{{FQDN}}'
+              value: '{{HOSTNAME}}'
             - name: LAB_SELECTOR_TITLE
               value: '{{LAB_SELECTOR_TITLE}}'
             # Set to non-empty value to enable debugging.

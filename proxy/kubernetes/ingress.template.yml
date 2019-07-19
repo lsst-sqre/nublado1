@@ -11,7 +11,7 @@ metadata:
     #
     # If you're doing JWT auth, you also need:
     #
-    # nginx.ingress.kubernetes.io/auth-url: {{HOSTNAME}}/auth\
+    # nginx.ingress.kubernetes.io/auth-url: https://{{HOSTNAME}}/auth\
     #  ?capability=exec:notebook&reissue_token=true
     #
     # Also make sure that MAX_HTTP_HEADER_SIZE is set to at least 16384

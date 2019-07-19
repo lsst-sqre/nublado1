@@ -532,7 +532,8 @@ customization on your part.
 * Copy `ingress.template.yml` to a working file, substituting
   `HUB_ROUTE` (use `/nb/` if you have no particular reason to do otherwise)
   and `HOSTNAME`.  If you are using `jwt` authentication, uncomment the
-  indicated lines.  Create the resource with `kubectl -f` against the
+  indicated lines and ensure that MAX_HTTP_HEADER_SIZE is at least
+  16384. Create the resource with `kubectl -f` against the
   working file.
 
 ### Landing Page (optional)

@@ -27,7 +27,7 @@ hostname: '{{FQDN}}'
 
 ### OAuth Provider
 # oauth_provider: '{{OAUTH_PROVIDER}}'
-#  oauth_provider must be one of 'github' or 'cilogon'.
+#  oauth_provider must be one 'github', 'cilogon', or 'jwt'.
 #  It defaults to 'github'.
 
 ### Kubernetes cluster details 

@@ -176,7 +176,7 @@ class LSSTNotebookAspectDeployment(object):
     """
     directory = None
     components = ["logstashrmq", "filebeat", "fileserver", "fs-keepalive",
-                  "firefly", "prepuller", "jupyterhub", "proxy", "tls",
+                  "firefly", "js9", "prepuller", "jupyterhub", "proxy", "tls",
                   "nginx-ingress", "landing-page"]
     params = None
     yamlfile = None
@@ -427,7 +427,8 @@ class LSSTNotebookAspectDeployment(object):
         if self._empty_param('oauth_provider'):
             self.params['oauth_provider'] = OAUTH_DEFAULT_PROVIDER
         if self._empty_param("allowed_groups"):
-            if self.params["oauth_provider"] == "cilogon":
+            if (self.params["oauth_provider"] == "cilogon" or
+                    self.params["oauth_provider"] == "jwt"):
                 self.params["allowed_groups"] = self.params.get(
                     "cilogon_group_whitelist")
             else:
@@ -469,9 +470,10 @@ class LSSTNotebookAspectDeployment(object):
             if self._empty_param('github_organization_whitelist'):
                 # Not required if we aren't using GitHub.
                 self.params['github_organization_whitelist'] = ["dummy"]
-        if self.params['oauth_provider'] != "cilogon":
+        if (self.params['oauth_provider'] != "cilogon" and
+                self.params['oauth_provider'] != "jwt"):
             if self._empty_param('cilogon_group_whitelist'):
-                # Not required if we aren't using CILogon.
+                # Not required if we aren't using CILogon or JWT.
                 self.params['cilogon_group_whitelist'] = ["dummy"]
         # Some parameters default to empty
         for default_empty in ['debug', 'allow_dask_spawn', 'max_dask_workers',
@@ -860,6 +862,7 @@ class LSSTNotebookAspectDeployment(object):
                           TLS_CRT=self.encode_file('tls_cert'),
                           TLS_KEY=self.encode_file('tls_key'),
                           HOSTNAME=p['hostname'],
+                          FQDN=p['hostname'],
                           CA_CERTIFICATE=self.encode_file('beats_ca'),
                           BEATS_CERTIFICATE=self.encode_file('beats_cert'),
                           BEATS_KEY=self.encode_file('beats_key'),
@@ -1724,6 +1727,22 @@ class LSSTNotebookAspectDeployment(object):
                  ["deployment", "firefly"],
                  ["secret", "firefly"],
                  ["svc", "firefly"]]
+        for c in items:
+            self._run_kubectl_delete(c)
+
+    def _create_js9(self):
+        logging.info("Creating JS9")
+        directory = os.path.join(self.directory, "deployment", "js9")
+        for c in ["service",
+                  "deployment",
+                  "ingress"]:
+            self._run_kubectl_create(os.path.join(directory, c + ".yml"))
+
+    def _destroy_js9(self):
+        logging.info("Destroying JS9")
+        items = [["ingress", "js9"],
+                 ["deployment", "js9"],
+                 ["svc", "js9"]]
         for c in items:
             self._run_kubectl_delete(c)
 

@@ -390,7 +390,7 @@ volumes reside).
       of the form `[d|w]YYYYMMDD` or `rMajMin` (e.g. `d20180219` or
       `r140`).
 	- The other values can be used to change the number of
-      Daily/Weekly/Release images to prepull.
+      Experimental/Daily/Weekly/Release images to prepull.
 	  
 * After creating the working file (let's assume you called it
   `prepuller-cronjob.yml)`, run  `kubectl create -f prepuller-cronjob.yml`.

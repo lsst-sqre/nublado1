@@ -13,13 +13,12 @@ RUN  alternatives --install /usr/bin/python3 python3 \
       /usr/bin/python36 50 && \
       python3 -m ensurepip
 ENV  PYCURL_SSL_LIBRARY=openssl
-# Need not-yet-released jwtauthenticator and backlevel oauth2
+# Need not-yet-released jwtauthenticator
+# Tornado needs to be version < 6.0
 RUN  pip3 install --upgrade -r ${verdir}/requirements.txt
 RUN  jwtver=$(cat ${verdir}/jwtauthenticator.commit) && \
-      oa2ver=$(cat ${verdir}/oauthenticator.commit) && \
       pip3 install --upgrade \
-       git+https://github.com/mogthesprog/jwtauthenticator.git@${jwtver} \
-       git+https://github.com/jupyterhub/oauthenticator.git@${oa2ver}
+       git+https://github.com/mogthesprog/jwtauthenticator.git@${jwtver}
 RUN jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  mkdir ${jh}/config ${jh}/templates
 COPY hublauncher.sh /opt/lsst/software/jupyterhub/
@@ -37,5 +36,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.15.10"
+       version="exp_0.16.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

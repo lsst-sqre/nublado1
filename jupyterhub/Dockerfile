@@ -23,7 +23,7 @@ RUN  pip3 install \
       jupyterhub-kubespawner \
       'kubernetes>=9.0.0,<10.0.0' \
       'requests>=2.0.0,<3.0.0' \
-      'jupyterhubutils>=0.5.10' \
+      'jupyterhubutils>=0.6.0' \
       'namespacedkubespawner>=0.0.19' \
       jupyterlab \
       jupyterhub \

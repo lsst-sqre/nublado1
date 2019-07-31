@@ -654,10 +654,9 @@ class LSSTNotebookAspectDeployment(object):
             pw = self._generate_random_pw()
             # ns = self.params["kubernetes_cluster_namespace"]
             # url = "mysql://proxyuser:" + pw + "@127.0.0.1:3306/" + ns
-            url = "sqlite:////home/jupyter/jupyterhub.sqlite"
+            url = "sqlite:////home/jovyan/jupyterhub.sqlite"
             self.params['session_db_url'] = url
             self.params['session_db_pw'] = pw
-            # Used to be 'sqlite:////home/jupyter/jupyterhub.sqlite'
         if self._empty_param('tls_dhparam'):
             self._check_executables(["openssl"])
             if self._empty_param('dhparam_bits'):

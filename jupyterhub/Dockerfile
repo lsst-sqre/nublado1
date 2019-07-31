@@ -10,9 +10,9 @@ RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
 # Need master versions of authenticators and hub
-#  Pin oauthenticator: shift from tornado to native async hurt.
+#  GitHub Oauthenticator and Tornado 6 don't play well.
 RUN  pip3 install \
-      tornado \
+      'tornado<6.0' \
       ipykernel \
       pyyaml \
       pycurl \
@@ -27,8 +27,8 @@ RUN  pip3 install \
       'namespacedkubespawner>=0.0.19' \
       jupyterlab \
       jupyterhub \
-      git+https://github.com/mogthesprog/jwtauthenticator.git \
-      git+https://github.com/jupyterhub/oauthenticator.git@04d664e559275c0c705f1882ce1307cc47227594
+      oauthenticator \
+      git+https://github.com/mogthesprog/jwtauthenticator.git 
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions

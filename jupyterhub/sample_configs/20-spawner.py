@@ -95,6 +95,19 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             all_tags = scanner.get_all_tags()
         except AttributeError:
             all_tags = []
+        resmap = scanner._results_map
+        rhash = None
+        rec = resmap.get("recommended")
+        if rec:
+            rhash = rec.get("hash")
+        if rhash:
+            for tag in resmap:
+                if tag == "recommended":
+                    continue
+                ihash = resmap[tag].get("hash")
+                if rhash == ihash:
+                    self.recommended_tag = tag
+                    break
         optform = "<label for=\"%s\">%s</label><br />\n" % (title, title)
         now = datetime.datetime.now()
         nowstr = now.ctime()

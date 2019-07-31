@@ -70,6 +70,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         dailies = int(os.getenv("PREPULLER_DAILIES") or 3)
         weeklies = int(os.getenv("PREPULLER_WEEKLIES") or 2)
         releases = int(os.getenv("PREPULLER_RELEASES") or 1)
+        cachefile = os.getenv("HOME") + "/repo-cache.json"
         self._set_custom_user_resources()
         scanner = ScanRepo(host=host,
                            owner=owner,
@@ -79,6 +80,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                            weeklies=weeklies,
                            releases=releases,
                            json=True,
+                           cachefile=cachefile
                            )
         try:
             scanner.scan()
@@ -93,8 +95,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             all_tags = scanner.get_all_tags()
         except AttributeError:
             all_tags = []
-        if lnames[0].endswith(":recommended"):
-            ldescs[0] = self._match_recommended(scanner)
         optform = "<label for=\"%s\">%s</label><br />\n" % (title, title)
         now = datetime.datetime.now()
         nowstr = now.ctime()
@@ -248,78 +248,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         except AttributeError:
             self.log.error("Authenticator object has no groups attribute.")
             return []
-
-    def _match_recommended(self, scanner):
-        (lnames, ldescs) = scanner.extract_image_info()
-        if self.recommended_tag:
-            if self.recommended_tag == "NOTFOUND":
-                return ldescs[0]
-            if self.recommended_tag in lnames:
-                idx = -1
-                try:
-                    idx = lnames.index(self.recommended_tag)
-                except ValueError:
-                    pass
-                if idx != -1:
-                    return "Recommended (%s)" % ldescs[idx]
-        # We know lnames[0] ends with ":recommended"
-        # ldescs[0] is where we started (probably "Recommended")
-        authtok = self._get_auth_token(scanner)
-        if not authtok:
-            return ldescs[0]
-        baseurl = self._get_baseurl(scanner)
-        if not baseurl:
-            return ldescs[0]
-        headers = {}
-        if authtok != "NO-AUTH":
-            headers = {"Authorization": "Bearer {}".format(authtok)}
-        resp = requests.get(baseurl + "manifests/recommended",
-                            headers=headers, json=True)
-        if resp:
-            recjson = resp.json()
-        else:
-            recjson = {}
-        digest = self._get_layers(recjson)
-        if not digest:
-            return ldescs[0]
-        # Now we have the hash of "recommended"; next we match it to
-        #  another tag.
-        ltags = [x.split(":")[-1] for x in lnames]
-        for ltag in ltags:
-            if ltag == "recommended":
-                continue
-            idx = ltags.index(ltag)
-            tag = "manifests/" + ltag
-            resp = requests.get(baseurl + tag, headers=headers,
-                                json=True)
-            recjson = resp.json()
-            imgdigest = self._get_layers(recjson)
-            if imgdigest and imgdigest == digest:
-                self.recommended_tag = ltag
-                return "Recommended (%s)" % ldescs[idx]
-        # Not in our displayed images.  Try the whole list...
-        all_tags = []
-        try:
-            all_tags = scanner.get_all_tags()
-        except AttributeError:
-            return ldescs[0]
-        for tag in all_tags:
-            if tag == "recommended":
-                continue
-            mtag = "manifests/" + tag
-            resp = requests.head(baseurl + mtag, headers=headers,
-                                 json=True)
-            if resp:
-                recjson = resp.json()
-            else:
-                recjson = {}
-            imgdigest = self._get_layers(recjson)
-            if imgdigest and imgdigest == digest:
-                self.recommended_tag = tag
-                return "Recommended (%s)" % tag
-        # We didn't find it.
-        self.recommended_tag = "NOTFOUND"
-        return ldescs[0]
 
     def _get_layers(self, recjson):
         fsl = recjson.get("fsLayers")

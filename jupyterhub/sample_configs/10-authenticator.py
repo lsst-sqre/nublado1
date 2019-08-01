@@ -58,8 +58,8 @@ class LSSTGitHubAuth(oauthenticator.GitHubOAuthenticator):
 
     @gen.coroutine
     def authenticate(self, handler, data=None):
-        self.log.debug("Authenticating.")
         """Check for deny list membership too."""
+        token = None
         userdict = yield super().authenticate(handler, data)
         try:
             token = userdict["auth_state"]["access_token"]

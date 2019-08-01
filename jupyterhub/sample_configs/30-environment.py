@@ -6,7 +6,14 @@ from jupyter_client.localinterfaces import public_ips
 from urllib.parse import urlparse
 
 # Set up auth environment
-authtype = os.environ.get('OAUTH_PROVIDER') or ''
+authtype = os.environ.get('OAUTH_PROVIDER') or "github"
+
+c.LSSTAuth = c.LSSTGitHubAuth
+if authtype == "cilogon":
+    c.LSSTAuth = c.LSSTCILogonAuth
+elif authtype == "jwt":
+    c.LSSTAuth = c.LSSTJWTAuth
+
 c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
 netloc = urlparse(c.LSSTAuth.oauth_callback_url).netloc
 scheme = urlparse(c.LSSTAuth.oauth_callback_url).scheme
@@ -20,14 +27,14 @@ if authtype == 'jwt':
     c.LSSTJWTAuth.expected_audience = (aud or
                                        os.getenv('OAUTH_CLIENT_ID') or '')
     if netloc:
-        c.JupyterHub.logout_url =  netloc + "/oauth2/sign_in"
+        c.JupyterHub.logout_url = netloc + "/oauth2/sign_in"
 else:
     c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
     c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 
 ghowl = os.environ.get('GITHUB_ORGANIZATION_WHITELIST')
 if ghowl:
-    c.LSSTAuth.github_organization_whitelist = set(ghowl.split(","))
+    c.LSSTGitHubAuth.github_organization_whitelist = set(ghowl.split(","))
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers

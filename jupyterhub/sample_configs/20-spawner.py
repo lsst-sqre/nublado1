@@ -209,6 +209,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         return size_index
 
     def _set_custom_user_resources(self):
+        if self._custom_resources:
+            return
         rfile = "/opt/lsst/software/jupyterhub/resources/resourcemap.json"
         resources = {
             "size_index": 0,
@@ -218,19 +220,14 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         try:
             gnames = self._get_user_groupnames()
             uname = self.user.name
-            self.log.debug("User '{}' / Groups '{}'".format(uname, gnames))
             with open(rfile, "r") as rf:
                 resmap = json.load(rf)
             for resdef in resmap:
                 apply = False
                 if resdef.get("disabled"):
-                    self.log.debug(
-                        "Skipping disabled resource map {}.".format(resdef))
                     continue
                 candidate = resdef.get("resources")
                 if not candidate:
-                    self.log.debug(
-                        "No resources in candidate {}".format(candidate))
                     continue
                 self.log.debug(
                     "Considering candidate resource map {}".format(resdef))
@@ -253,7 +250,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         except Exception as exc:
             self.log.error(
                 "Custom resource check got exception '{}'".format(exc))
-        return resources
 
     def _get_user_groupnames(self):
         try:

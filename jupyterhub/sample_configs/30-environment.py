@@ -33,7 +33,8 @@ else:
     c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 
 ghowl = os.environ.get('GITHUB_ORGANIZATION_WHITELIST')
-c.LSSTGitHubAuth.github_organization_whitelist = set(ghowl.split(","))
+if ghowl:
+    c.LSSTGitHubAuth.github_organization_whitelist = set(ghowl.split(","))
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers

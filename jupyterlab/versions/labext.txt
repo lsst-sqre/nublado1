@@ -6,7 +6,6 @@
 @lsst-sqre/jupyterlab-savequit@v0.18.0
 @pyviz/jupyterlab_pyviz@v0.7.2
 bqplot@v0.4.5
-dask-labextension@v0.3.0
 ipyevents@v1.5.0
 ipyvolume@v0.5.1
 jupyter-matplotlib@v0.3.0

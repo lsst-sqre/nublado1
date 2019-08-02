@@ -3,9 +3,11 @@
 import base64
 import datetime
 import json
+import logging
 import namespacedkubespawner
 import os
 import requests
+import threading
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1HostPathVolumeSource
 from kubespawner.objects import make_pod
@@ -31,10 +33,82 @@ class LSSTScanner(metaclass=Singleton):
     """Singleton Object to hold rate-limited scanner."""
     scanner = None
     min_refresh_time = 60
-    last_updated = None
+    max_cache_age = 600
+    last_updated = datetime.datetime(1970, 1, 1)  # The Epoch
+    logger = None
 
-    def __init__(
+    def __init__(self, min_refresh_time=60, max_cache_age=600,
+                 lab_repo_owner=None, lab_repo_name=None, lab_repo_host=None,
+                 experimentals=None, dailies=None, weeklies=None,
+                 releases=None, cachefile=None):
+        self.logger = logging.getLogger(__name__)
+        self.min_refresh_time = min_refresh_time
+        self.max_cache_age = max_cache_age
+        if max_cache_age < min_refresh_time:
+            max_cache_age = 2 * min_refresh_time
+            self.max_cache_age = max_cache_age
+            self.logger.error("Nonsensical cache age/refresh time ratio.")
+            self.logger.warning("Setting max_age to %ds." % max_cache_age)
+        if lab_repo_owner is None:
+            lab_repo_owner = os.getenv("LAB_REPO_OWNER") or "lsstsqre"
+        if lab_repo_name is None:
+            lab_repo_name = os.getenv("LAB_REPO_NAME") or "sciplat-lab"
+        if lab_repo_host is None:
+            lab_repo_host = os.getenv("LAB_REPO_HOST") or "hub.docker.com"
+        if experimentals is None:
+            experimentals = int(os.getenv("PREPULLER_EXPERIMENTALS") or 0)
+        if dailies is None:
+            dailies = int(os.getenv("PREPULLER_DAILIES") or 3)
+        if weeklies is None:
+            weeklies = int(os.getenv("PREPULLER_WEEKLIES") or 2)
+        if releases is None:
+            releases = int(os.getenv("PREPULLER_RELEASES") or 1)
+        if cachefile is None:
+            cachefile = os.getenv("HOME") + "/repo-cache.json"
+        self.scanner = ScanRepo(host=lab_repo_host,
+                                owner=lab_repo_owner,
+                                name=lab_repo_name,
+                                experimentals=experimentals,
+                                dailies=dailies,
+                                weeklies=weeklies,
+                                releases=releases,
+                                json=True,
+                                cachefile=cachefile
+                                )
+        thd = threading.Thread(target=self.scan)
+        self.logger.info("Starting background scan.")
+        thd.start()
 
+    def scan(self):
+        now = datetime.datetime.utcnow()
+        mt = self.min_refresh_time
+        min_delay = datetime.timedelta(seconds=mt)
+        if (now - self.last_updated < min_delay):
+            self.logger.warning("%ds not elapsed; not rescanning." % mt)
+            return None
+        self.logger.info("Rescanning.")
+        self.scanner.scan()
+        self.last_updated = now
+
+    def _scan_if_needed(self):
+        now = datetime.datetime.utcnow()
+        max_age = datetime.timedelta(seconds=self.max_cache_age)
+        last_updated = self.last_updated
+        if ((now - last_updated) > max_age):
+            self.logger.info("Scan data has expired.")
+            self.scan()
+
+    def get_scan_data(self):
+        self._scan_if_needed()
+        return self.scanner.data
+
+    def get_all_scan_results(self):
+        self._scan_if_needed()
+        return self.scanner._results_map
+
+    def extract_image_info(self):
+        self._scan_if_needed()
+        return self.scanner.extract_image_info()
 
 
 class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
@@ -85,39 +159,12 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     def _options_form_default(self):
         # Make options form by scanning container repository
         title = os.getenv("LAB_SELECTOR_TITLE") or "Container Image Selector"
-        owner = os.getenv("LAB_REPO_OWNER") or "lsstsqre"
-        repo = os.getenv("LAB_REPO_NAME") or "sciplat-lab"
-        host = os.getenv("LAB_REPO_HOST") or "hub.docker.com"
-        experimentals = int(os.getenv("PREPULLER_EXPERIMENTALS") or 0)
-        dailies = int(os.getenv("PREPULLER_DAILIES") or 3)
-        weeklies = int(os.getenv("PREPULLER_WEEKLIES") or 2)
-        releases = int(os.getenv("PREPULLER_RELEASES") or 1)
-        cachefile = os.getenv("HOME") + "/repo-cache.json"
-        self._set_custom_user_resources()
-        scanner = ScanRepo(host=host,
-                           owner=owner,
-                           name=repo,
-                           experimentals=experimentals,
-                           dailies=dailies,
-                           weeklies=weeklies,
-                           releases=releases,
-                           json=True,
-                           cachefile=cachefile
-                           )
-        try:
-            scanner.scan()
-        except (ValueError, HTTPError) as e:
-            self.log.warning("Could not get data from %s: %s/%s [%s]" %
-                             (host, owner, repo, str(e)))
-            return ""
-        lnames, ldescs=scanner.extract_image_info()
+        scanner = c.Scanner
+        lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
-        try:
-            all_tags = scanner.get_all_tags()
-        except AttributeError:
-            all_tags = []
-        resmap = scanner._results_map
+        resmap = scanner.get_all_scan_results()
+        all_tags = list(keys(resmap))
         rhash = None
         rec = resmap.get("recommended")
         if rec:
@@ -810,3 +857,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
 
 
 c.JupyterHub.spawner_class = LSSTSpawner
+
+# Start a scanner
+c.Scanner = LSSTScanner()

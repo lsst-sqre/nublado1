@@ -12,10 +12,9 @@ ENV  PYCURL_SSL_LIBRARY=openssl
 # Need master versions of authenticators and hub
 #  GitHub Oauthenticator and Tornado 6 don't play well.
 RUN  pip3 install \
-      'tornado<6.0' \
+      tornado \
       ipykernel \
       pyyaml \
-      pycurl \
       python-oauth2 \
       wheel \
       cryptography \
@@ -28,7 +27,10 @@ RUN  pip3 install \
       jupyterlab \
       jupyterhub \
       oauthenticator \
-      git+https://github.com/mogthesprog/jwtauthenticator.git 
+      git+https://github.com/mogthesprog/jwtauthenticator.git
+RUN  pip uninstall pycurl && \
+      export PYCURL_SSL_LIBRARY=nss && \
+      pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions

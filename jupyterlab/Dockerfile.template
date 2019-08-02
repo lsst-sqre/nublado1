@@ -223,7 +223,8 @@ RUN  pip3 freeze > ${instverdir}/requirements-system.txt && \
 #      cd js && \
 #      jupyter labextension install --no-build
 #RUN  gitxt="ipyaladin" && \
-RUN  LBXT=$(cat ${verdir}/labext.txt) && \
+#RUN  LBXT=$(cat ${verdir}/labext.txt) && \
+RUN   LBXT=$(cat ${verdir}/labext.txt | grep -v dask-labextension) && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \

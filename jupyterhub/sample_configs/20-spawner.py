@@ -13,8 +13,6 @@ from kubernetes.client.models import V1HostPathVolumeSource
 from kubespawner.objects import make_pod
 from jupyterhubutils import ScanRepo
 from tornado import gen
-from urllib.error import HTTPError
-# Spawn the pod with custom settings retrieved via token additional scope.
 
 
 # Stolen from
@@ -112,7 +110,6 @@ class LSSTScanner(metaclass=Singleton):
 
 
 class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
-    # class LSSTSpawner(kubespawner.KubeSpawner):
     """Spawner to use our custom environment settings as reflected through
     auth_state."""
 
@@ -159,12 +156,12 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     def _options_form_default(self):
         # Make options form by scanning container repository
         title = os.getenv("LAB_SELECTOR_TITLE") or "Container Image Selector"
-        scanner = c.Scanner
+        scanner = LSSTScanner()
         lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
         resmap = scanner.get_all_scan_results()
-        all_tags = list(keys(resmap))
+        all_tags = list(resmap.keys())
         rhash = None
         rec = resmap.get("recommended")
         if rec:
@@ -857,6 +854,3 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
 
 
 c.JupyterHub.spawner_class = LSSTSpawner
-
-# Start a scanner
-c.Scanner = LSSTScanner()

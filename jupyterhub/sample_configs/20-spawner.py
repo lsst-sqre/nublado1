@@ -15,6 +15,28 @@ from urllib.error import HTTPError
 # Spawn the pod with custom settings retrieved via token additional scope.
 
 
+# Stolen from
+# https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(
+                Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class LSSTScanner(metaclass=Singleton):
+    """Singleton Object to hold rate-limited scanner."""
+    scanner = None
+    min_refresh_time = 60
+    last_updated = None
+
+    def __init__(
+
+
+
 class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     # class LSSTSpawner(kubespawner.KubeSpawner):
     """Spawner to use our custom environment settings as reflected through
@@ -88,7 +110,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             self.log.warning("Could not get data from %s: %s/%s [%s]" %
                              (host, owner, repo, str(e)))
             return ""
-        lnames, ldescs = scanner.extract_image_info()
+        lnames, ldescs=scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
         try:

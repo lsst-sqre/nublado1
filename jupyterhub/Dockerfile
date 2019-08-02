@@ -16,6 +16,12 @@ ENV  PYCURL_SSL_LIBRARY=openssl
 # Need not-yet-released jwtauthenticator
 # Tornado needs to be version < 6.0
 RUN  pip3 install --upgrade -r ${verdir}/requirements.txt
+RUN  pycurl_ver="$(grep pycurl ${verdir}/requirements.txt | \
+        cut -d '=' -f 3- )" && \
+     pip3 uninstall -y pycurl && \
+     export PYCURL_SSL_LIBRARY=nss && \
+     pip3 install --compile --install-option="--with-nss" --no-cache-dir \
+      "pycurl==${pycurl_ver}"
 RUN  jwtver=$(cat ${verdir}/jwtauthenticator.commit) && \
       pip3 install --upgrade \
        git+https://github.com/mogthesprog/jwtauthenticator.git@${jwtver}
@@ -36,5 +42,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.16.1"
+       version="0.16.2"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

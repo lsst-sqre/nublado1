@@ -209,9 +209,9 @@ RUN  pip3 install --upgrade \
        intake \
        intake-parquet \
        jupyter-server-proxy \
-       dask_labextension \
        dask-kubernetes \
        git+https://github.com/cbanek/pyvo.git@122-auth2
+#       dask_labextension is pretty iffy still.  Omit for the time being.
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -273,9 +273,9 @@ RUN  source ${LOADSTACK} && \
        intake \
        intake-parquet \
        jupyter-server-proxy \
-       dask_labextension \
        dask-kubernetes \
-       git+https://github.com/cbanek/pyvo.git@122-auth2       
+       git+https://github.com/cbanek/pyvo.git@122-auth2
+# omit dask_labextension       
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
@@ -306,9 +306,9 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
-          dask-labextension \
           jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz"
+# Omit dask-labextension for now.	  
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}

@@ -1,32 +1,43 @@
 FROM centos:7
 USER root
-ENV  epel_release="epel-release-7-11.noarch"
+RUN  yum install -y epel-release
+RUN  yum repolist && yum updateinfo
+RUN  yum -y upgrade
+RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
+      git patch python-alembic mariadb mysql python36 python36-devel
+RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
+      python3 -m ensurepip
+RUN  pip3 install --upgrade pip setuptools
+ENV  PYCURL_SSL_LIBRARY=openssl
+# Need master versions of authenticators and hub
+#  GitHub Oauthenticator and Tornado 6 don't play well.
+RUN  pip3 install \
+      tornado \
+      ipykernel \
+      pyyaml \
+      python-oauth2 \
+      wheel \
+      cryptography \
+      mysqlclient \
+      jupyterhub-kubespawner \
+      'kubernetes>=9.0.0,<10.0.0' \
+      'requests>=2.0.0,<3.0.0' \
+      'jupyterhubutils>=0.7.0' \
+      'namespacedkubespawner>=0.0.19' \
+      jupyterlab \
+      jupyterhub \
+      oauthenticator \
+      git+https://github.com/mogthesprog/jwtauthenticator.git
+RUN  pip uninstall pycurl && \
+      export PYCURL_SSL_LIBRARY=nss && \
+      pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
+RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
 RUN  mkdir -p ${verdir}
-COPY versions/* ${verdir}/
-RUN  yum install -y ${epel_release}
-RUN  yum repolist && yum updateinfo
-RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
-# Make EPEL Python 3.6 system Python 3 and install pip3
-RUN  alternatives --install /usr/bin/python3 python3 \
-      /usr/bin/python36 50 && \
-      python3 -m ensurepip
-ENV  PYCURL_SSL_LIBRARY=openssl
-# Need not-yet-released jwtauthenticator
-# Tornado needs to be version < 6.0
-RUN  pip3 install --upgrade -r ${verdir}/requirements.txt
-RUN  pycurl_ver="$(grep pycurl ${verdir}/requirements.txt | \
-        cut -d '=' -f 3- )" && \
-     pip3 uninstall -y pycurl && \
-     export PYCURL_SSL_LIBRARY=nss && \
-     pip3 install --compile --install-option="--with-nss" --no-cache-dir \
-      "pycurl==${pycurl_ver}"
-RUN  jwtver=$(cat ${verdir}/jwtauthenticator.commit) && \
-      pip3 install --upgrade \
-       git+https://github.com/mogthesprog/jwtauthenticator.git@${jwtver}
-RUN jupyter serverextension enable --py jupyterlab --sys-prefix
 RUN  mkdir ${jh}/config ${jh}/templates
+RUN  pip3 freeze > ${verdir}/requirements.txt && \
+      rpm -qa | sort > ${verdir}/rpmlist.txt
 COPY hublauncher.sh /opt/lsst/software/jupyterhub/
 COPY title.html /opt/lsst/software/jupyterhub/templates/
 # The template override is not working.  Here is a nasty hack to get
@@ -42,5 +53,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.16.2"
+       version="0.16.4"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

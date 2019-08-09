@@ -5,7 +5,6 @@ import datetime
 import json
 import namespacedkubespawner
 import os
-import requests
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1HostPathVolumeSource
 from kubespawner.objects import make_pod
@@ -41,7 +40,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     extra_pod_config = None
     extra_containers = []
     service_account = None
-    recommended_tag = None
     if os.getenv("ALLOW_DASK_SPAWN"):
         service_account = "dask"
     # Change some defaults.
@@ -56,6 +54,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
     # stash quota values to pass to spawned environment
     _quota = {}
     _custom_resources = {}
+    _scanner = None
 
     def _options_form_default(self):
         # Make options form by scanning container repository
@@ -81,23 +80,12 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                                    cachefile=cachefile,
                                    debug=debug)
         scanner.scan()
+        self._scanner = scanner
         lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
         resmap = scanner.get_all_scan_results()
         all_tags = list(resmap.keys())
-        rhash = None
-        rec = resmap.get("recommended")
-        if rec:
-            rhash = rec.get("hash")
-        if rhash:
-            for tag in resmap:
-                if tag == "recommended":
-                    continue
-                ihash = resmap[tag].get("hash")
-                if rhash == ihash:
-                    self.recommended_tag = tag
-                    break
         optform = "<label for=\"%s\">%s</label><br />\n" % (title, title)
         now = datetime.datetime.now()
         nowstr = now.ctime()
@@ -248,43 +236,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             self.log.error("Authenticator object has no groups attribute.")
             return []
 
-    def _get_layers(self, recjson):
-        fsl = recjson.get("fsLayers")
-        if not fsl:
-            return None
-        return [x["blobSum"] for x in fsl]
-
-    def _get_auth_token(self, scanner):
-        baseurl = self._get_baseurl(scanner)
-        if not baseurl:
-            return None
-        url = baseurl + "manifests/recommended"
-        initial_response = requests.get(url)
-        sc = initial_response.status_code
-        if sc == 200:
-            return "NO-AUTH"
-        elif sc == 401:
-            magicheader = initial_response.headers['Www-Authenticate']
-            if magicheader[:7] == "Bearer ":
-                hd = {}
-                hl = magicheader[7:].split(",")
-                for hn in hl:
-                    il = hn.split("=")
-                    kk = il[0]
-                    vv = il[1].replace('"', "")
-                    hd[kk] = vv
-                if (not hd or "realm" not in hd or "service" not in hd
-                        or "scope" not in hd):
-                    return None
-                endpoint = hd["realm"]
-                del hd["realm"]
-                tresp = requests.get(endpoint, params=hd, json=True)
-                jresp = tresp.json()
-                return jresp.get("token")
-        else:
-            self.log.error("GET %s -> %d" % (url, sc))
-            return None
-
     def _get_baseurl(self, scanner):
         host = scanner.host
         if host == "hub.docker.com":
@@ -355,6 +306,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                  os.getenv("LAB_IMAGE") or
                  "lsstsqre/sciplat-lab:latest")
         image_name = image
+        tag = "latest"
         size = None
         image_size = None
         # First pulls can be really slow for the LSST stack containers,
@@ -375,6 +327,17 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 if colon > -1:
                     imgname = image[:colon]
                     tag = image[(colon + 1):]
+                    if tag == "recommended" or tag.startswith("latest"):
+                        self.log.info("Resolving tag '{}'".format(tag))
+                        if self._scanner:
+                            qtag = self._scanner.resolve_tag(tag)
+                            if qtag:
+                                tag = qtag
+                                image = imgname + ":" + tag
+                                image_name = image
+                            else:
+                                self.log.warning(
+                                    "Failed to resolve tag '{}'".format(tag))
                     self.log.debug("Image name: %s ; tag: %s" % (imgname, tag))
                     if tag == "__custom":
                         cit = self.user_options.get('image_tag')
@@ -386,9 +349,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 if size:
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
-        if (image.endswith(":recommended") and self.recommended_tag
-                and self.recommended_tag != "NOTFOUND"):
-            image = image[:-(len(":recommended"))] + ":" + self.recommended_tag
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
         cpu_limit = os.getenv('LAB_CPU_LIMIT') or 1.0
         if image_size:
@@ -413,20 +373,21 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             cpu_guar = float(image_size["cpu"] / size_range)
         self.mem_guarantee = mem_guar
         self.cpu_guarantee = cpu_guar
+        self.log.debug("Image: {}".format(image))
         self.image = image
-        s_idx = image.find('/')
-        c_idx = image.find(':')
-        tag = "latest"
-        if s_idx != -1:
-            image_name = image[(s_idx + 1):]
-            if c_idx > 0:
-                image_name = image[(s_idx + 1):c_idx]
-                tag = image[(c_idx + 1):].replace('_', '-')
-        abbr_pn = image_name
-        if image_name == 'sciplat-lab':
+        # Parse the image name + tag
+        i_l = image.split("/")
+        if len(i_l) == 1:
+            repo_tag = i_l[0]
+        else:
+            repo_tag = i_l[1]
+        repo = repo_tag.split(":")[0]
+        rt_tag = tag.replace('_', '-')
+        abbr_pn = repo
+        if repo == 'sciplat-lab':
             # Saving characters because tags can be long
             abbr_pn = "nb"
-        pn_template = abbr_pn + "-{username}-" + tag
+        pn_template = abbr_pn + "-{username}-" + rt_tag
         pod_name = self._expand_user_properties(pn_template)
         self.pod_name = pod_name
         self.log.info("Replacing pod name from options form: %s" %

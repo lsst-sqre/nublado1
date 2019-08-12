@@ -63,7 +63,7 @@ If you are here, consider one of the more automated deployment methods:
   therefore you probably want to create the application within the
   primary organization you want to grant access to.  The `homepage URL`
   is simply the HTTPS endpoint of the DNS record, and the callback URL
-  appends `/hub/oauth_callback` to that.
+  appends `/nb/hub/oauth_callback` to that.
 
 * These instructions and templates generally assume Google Container
   Engine.  If you are using a different Kubernetes provider, you will
@@ -439,7 +439,7 @@ customization on your part.
 	 may be set to the empty string.
   3. `session_db_url`.  If you don't know this or are happy with the
      stock sqlite3 implementation, use the URL
-     `sqlite:////home/jupyter/jupyterhub.sqlite`; any RDBMS supported by
+     `sqlite:////home/jovyan/jupyterhub.sqlite`; any RDBMS supported by
      SQLAlchemy can be used.
   4. `jupyterhub_crypto_key`; I use `openssl rand -hex 32` to get 16
      random bytes.  I use two of these separated by a semicolon as the

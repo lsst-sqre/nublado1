@@ -4,7 +4,7 @@ if [ -z "${DEPYAMLTPL}" ]; then
 fi
 DEPYAML="kubernetes/deployment.yml"
 OAUTH_PROVIDER=${OAUTH_PROVIDER:-"github"}
-FQDN=${FQDN}:-""}
+FQDN=${FQDN:-""}
 LAB_SELECTOR_TITLE=${LAB_SELECTOR_TITLE:-"LSST Stack Selector"}
 LAB_REPO_HOST=${LAB_REPO_HOST:-"hub.docker.com"}
 LAB_REPO_OWNER=${LAB_REPO_OWNER:-"lsstsqre"}
@@ -86,7 +86,7 @@ sed -e "s/{{DEBUG}}/${DEBUG}/g" \
     -e "s/{{RESTRICT_DASK_NODES}}/${RESTRICT_DASK_NODES}/g" \
     -e "s/{{RESTRICT_LAB_NODES}}/${RESTRICT_LAB_NODES}/g" \
     -e "s/{{EXTERNAL_FILESERVER_IP}}/${EXTERNAL_FILESERVER_IP}/g" \
-    -e "s/{{EXTERNAL_INSTANCE_URL}}/${EXTERNAL_INSTANCE_URL}/g" \
+    -e "s|{{EXTERNAL_INSTANCE_URL}}|${EXTERNAL_INSTANCE_URL}|g" \
     -e "s/{{EXTERNAL_FIREFLY_URL}}/${EXTERNAL_FIREFLY_URL}/g" \
     -e "s/{{EXTERNAL_SODA_URL}}/${EXTERNAL_SODA_URL}/g" \
     -e "s/{{EXTERNAL_API_URL}}/${EXTERNAL_API_URL}/g" \

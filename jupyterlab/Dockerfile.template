@@ -188,7 +188,6 @@ RUN  pip3 install --upgrade \
        "dask[complete]" \
        "holoviews[recommended]" \
        datashader \
-       jupyterlab_lsstquery \
        nclib \
        python-snappy \
        graphviz \
@@ -211,6 +210,7 @@ RUN  pip3 install --upgrade \
        jupyter-server-proxy \
        dask-kubernetes \
        git+https://github.com/cbanek/pyvo.git@122-auth2
+#        jupyterlab_lsstquery \
 #       dask_labextension is pretty iffy still.  Omit for the time being.
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -260,7 +260,6 @@ RUN  source ${LOADSTACK} && \
        vaex-distributed \
        vaex-jupyter \
        vaex-arrow \
-       jupyterlab_lsstquery \
        nclib \
        python-snappy cython \
        graphviz \
@@ -275,6 +274,7 @@ RUN  source ${LOADSTACK} && \
        jupyter-server-proxy \
        dask-kubernetes \
        git+https://github.com/cbanek/pyvo.git@122-auth2
+#        jupyterlab_lsstquery \
 # omit dask_labextension       
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -297,17 +297,18 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyterlab_lsstquery jupyter_firefly_extensions"
+ENV SVXT="jupyterlab jupyter_firefly_extensions"
+#lsstquery
 ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           bqplot ipyevents ipyvolume jupyter-threejs \
-          @lsst-sqre/jupyterlab-lsstquery \
           @lsst-sqre/jupyterlab-savequit \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
           jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz"
+# @lsst-sqre/jupyterlab-lsstquery
 # Omit dask-labextension for now.	  
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
@@ -384,18 +385,18 @@ RUN  mkdir -p ${verdir} && \
 #      jupyter labextension install --no-build
 #RUN  gitxt="ipyaladin" && \
 RUN  cd /usr/share/git && \
-      b="tickets/DM-20930" && \
+      b="master" && \
       r="jupyterlab-lsst-extensions" && \
       git clone -b ${b} \
        https://github.com/lsst-sqre/${r} && \
-       cd ${r} && \
-       pip3 install -e . && \
-       jupyter serverextension enable --py jupyterlab_lsstextensions \
+      cd ${r} && \
+      pip3 install -e . && \
+      jupyter serverextension enable --py jupyterlab_lsstextensions \
         --sys-prefix && \
-       jupyter labextension install packages/labextension --no-build && \
-       jlpm install --unsafe-perm && \
-       jlpm run build && \
-       jupyter labextension install --no-build       
+      jupyter labextension install . --no-build && \
+      jlpm install --unsafe-perm && \
+      jlpm run build && \
+      jupyter labextension install --no-build       
 RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \

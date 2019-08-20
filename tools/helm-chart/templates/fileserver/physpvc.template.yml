@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "nublado.fullname" . }}-physpvc
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: {{.Values.fileserver.shared_volume_size}}
+  storageClassName: fast
+

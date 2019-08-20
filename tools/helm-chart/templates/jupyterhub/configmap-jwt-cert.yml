@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "nublado.fullname" . }}-jwt-cert
+data:
+  signing-certificate.pem: |-
+    {{ .Files.Get "static/signing-certificate.pem" | b64enc }}

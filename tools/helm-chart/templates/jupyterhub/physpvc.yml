@@ -1,0 +1,13 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+annotations:
+  pv.beta.kubernetes.io/gid: {{ .Values.hub.gid }}
+metadata:
+  name: {{ template "nublado.fullname" . }}-hub-physpvc
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: 1Gi
+

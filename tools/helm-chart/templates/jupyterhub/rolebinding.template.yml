@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "nublado.fullname" . }}-hub
+subjects:
+- kind: ServiceAccount
+  name: {{ template "nublado.fullname" . }}-hub
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: {{ template "nublado.fullname" . }}-hub
+  apiGroup: ""
+

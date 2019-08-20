@@ -1,0 +1,269 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "nublado.fullname" . }}-hub
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: {{ template "nublado.fullname" . }}-hub
+    spec:
+      serviceAccountName: {{ template "nublado.fullname" . }}-hub
+      securityContext:
+        runAsUser: {{ .Values.hub.uid }}
+        runAsGroup: {{ .Values.hub.gid }}
+        fsGroup: {{ .Values.hub.gid }}
+      containers:
+        - name: {{ template "nublado.fullname" . }}-hub
+          imagePullPolicy: "Always"
+          image: "lsstsqre/sciplat-hub"
+          resources:
+            limits:
+              memory: 2G
+              cpu: 2.0
+            requests:
+              memory: 1G
+              cpu: 0.8
+          ports:
+            - containerPort: 8081
+              name: api
+          env:
+            - name: LOGLEVEL
+              value: INFO
+            - name: FQDN
+              value: '{{.Values.fqdn}}'
+            # Set to non-empty value to enable debugging.
+            - name: DEBUG
+              value: '{{.Values.debug}}'
+            # One of "github", "cilogon", or "jwt"
+            - name: OAUTH_PROVIDER
+              value: '{{.Values.oauth_provider}}'
+            # If set, enables running lab containers with k8s privileges
+            #  to start/stop/list containers (to spawn dask worker pods)
+            - name: ALLOW_DASK_SPAWN
+              value: '{{.Values.dask.allow_spawn}}'
+            # If set, restricts lab or dask to run on containers with
+            #  labels 'jupyterlab: ok' or 'dask: ok'
+            - name: RESTRICT_LAB_NODES
+              value: '{{.Values.lab.restrict_nodes}}'
+            - name: RESTRICT_DASK_NODES
+              value: '{{.Values.dask.restrict_nodes}}'
+            # Maximum number of dask worker pods
+            - name: MAX_DASK_WORKERS
+              value: '{{.Values.dask.max_workers}}'
+            # Set to customize what repo and what images to scan.
+            - name: LAB_REPO_HOST
+              value: '{{.Values.lab.image.repo_host}}'
+            - name: LAB_REPO_OWNER
+              value: '{{.Values.lab.image.repo_owner}}'
+            - name: LAB_REPO_NAME
+              value: '{{.Values.lab.image.repo_name}}'
+            # Set if you want to change number of experimentals/dailies/
+            #  weeklies/releases prepulled and displayed in menu
+            #  (usually 0/3/2/1)
+            - name: PREPULLER_EXPERIMENTALS
+              value: '{{.Values.lab.image.experimentals}}'
+            - name: PREPULLER_DAILIES
+              value: '{{.Values.lab.image.dailies}}'
+            - name: PREPULLER_WEEKLIES
+              value: '{{.Values.lab.image.weeklies}}'
+            - name: PREPULLER_RELEASES
+              value: '{{.Values.lab.image.releases}}'
+            # Set if you do not want to scan a repository for images.
+            - name: LAB_IMAGE
+              value: '{{.Values.lab.image_name}}'
+            # Set if you want something other than 12 hours.  Setting to
+            # zero or a negative value disables.
+            - name: LAB_IDLE_TIMEOUT
+              value: '{{.Values.lab.idle_timeout}}'
+            - name: LAB_MEM_LIMIT
+              value: '{{.Values.lab.resources.mem_limit}}'
+            - name: LAB_CPU_LIMIT
+              value: '{{.Values.lab.resources.cpu_limit}}'
+            - name: LAB_MEM_GUARANTEE
+              value: '{{.Values.lab.resources.mem_guarantee}}'
+            - name: LAB_CPU_GUARANTEE
+              value: '{{.Values.lab.resources.cpu_guarantee}}'
+            - name: LAB_NODEJS_MAX_MEM
+              value: '{{.Values.lab.resources.nodejs_max_mem}}'
+            - name: TINY_CPU_MAX
+              value: '{{.Values.lab.resources.tiny_cpu_max}}'
+            - name: MB_PER_CPU
+              value: '{{.Values.lab.resources.mb_per_cpu}}'
+            - name: LAB_SIZE_RANGE
+              value: '{{.Values.lab.resources.size_range}}'
+            - name: JUPYTERLAB_CONFIG_DIR
+              value: '/opt/lsst/software/jupyterhub/config'
+            - name: HUB_ROUTE
+              value: '{{.Values.routes.hub}}'
+            - name: FIREFLY_ROUTE
+              value: '{{.Values.routes.firefly}}'
+            - name: JS9_ROUTE
+              value: '{{.Values.routes.js9}}'
+            - name: API_ROUTE
+              value: '{{.Values.routes.api}}'
+            - name: TAP_ROUTE
+              value: '{{.Values.routes.tap}}'
+            - name: SODA_ROUTE
+              value: '{{.Values.routes.soda}}'
+            - name: AUTO_REPO_URLS
+              value: '{{.Values.lab.repos}}'
+            - name: SIZE_INDEX
+              value: '{{.Values.lab.resources.size_index}}'
+            - name: EXTERNAL_FILESERVER_IP
+            {{ if .Values.routes.external.fileserver }}
+              value: '{{.Values.routes.external.fileserver }}'
+            {{ else }}
+              value: '{{ template "nublado.fullname" . }}-fileserver.{{.Release.Namespace}}.svc.cluster.local'
+            {{ end }}
+            - name: EXTERNAL_FIREFLY_URL
+              value: '{{.Values.routes.external.firefly}}'
+            - name: EXTERNAL_JS9_URL
+              value: '{{.Values.routes.external.js9}}'
+            - name: EXTERNAL_INSTANCE_URL
+              value: '{{.Values.routes.external.instance}}'
+            - name: EXTERNAL_API_URL
+              value: '{{.Values.routes.external.api}}'
+            - name: EXTERNAL_SODA_URL
+              value: '{{.Values.routes.external.soda}}'
+            - name: EXTERNAL_HUB_URL
+              value: '{{.Values.routes.external.hub}}'
+            - name: PROXY_SERVICE_HOST
+              value: '{{ template "nublado.fullname" . }}-proxy.{{.Release.Namespace}}'
+            - name: PROXY_SERVICE_PORT_API
+              value: '8081'
+            - name: HUB_SERVICE_HOST
+              value: '{{ template "nublado.fullname" . }}-hub.{{.Release.Namespace}}'
+            - name: PROXY_SERVICE_PORT_API
+              value: '8001'
+            - name: GITHUB_ORGANIZATION_WHITELIST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: github_organization_whitelist
+            - name: CILOGON_GROUP_WHITELIST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: cilogon_group_whitelist
+            - name: GITHUB_ORGANIZATION_DENYLIST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: github_organization_denylist
+                  optional: true
+            - name: CILOGON_GROUP_DENYLIST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: cilogon_group_denylist
+                  optional: true
+            - name: OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: oauth_client_id
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: oauth_secret
+            - name: OAUTH_CALLBACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: oauth_callback_url
+            # You want this if you're using CILogon rather than GitHub
+            #  and not using 'cilogon.org'
+            # - name: CILOGON_HOST
+            #   value: 'test.cilogon.org'
+            # Use this to restrict the list of available ID Providers
+            #- name: CILOGON_IDP_SELECTION
+            #  value: 'https://idp.ncsa.illinois.edu/idp/shibboleth'
+            # Use this to set the CILogon skin
+            #- name: CILOGON_SKIN
+            #  value: 'LSST'
+            # This may contain credentials, so it should be a secret
+            - name: SESSION_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: session_db_url
+            # This is one or more 32-byte encryption keys (separated
+            # with ';') needed to persist auth_state.  They can be
+            # base64 or hex-encoded.  Two lets you do key rotation
+            - name: JUPYTERHUB_CRYPT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: jupyterhub_crypto_key
+            - name: CONFIGPROXY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: configproxy_auth_token
+          # If you use sqlite, you want this to persist sessions across
+          #  jupyterhub restarts.
+          volumeMounts:
+            - name: home-jovyan
+              mountPath: /home/jovyan
+            - name: hub-config
+              mountPath: /opt/lsst/software/jupyterhub/config
+            - name: fs-mounts
+              mountPath: /opt/lsst/software/jupyterhub/mounts
+            - name: resourcemap
+              mountPath: /opt/lsst/software/jupyterhub/resources
+            - name: jwt-cert
+              mountPath: /opt/jwt
+              readOnly: true
+      volumes:
+        - name: home-jovyan
+          persistentVolumeClaim:
+           claimName: {{ template "nublado.fullname" . }}-hub-physpvc
+        - name: hub-config
+          configMap:
+            name: {{ template "nublado.fullname" . }}-hub-config
+            #  Create with `kubectl create configmap hub-config \
+            #   --from-file=config/jupyterhub_config.py \
+            #   --from-file=config/jupyterhub_config.d`
+            #  It is sort of annoying that you still have to specify
+            #   each file in the directory.
+            items:
+            - key: jupyterhub_config.py
+              path: jupyterhub_config.py
+            - key: 00-preamble.py
+              path: jupyterhub_config.d/00-preamble.py
+            - key: 10-authenticator.py
+              path: jupyterhub_config.d/10-authenticator.py
+            - key: 20-spawner.py
+              path: jupyterhub_config.d/20-spawner.py
+            - key: 30-environment.py
+              path: jupyterhub_config.d/30-environment.py
+        - name: jwt-cert
+          configMap:
+              #  Create with `kubectl create configmap jwt-cert \
+              #   --from-file=config/signing-certificate.pem`
+            defaultMode: 420
+            items:
+            - key: signing-certificate.pem
+              path: signing-certificate.pem
+            name: {{ template "nublado.fullname" . }}-jwt-cert
+        - name: fs-mounts
+          configMap:
+              #  Create with `kubectl create configmap fs-mounts \
+              #   --from-file=config/mountpoints.json`
+            defaultMode: 420
+            items:
+            - key: mountpoints.json
+              path: mountpoints.json
+            name: {{ template "nublado.fullname" . }}-fs-mounts
+        - name: resourcemap
+          configMap:
+              #  Create with `kubectl create configmap resourcemap \
+              #   --from-file=config/resourcemap.json`
+            defaultMode: 420
+            items:
+            - key: resourcemap.json
+              path: resourcemap.json
+            name: {{ template "nublado.fullname" . }}-resourcemap

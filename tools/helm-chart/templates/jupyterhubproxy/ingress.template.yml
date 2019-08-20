@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "nublado.fullname" . }}-proxy
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: {{ .Values.routes.hub }}/$2
+    #
+    # If you're doing JWT auth, you also need:
+    #
+    # nginx.ingress.kubernetes.io/auth-url: https://{{ .Values.fqdn }}/auth\
+    #  ?capability=exec:notebook&reissue_token=true
+    #
+    # Also make sure that MAX_HTTP_HEADER_SIZE is set to at least 16384
+    # in the deployment configuration if you are doing JWT.
+    #
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Forwarded-Path {{ .Values.routes.hub }};
+    #
+    # And for JWT, add:
+    #
+    # auth_request_set $auth_token $upstream_http_x_auth_request_token;
+    # proxy_set_header X-Portal-Authorization "Bearer $auth_token";
+    # error_page 403 = "https://{{ .Values.fqdn }}/oauth2/start?rd=$request_uri";
+    #
+spec:
+  rules:
+  - host: {{ .Values.fqdn }}
+    http:
+      paths:
+      - path: {{ .Values.routes.hub }}(/|$)(.*)
+        backend:
+          serviceName: {{ template "nublado.fullname" . }}-proxy
+          servicePort: 8000

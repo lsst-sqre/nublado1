@@ -1,0 +1,14 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "nublado.fullname" . }}-prepuller
+subjects:
+- kind: ServiceAccount
+  name: {{ template "nublado.fullname" . }}-prepuller
+  namespace: {{ .Release.Namespace }}
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: {{ template "nublado.fullname" . }}-prepuller
+  apiGroup: ""
+

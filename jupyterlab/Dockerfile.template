@@ -383,6 +383,19 @@ RUN  mkdir -p ${verdir} && \
 #      jlpm run build && \
 #      jupyter labextension install --no-build
 #RUN  gitxt="ipyaladin" && \
+RUN  cd /usr/share/git && \
+      b="tickets/DM-20930" && \
+      r="jupyterlab-lsst-extensions" && \
+      git clone -b ${b} \
+       https://github.com/lsst-sqre/${r} && \
+       cd ${r} && \
+       pip3 install -e . && \
+       jupyter serverextension enable --py jupyterlab_lsstextensions \
+        --sys-prefix && \
+       jupyter labextension install packages/labextension --no-build && \
+       jlpm install --unsafe-perm && \
+       jlpm run build && \
+       jupyter labextension install --no-build       
 RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \

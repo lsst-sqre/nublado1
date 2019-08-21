@@ -209,8 +209,8 @@ RUN  pip3 install --upgrade \
        intake-parquet \
        jupyter-server-proxy \
        dask-kubernetes \
-       git+https://github.com/cbanek/pyvo.git@122-auth2
-#        jupyterlab_lsstquery \
+       jupyterlab_lsstextensions \
+       git+https://github.com/astropy/pyvo.git
 #       dask_labextension is pretty iffy still.  Omit for the time being.
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -273,8 +273,8 @@ RUN  source ${LOADSTACK} && \
        intake-parquet \
        jupyter-server-proxy \
        dask-kubernetes \
-       git+https://github.com/cbanek/pyvo.git@122-auth2
-#        jupyterlab_lsstquery \
+       jupyterlab_lsstextensions \
+       git+https://github.com/astropy/pyvo.git
 # omit dask_labextension       
 # Pip installing breaks for cartopy: 23 Jan 2019
 # Install Proj into stack environment
@@ -297,12 +297,13 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_firefly_extensions"
+ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions"
 #lsstquery
 ENV NBXT="widgetsnbextension ipyevents"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           bqplot ipyevents ipyvolume jupyter-threejs \
           @lsst-sqre/jupyterlab-savequit \
+	  @lsst-sqre/jupyterlab-lsstextensions \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
@@ -384,19 +385,6 @@ RUN  mkdir -p ${verdir} && \
 #      jlpm run build && \
 #      jupyter labextension install --no-build
 #RUN  gitxt="ipyaladin" && \
-RUN  cd /usr/share/git && \
-      b="master" && \
-      r="jupyterlab-lsst-extensions" && \
-      git clone -b ${b} \
-       https://github.com/lsst-sqre/${r} && \
-      cd ${r} && \
-      pip3 install -e . && \
-      jupyter serverextension enable --py jupyterlab_lsstextensions \
-        --sys-prefix && \
-      jupyter labextension install . --no-build && \
-      jlpm install --unsafe-perm && \
-      jlpm run build && \
-      jupyter labextension install --no-build       
 RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \

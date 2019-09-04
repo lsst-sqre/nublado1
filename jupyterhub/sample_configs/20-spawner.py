@@ -9,6 +9,7 @@ from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1HostPathVolumeSource
 from kubespawner.objects import make_pod
 from jupyterhubutils import SingletonScanner
+from time import sleep
 from tornado import gen
 
 
@@ -79,8 +80,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                                    releases=releases,
                                    cachefile=cachefile,
                                    debug=debug)
-        scanner.scan()
         self._scanner = scanner
+        self._sync_scan()
         lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
@@ -155,6 +156,22 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         optform += "<hr />\n"
         optform += "Menu updated at %s<br />\n" % nowstr
         return optform
+
+    def _sync_scan(self):
+        scanner = self._scanner
+        delay_interval = 5
+        max_delay = 300
+        delay = 0
+        while not scanner._results:
+            self.log.warning("Scan results not availble yet; sleeping " +
+                             "{}s ({}s so far).".format(delay_interval,
+                                                        delay))
+            sleep(delay_interval)
+            delay = delay + delay_interval
+            if delay >= max_delay:
+                errstr = ("Scan results did not become available in " +
+                          "{}s.".format(max_delay))
+                raise RuntimeError(errstr)
 
     def _make_sizemap(self):
         sizes = self.sizelist

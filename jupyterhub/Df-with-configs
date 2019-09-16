@@ -1,0 +1,13 @@
+FROM lsstsqre/sciplat-hub:exp_0.16.6
+USER root
+ENV  jc=/opt/lsst/software/jupyterhub/config
+ENV  jcd=jupyterhub_config.d
+RUN  mkdir -p ${jc}/${jcd}
+COPY jupyterhub_config/jupyterhub_config.py ${jc}/
+COPY jupyterhub_config/${jcd}/* ${jc}/${jcd}/
+USER 768:768
+LABEL description="Science Platform Notebook Aspect: jupyterhub-with-config" \
+       name="lsstsqre/sciplat-hub-with-config" \
+       version="exp_0.16.6"
+CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]
+

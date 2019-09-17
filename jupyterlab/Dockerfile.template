@@ -47,7 +47,7 @@ RUN  cd /tmp && \
 RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
        > /etc/yum.repos.d/yarn.repo && \
       yum -y install yarn
-ENV  srcdir=/opt/lsst/git
+ENV  srcdir=/opt/lsst/src
 RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \

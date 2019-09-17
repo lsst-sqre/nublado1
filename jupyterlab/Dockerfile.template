@@ -228,6 +228,8 @@ RUN  LBXT=$(cat ${verdir}/labext.txt) && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
+#RUN  jupyter labextension disable \
+#      "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build

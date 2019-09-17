@@ -3,10 +3,8 @@ USER root
 RUN  yum install -y epel-release
 RUN  yum repolist
 RUN  yum -y upgrade
-RUN  yum install -y python36 git
-RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 \
-       50 && \
-      python3 -m ensurepip
+RUN  yum install -y python3 git
+RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip3 install 'jupyterhubutils>=0.8.1'
 COPY prepull /usr/bin/prepull

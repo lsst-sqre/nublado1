@@ -6,13 +6,13 @@ ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
-RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
+#RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 RUN  yum install -y epel-release man man-pages
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install \
       git sudo \
-      python36 python36-setuptools python36-devel \
+      python3 python3-setuptools python3-devel \
       http-parser perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox \
@@ -21,11 +21,10 @@ RUN  yum -y install \
       mariadb mysql mysql-devel \
       unzip nano file ed
 # Make EPEL Python 3.6 system Python 3 and install pip3
-RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
-      python3 -m ensurepip
+RUN  python3 -m ensurepip
 # Tkinter and git: install from SCL
 RUN  yum -y install centos-release-scl && \
-     yum -y install rh-git29
+     yum -y install rh-git218
 # Install git-lfs repo and then git-lfs
 RUN  S="script.rpm.sh" && \
       curl -s \
@@ -34,7 +33,7 @@ RUN  S="script.rpm.sh" && \
       bash /tmp/script.rpm.sh && \
       rm /tmp/script.rpm.sh && \
       yum -y install git-lfs && \
-      source scl_source enable rh-git29 && \
+      source scl_source enable rh-git218 && \
       git lfs install
 # Install newer nodejs for system; needed for JupyterLab build
 RUN  cd /tmp && \

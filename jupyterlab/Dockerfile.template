@@ -6,13 +6,14 @@ ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
-RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
+# Uncomment once RFC-631 is implemented
+#RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 RUN  yum install -y epel-release man man-pages
 RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install \
       git sudo \
-      python36 python36-setuptools python36-devel \
+      python3 python3-setuptools python3-devel \
       http-parser perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox \
@@ -21,11 +22,10 @@ RUN  yum -y install \
       mariadb mysql mysql-devel \
       unzip nano file ed
 # Make EPEL Python 3.6 system Python 3 and install pip3
-RUN  alternatives --install /usr/bin/python3 python3 /usr/bin/python36 50 && \
-      python3 -m ensurepip
+RUN  python3 -m ensurepip
 # Tkinter and git: install from SCL
 RUN  yum -y install centos-release-scl && \
-     yum -y install rh-git29
+     yum -y install rh-git218
 # Install git-lfs repo and then git-lfs
 RUN  S="script.rpm.sh" && \
       curl -s \
@@ -34,7 +34,7 @@ RUN  S="script.rpm.sh" && \
       bash /tmp/script.rpm.sh && \
       rm /tmp/script.rpm.sh && \
       yum -y install git-lfs && \
-      source scl_source enable rh-git29 && \
+      source scl_source enable rh-git218 && \
       git lfs install
 # Install newer nodejs for system; needed for JupyterLab build
 RUN  cd /tmp && \
@@ -47,7 +47,8 @@ RUN  cd /tmp && \
 RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
        > /etc/yum.repos.d/yarn.repo && \
       yum -y install yarn
-RUN  mkdir -p /usr/share/git
+ENV  srcdir=/opt/lsst/src
+RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \
      V="2.11.2" && \
@@ -73,7 +74,7 @@ RUN  cd /tmp && \
       cd /tmp && \
       rm -rf ${F} ${FN}
 # Now we can build Snappy
-RUN  cd /usr/share/git && \
+RUN  cd ${srcdir}/thirdparty && \
       V="1.1.7" && \
       git clone -b ${V} https://github.com/google/snappy && \
       cd snappy && \
@@ -84,7 +85,7 @@ RUN  cd /usr/share/git && \
       make && \
       make install
 # Install newer Proj -- but 6.0 is not cartopy-happy yet
-RUN  cd /usr/share/git && \
+RUN  cd ${srcdir}/thirdparty && \
       V="5.2.0" && \
       git clone -b ${V} https://github.com/OSGeo/proj.4.git && \
       cd proj.4 && \
@@ -107,7 +108,7 @@ RUN  cd /tmp && \
 # This is for Fritz, and my nefarious plan to make the "te" in "Jupyter"
 #  TECO
 # We're not doing the "Make" alias--too likely to confuse
-RUN  cd /usr/share/git && \
+RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/blakemcbride/TECOC.git && \
       cd TECOC/src && \
       make -f makefile.linux && \
@@ -147,7 +148,7 @@ RUN  pip3 install --upgrade pip setuptools
 #  ...but you need numpy and cython first.
 # 2019-07-15: remove ipyaladin for now.
 RUN  pip3 install numpy cython && \
-      cd /usr/share/git && \
+      cd ${srcdir}/thirdparty && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
@@ -216,7 +217,7 @@ RUN  pip3 install --upgrade \
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
 RUN  source ${LOADSTACK} && \
-      cd /usr/share/git && \
+      cd ${srcdir}/thirdparty && \
       pip install kapteyn/
 RUN  source ${LOADSTACK} && \
       pip install --upgrade \
@@ -281,12 +282,12 @@ RUN  source ${LOADSTACK} && \
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
 ENV  CARTOPY_VER="0.17.0"
-RUN  cd /usr/share/git && \
+RUN  cd ${srcdir}/thirdparty && \
       git clone -b v${CARTOPY_VER} https://github.com/SciTools/cartopy
-RUN  cd /usr/share/git/cartopy && \
+RUN  cd ${srcdir}/thirdparty/cartopy && \
       python3 setup.py install
 RUN  source ${LOADSTACK} && \
-      cd /usr/share/git/cartopy && \
+      cd ${srcdir}/thirdparty/cartopy && \
       python setup.py install
 # Add stack kernel
 RUN source ${LOADSTACK} && \
@@ -333,7 +334,7 @@ RUN  mkdir -p ${verdir} && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
-#RUN  cd /usr/share/git && \
+#RUN  cd ${srcdir} && \
 #      git clone https://github.com/lsst-sqre/ipyaladin && \
 #      cd ipyaladin/js && \
 #      npm install --unsafe-perm && \
@@ -341,7 +342,7 @@ RUN  mkdir -p ${verdir} && \
 #      pip3 install -e . && \
 #      cd js && \
 #      jupyter labextension install
-#RUN  cd /usr/share/git && \
+#RUN  cd ${srcdir} && \
 #      b="tickets/DM-19974" && \
 #      git clone -b ${b} https://github.com/lsst-sqre/nbdime.git && \
 #      cd nbdime && \
@@ -351,7 +352,7 @@ RUN  mkdir -p ${verdir} && \
 #      jupyter nbextension install --py nbdime --sys-prefix && \
 #      jupyter nbextension enable --py nbdime --sys-prefix && \
 #      jupyter labextension install packages/labextension --no-build
-#RUN  cd /usr/share/git && \
+#RUN  cd ${srcdir} && \
 #      pr="134" && \
 #      git clone https://github.com/jupyterhub/jupyter-server-proxy.git && \
 #      cd jupyter-server-proxy && \
@@ -361,7 +362,7 @@ RUN  mkdir -p ${verdir} && \
 #      jlpm install --unsafe-perm && \
 #      jlpm run build && \
 #      jupyter labextension install --no-build
-#RUN  cd /usr/share/git && \
+#RUN  cd ${srcdir} && \
 #      pr="63" && \
 #      git clone https://github.com/dask/dask-labextension.git && \
 #      cd dask-labextension && \
@@ -375,7 +376,7 @@ RUN  mkdir -p ${verdir} && \
 #      source ${LOADSTACK} && \
 #      pip install -e . && \
 #      jupyter serverextension enable --sys-prefix dask_labextension
-#RUN  cd /usr/share/git && \
+#RUN  cd ${srcdir} && \
 #      pr="66" && \
 #      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
 #      cd jupyterlab_bokeh && \
@@ -407,7 +408,7 @@ RUN  groupadd -g 768 jovyan && \
      u="${uls}/${jlb}" && \
      mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
      set -e && \
-     for i in /usr/share/git ${u}/staging; do \
+     for i in ${srcdir} ${u}/staging; do \
          chgrp -R jovyan ${i} && \
          chmod -R g+w ${i} ; \
      done

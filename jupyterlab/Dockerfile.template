@@ -31,7 +31,7 @@ RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
 # Install pip3
 RUN  python3 -m ensurepip
 # Install git-lfs
-RUN  source scl_source enable rh-git29 && \
+RUN  source scl_source enable rh-git218 && \
       git lfs install
 RUN  mkdir -p /usr/share/git
 # Install Hub

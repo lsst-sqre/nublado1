@@ -28,10 +28,8 @@ COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
 RUN  yum install -y ${epel_release}
 RUN  yum repolist
 RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
-# Make EPEL Python 3.6 system Python 3 and install pip3
-RUN  alternatives --install /usr/bin/python3 python3 \
-      /usr/bin/python36 50 && \
-      python3 -m ensurepip
+# Install pip3
+RUN  python3 -m ensurepip
 # Install git-lfs
 RUN  source scl_source enable rh-git29 && \
       git lfs install

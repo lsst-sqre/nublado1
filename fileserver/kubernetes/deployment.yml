@@ -14,17 +14,13 @@ spec:
           imagePullPolicy: "Always"
           image: "lsstsqre/sciplat-fileserver"
           env:
-            - name: LOGLEVEL
-              value: INFO
+            - name: DEBUG
+              value: "true"
           ports:
           - name: nfs
             containerPort: 2049
-          - name: mountd
-            containerPort: 20048
-          - name: rpcbind
-            containerPort: 111              
           securityContext:
-            privileged: true
+            privileged: True
           volumeMounts:
             - name: storage
               mountPath: /exports

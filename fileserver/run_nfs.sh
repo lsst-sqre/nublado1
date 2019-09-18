@@ -55,22 +55,29 @@ function start()
     done
     shift $(($OPTIND - 1))
 
+    # Default to v4 only, TCP only, 8 threads.  Allow override with
+    #  /etc/sysconfig/nfs as usual
     if [ -e /etc/sysconfig/nfs ]; then
 	source /etc/sysconfig/nfs
     fi
-    if [ -z "${RPGNFSDCOUNT}" ]; then
+    if [ -z "${RPCNFSDCOUNT}" ]; then
 	RPCNFSDCOUNT=8
     fi
-    if [ -z "${RPGNFSDARGS}" ]; then
-	RPCNFSDARGS="-G 10 -N 2 -N 3 -V 4"
+    if [ -z "${RPCNFSDARGS}" ]; then
+	RPCNFSDARGS="-G 10 -N2 -N3 -V4 -U"
     fi
+    if [ -z "${RPGMOUNTDOPTS}" ]; then
+	RPCMOUNTDOPTS="-N2 -N3 -V4 -u"
+    fi
+
     mount -t nfsd nfsd /proc/fs/nfsd
 
+    # Still required for V4
+    /usr/sbin/rpc.mountd ${RPCMOUNTDOPTS}
+
     /usr/sbin/exportfs -r
-    # -G 10 to reduce grace time to 10 seconds (the lowest allowed)
+
     /usr/sbin/rpc.nfsd ${RPCNFSDARGS} ${DEBUG} ${RPCNFSDCOUNT}
-    /usr/sbin/rpc.statd --no-notify # Why?
-    /usr/sbin/rpc.idmapd ${RPCIDMAPARGS}
     echo "NFS v4 started"
 }
 

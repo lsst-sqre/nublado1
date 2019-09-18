@@ -13,6 +13,6 @@ COPY exports /etc/exports
 COPY run_nfs.sh /usr/local/bin/run_nfs.sh
 LABEL      description="LSP Notebook Aspect: fileserver (NFSv4)" \
              name="lsstsqre/sciplat-fileserver" \
-             version="0.1.0"
+             version="0.2.1"
 CMD [ "/usr/local/bin/run_nfs.sh" ]
 

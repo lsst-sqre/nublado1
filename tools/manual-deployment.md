@@ -179,18 +179,11 @@ If you are here, consider one of the more automated deployment methods:
 
 * This creates an auto-provisioned PersistentVolume by creating a
   PersistentVolumeClaim for the physical storage; then it
-  stacks an NFS server atop that, adds a service for the NFS server, and
-  then creates a (not namespaced) PersistentVolume representing the NFS
-  export.  Then there is a (namespaced) PersistentVolumeClaim for the
-  NFS export.
+  stacks an NFS server atop that and adds a service for the NFS server.
   
 * There is also a keepalive pod that just writes to the exported volume
   periodically.  Without it the NFS server will time out from inactivity
   eventually.
-
-* The `fileserver` component is by far the most complicated to set up
-  correctly, although the `jupyterhub` component has more settings to
-  configure.
 
 * Currently we're using NFS.  At some point we probably want to use Ceph
   instead, or, even better, consume an externally-provided storage
@@ -242,81 +235,25 @@ If you are not running under GKE you will need to create a
 PersistentVolume for the PersistentVolumeClaim to bind.
 
 Note that our default deployment puts all exported volumes on a single
-physical volume.  You can modify the deployment to put any or all
-`scratch`, `project`, `datasets`, and `software` as separate physical
-volumes which you then export.  In the real LDF environment they are of
-course separate volumes managed from an external file server.
+physical volume.  You can modify the deployment to put any or all of
+`home`, `scratch`, `project`, `datasets`, `software`, and `teststand` as
+separate physical volumes which you then export.  In the real LDF
+environment they are of course separate volumes managed from an external
+file server.
 
-#### NFS Server
-
-The next step is to create an NFS Server that serves up the actual
-disk.
-
-`kubectl create -f deployment.yml`
-
-I created my own NFS Server image, basing it on the stuff found inside
-the gcr.io "volume-nfs" server.  You could probably just use Google's
-image and it'd be fine.
+#### NFS v4 Server [not necessarily in kubernetes]
 
 If you are already in an environment where there is an available NFS
 server, then you can omit actually providing your own NFS implementation
 in this step and the next and simply point to the external NFS service.
 
-#### Network Volumes
+The next step is to create an NFS v4 Server that serves up the actual
+disk.
 
-##### NFS Persistent Volume
+`kubectl create -f deployment.yml`
 
-This one is where it all goes pear-shaped.
-
-Here comes the first really maddening thing: PersistentVolumes are not
-namespaced.
-
-And here's the second one: the NFS server defined here has to be an IP
-address, not a name.  (This is actually a consequence of the Kubernetes
-internal DNS being namespaced and PersistentVolumes not being
-namespaced, but it's not obvious.)
-
-And here's the third one: you need to specify local locking in the PV
-options or else the notebook will simply get stuck in disk wait when it
-runs.  This does mean that you really shouldn't run two pods as the same
-user at the same time, certainly not with the same notebook open.
-
-The first two things combine to make it tough to do a truly automated
-deployment of a new LSST Science Platform Notebook Aspect instance,
-because you have to create the service, then pull the IP address off it
-and use that in the PV definition.
-
-Copy the template (`home-pv.template.yml`) to a working file,
-replace the `name` field with something making it unique (such as the
-cluster-plus-namespace), and replace the `server` field with the IP
-address of the NFS service.  Replace the `storage` field with a value a
-little bit smaller than the physical volume size (empirically, 95% seems
-to work well).  Then just create the resource with `kubectl
-create -f` against your working file.
-
-If your Kubernetes provider also provides an NFS server, you can skip
-the creation of the server and just point to the external service's IP
-address here.
-
-##### NFS Mount PersistentVolumeClaim
-
-From here on it's smooth sailing.  Create a working file from
-`home-pvc.template.yml`, substitute the `storage` field
-with the value you used for the PersistentVolume immediately prior, and
-then Create a PersistentVolumeClaim referring to the PersistentVolume
-just created:
-
-`kubectl create -f home-pvc.yml`
-
-And now there is a multiple-read-and-write NFS mount for your JupyterLab
-containers to use.
-
-#### Other Volumes
-
-As above, repeat for `scratch`, `project`, `datasets`, and `software`.
-Note that `datasets` and `software` are read-only, so you will need to
-install content to them from the fileserver itself (where the exported
-volumes reside).
+I created my own NFS Server image.  You could probably just use Google's
+image and it'd be fine.
 
 ### NFS Keepalive Service
 

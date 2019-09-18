@@ -66,7 +66,7 @@ function start()
     if [ -z "${RPCNFSDARGS}" ]; then
 	RPCNFSDARGS="-G 10 -N2 -N3 -V4 -U"
     fi
-    if [ -z "${RPGMOUNTDOPTS}" ]; then
+    if [ -z "${RPCMOUNTDOPTS}" ]; then
 	RPCMOUNTDOPTS="-N2 -N3 -V4 -u"
     fi
 

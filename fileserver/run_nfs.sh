@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2015 The Kubernetes Authors.
+# Copyright 2015 The Kubernetes Authors, 2019 AURA, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 function ensure_dirs()
 {
     base="/exports"
-    for dir in home project scratch software datasets; do
+    for dir in ${EXPORTS}; do
 	d="${base}/${dir}"
 	reexport=""
 	if ! [ -d "${d}" ]; then
@@ -40,6 +40,11 @@ function ensure_dirs()
 
 function start()
 {
+    if [ -n "${DEBUG}" ]; then
+	set -x
+	DEBUG="-d"
+	export LOGLEVEL="DEBUG"
+    fi
 
     unset gid
     # accept "-G gid" option
@@ -50,37 +55,35 @@ function start()
     done
     shift $(($OPTIND - 1))
 
-
-    # start rpcbind if it is not started yet
-    /usr/sbin/rpcinfo 127.0.0.1 > /dev/null 2>&1; s=$?
-    if [ $s -ne 0 ]; then
-       echo "Starting rpcbind"
-       /usr/sbin/rpcbind -w
+    if [ -e /etc/sysconfig/nfs ]; then
+	source /etc/sysconfig/nfs
     fi
-
-    mount -t nfsd nfds /proc/fs/nfsd
-
-    # -V 3: enable NFSv3
-    /usr/sbin/rpc.mountd -N 2 -V 3
+    if [ -z "${RPGNFSDCOUNT}" ]; then
+	RPCNFSDCOUNT=8
+    fi
+    if [ -z "${RPGNFSDARGS}" ]; then
+	RPCNFSDARGS="-G 10 -N 2 -N 3 -V 4"
+    fi
+    mount -t nfsd nfsd /proc/fs/nfsd
 
     /usr/sbin/exportfs -r
     # -G 10 to reduce grace time to 10 seconds (the lowest allowed)
-    /usr/sbin/rpc.nfsd -G 10 -N 2 -V 3
-    /usr/sbin/rpc.statd --no-notify
-    echo "NFS started"
+    /usr/sbin/rpc.nfsd ${RPCNFSDARGS} ${DEBUG} ${RPCNFSDCOUNT}
+    /usr/sbin/rpc.statd --no-notify # Why?
+    /usr/sbin/rpc.idmapd ${RPCIDMAPARGS}
+    echo "NFS v4 started"
 }
 
 function stop()
 {
-    echo "Stopping NFS"
+    echo "Stopping NFS v4"
 
     /usr/sbin/rpc.nfsd 0
     /usr/sbin/exportfs -au
     /usr/sbin/exportfs -f
 
-    kill $( pidof rpc.mountd )
     umount /proc/fs/nfsd
-    echo > /etc/exports
+    : > /etc/exports
     exit 0
 }
 

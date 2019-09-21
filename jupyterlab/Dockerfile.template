@@ -185,8 +185,9 @@ RUN  pip3 install --upgrade \
        ipyvolume \
        tables \
        papermill \
-       "dask" \
-       "dask[complete]" \
+       "dask==1.2.2" \
+       "dask-kubernetes==0.8.0" \
+       "distributed==1.28.1" \
        "holoviews[recommended]" \
        datashader \
        nclib \
@@ -209,8 +210,9 @@ RUN  pip3 install --upgrade \
        intake \
        intake-parquet \
        jupyter-server-proxy \
-       dask-kubernetes \
        jupyterlab_lsstextensions \
+       toolz \
+       partd \
        pyvo
 #       dask_labextension is pretty iffy still.  Omit for the time being.
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
@@ -249,8 +251,9 @@ RUN  source ${LOADSTACK} && \
        ipyvolume \
        tables \
        papermill \
-       "dask" \
-       "dask[complete]" \
+       "dask==1.2.2" \
+       "dask-kubernetes==0.8.0" \
+       "distributed==1.28.1" \
        "holoviews[recommended]" \
        datashader \
        vaex-core \
@@ -273,8 +276,9 @@ RUN  source ${LOADSTACK} && \
        intake \
        intake-parquet \
        jupyter-server-proxy \
-       dask-kubernetes \
        jupyterlab_lsstextensions \
+       toolz \
+       partd \
        pyvo
 # omit dask_labextension       
 # Pip installing breaks for cartopy: 23 Jan 2019

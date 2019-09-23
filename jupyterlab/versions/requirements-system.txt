@@ -95,7 +95,7 @@ jupyterhub==1.0.0
 jupyterlab==1.1.4
 jupyterlab-lsstextensions==0.0.4
 jupyterlab-server==1.0.6
-jupyterlabutils==0.4.1
+jupyterlabutils==0.4.4
 kapteyn==2.3.1
 keyring==19.2.0
 kiwisolver==1.1.0

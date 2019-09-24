@@ -180,8 +180,13 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions"
-ENV NBXT="widgetsnbextension ipyevents"
+ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
+          nbdime"
+ENV NBXT="widgetsnbextension ipyevents nbdime"
+# nbdime is special and already installed its extensions
+RUN  nbdime extensions --disable --sys-prefix && \
+     source ${LOADSTACK} && \
+     nbdime extensions --disable --sys-prefix
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
@@ -226,8 +231,8 @@ RUN  LBXT=$(cat ${verdir}/labext.txt) && \
       for l in ${LBXT} ${gitxt} ; do \
           jupyter labextension enable ${l} ; \
       done
-#RUN  jupyter labextension disable \
-#      "@jupyterlab/filebrowser-extension:share-file"
+RUN  jupyter labextension disable \
+      "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build

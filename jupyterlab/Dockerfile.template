@@ -215,8 +215,11 @@ RUN  pip3 install --upgrade \
        partd \
        nbdime \
        dask_labextension \
+       numba \
+       awkward \
+       awkward-numba \
+       aioinflux \
        pyvo
-#       dask_labextension is pretty iffy still.  Omit for the time being.
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -283,6 +286,10 @@ RUN  source ${LOADSTACK} && \
        partd \
        nbdime \
        dask_labextension \
+       numba \
+       awkward \
+       awkward-numba \
+       aioinflux \       
        pyvo
 # omit dask_labextension       
 # Pip installing breaks for cartopy: 23 Jan 2019
@@ -320,7 +327,6 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           jupyter_firefly_extensions \
           jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz"
-# Omit dask-labextension for now.	  
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
 # nbdime is special and already installed its extensions

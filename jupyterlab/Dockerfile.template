@@ -213,6 +213,8 @@ RUN  pip3 install --upgrade \
        jupyterlab_lsstextensions \
        toolz \
        partd \
+       nbdime \
+       dask_labextension \
        pyvo
 #       dask_labextension is pretty iffy still.  Omit for the time being.
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
@@ -279,6 +281,8 @@ RUN  source ${LOADSTACK} && \
        jupyterlab_lsstextensions \
        toolz \
        partd \
+       nbdime \
+       dask_labextension \
        pyvo
 # omit dask_labextension       
 # Pip installing breaks for cartopy: 23 Jan 2019
@@ -302,11 +306,13 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions"
-#lsstquery
-ENV NBXT="widgetsnbextension ipyevents"
+ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
+          nbdime"
+ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           bqplot ipyevents ipyvolume jupyter-threejs \
+          nbdime-jupyterlab \
+          dask-labextension \
           @lsst-sqre/jupyterlab-savequit \
 	  @lsst-sqre/jupyterlab-lsstextensions \
           @jupyter-widgets/jupyterlab-manager \
@@ -314,10 +320,13 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
           jupyter_firefly_extensions \
           jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz"
-# @lsst-sqre/jupyterlab-lsstquery
 # Omit dask-labextension for now.	  
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
+# nbdime is special and already installed its extensions
+RUN  nbdime extensions --disable --sys-prefix && \
+     source ${LOADSTACK} && \
+     nbdime extensions --disable --sys-prefix
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \

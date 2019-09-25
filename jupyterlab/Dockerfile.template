@@ -31,9 +31,9 @@ RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
 # Install pip3
 RUN  python3 -m ensurepip
 # Install git-lfs
-RUN  source scl_source enable rh-git218 && \
-      git lfs install
 RUN  mkdir -p /usr/share/git
+ENV  srcdir=/opt/lsst/src
+RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \
      V="2.11.2" && \
@@ -59,7 +59,7 @@ RUN  cd /tmp && \
       cd /tmp && \
       rm -rf ${F} ${FN}
 # Now we can build Snappy
-RUN  cd /usr/share/git && \
+RUN  cd ${srcdir}/thirdparty && \
       V="1.1.7" && \
       git clone -b ${V} https://github.com/google/snappy && \
       cd snappy && \
@@ -70,7 +70,7 @@ RUN  cd /usr/share/git && \
       make && \
       make install
 # Install newer Proj -- but 6.0 is not cartopy-happy yet
-RUN  cd /usr/share/git && \
+RUN  cd ${srcdir}/thirdparty && \
       V="5.2.0" && \
       git clone -b ${V} https://github.com/OSGeo/proj.4.git && \
       cd proj.4 && \
@@ -93,7 +93,7 @@ RUN  cd /tmp && \
 # This is for Fritz, and my nefarious plan to make the "te" in "Jupyter"
 #  TECO
 # We're not doing the "Make" alias--too likely to confuse
-RUN  cd /usr/share/git && \
+RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/blakemcbride/TECOC.git && \
       cd TECOC/src && \
       make -f makefile.linux && \
@@ -145,7 +145,7 @@ RUN  numpver=$(grep ^numpy ${verdir}/requirements-system.txt \
       pip3 install numpy==${numpver} \
                    cython==${cythver} \
 		   six==${sixver} && \
-      cd /usr/share/git && \
+      cd ${srcdir}/thirdparty && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
@@ -154,7 +154,7 @@ RUN  pip3 install --upgrade -r ${verdir}/requirements-system.txt
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
 RUN  source ${LOADSTACK} && \
-      cd /usr/share/git && \
+      cd ${srcdir}/thirdparty && \
       pip install kapteyn/
 # Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
@@ -164,12 +164,12 @@ RUN  source ${LOADSTACK} && \
       pip install --upgrade -r ${verdir}/requirements-stack.txt
 # Pip installing breaks for cartopy: 23 Jan 2019
 ENV  CARTOPY_VER="0.17.0"
-RUN  cd /usr/share/git && \
-      git clone -b v${CARTOPY_VER} https://github.com/SciTools/cartopy
-RUN  cd /usr/share/git/cartopy && \
+RUN  cd ${srcdir}/thirdparty && \
+      git clone -b v${CARTOPY_VER} https://github.com/SciTools/cartopy && \
+      cd cartopy && \
       python3 setup.py install
 RUN  source ${LOADSTACK} && \
-      cd /usr/share/git/cartopy && \
+      cd ${srcdir}/thirdparty/cartopy && \
       python setup.py install
 # Add stack kernel
 RUN source ${LOADSTACK} && \
@@ -212,7 +212,7 @@ RUN  pip3 freeze > ${instverdir}/requirements-system.txt && \
       pip3 freeze > ${instverdir}/requirements-stack.txt && \
       rpm -qa | sort > ${instverdir}/rpmlist.txt
 # Install ipyaladin extension from source until npm is updated.
-#RUN  cd /usr/share/git && \
+#RUN  cd ${srcdir} && \
 #      git clone https://github.com/cds-astro/ipyaladin && \
 #      cd ipyaladin && \
 #      ipa_pr="18" && \
@@ -249,7 +249,7 @@ RUN  groupadd -g 768 jovyan && \
 # three minutes.
      mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
      set -e && \
-     for i in /usr/share/git ${u}/staging; do \
+     for i in ${srcdir} ${u}/staging; do \
          chgrp -R jovyan ${i} && \
          chmod -R g+w ${i} ; \
      done

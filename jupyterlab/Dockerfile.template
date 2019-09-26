@@ -180,14 +180,14 @@ RUN  pip3 install --upgrade \
        ipympl \
        fastparquet \
        paramnb \
-       'ginga!=3.0.0' \
+       ginga \
        bqplot \
        ipyvolume \
        tables \
        papermill \
-       "dask==1.2.2" \
-       "dask-kubernetes==0.8.0" \
-       "distributed==1.28.1" \
+       "dask==2.1.0" \
+       distributed \
+       "dask-kubernetes==0.9.1" \
        "holoviews[recommended]" \
        datashader \
        nclib \
@@ -251,14 +251,14 @@ RUN  source ${LOADSTACK} && \
        ipympl \
        fastparquet \
        paramnb \
-       'ginga!=3.0.0' \
+       ginga \
        bqplot \
        ipyvolume \
        tables \
        papermill \
-       "dask==1.2.2" \
-       "dask-kubernetes==0.8.0" \
-       "distributed==1.28.1" \
+       "dask==2.1.0" \
+       distributed \
+       "dask-kubernetes==0.9.1" \
        "holoviews[recommended]" \
        datashader \
        vaex-core \

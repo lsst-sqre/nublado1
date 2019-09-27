@@ -185,7 +185,7 @@ RUN  pip3 install --upgrade \
        ipyvolume \
        tables \
        papermill \
-       git+https://github.com/dask/dask.git@77d51a1ae3abfff6645132c7100911a37369d58c \
+       git+https://github.com/dask/dask.git@3986890685cdceb50734fa051f7bf33d9300ab14
        "distributed<2.5" \
        "dask-kubernetes==0.9.1" \
        "holoviews[recommended]" \
@@ -256,7 +256,7 @@ RUN  source ${LOADSTACK} && \
        ipyvolume \
        tables \
        papermill \
-       git+https://github.com/dask/dask.git@77d51a1ae3abfff6645132c7100911a37369d58c \
+       git+https://github.com/dask/dask.git@3986890685cdceb50734fa051f7bf33d9300ab14
        "distributed<2.5" \
        "dask-kubernetes==0.9.1" \
        "holoviews[recommended]" \

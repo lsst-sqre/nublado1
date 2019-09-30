@@ -133,7 +133,8 @@ RUN  cd /tmp && \
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
      upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
-     mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx
+     mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx \
+     latexmk dvipng beamer
 # This, bizarrely, has to be installed on its own to get the binaries.
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install xetex && \
@@ -152,6 +153,8 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
+ENV  daskpin=76af7b73c28d553eab8400ab738c4598fb7404a2
+# 77d51a1ae3abfff6645132c7100911a37369d58c
 RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
@@ -185,8 +188,8 @@ RUN  pip3 install --upgrade \
        ipyvolume \
        tables \
        papermill \
-       "dask==2.1.0" \
-       distributed \
+       git+https://github.com/dask/dask.git@${daskpin} \
+       "distributed!=2.5.0" \
        "dask-kubernetes==0.9.1" \
        "holoviews[recommended]" \
        datashader \
@@ -256,8 +259,8 @@ RUN  source ${LOADSTACK} && \
        ipyvolume \
        tables \
        papermill \
-       "dask==2.1.0" \
-       distributed \
+       git+https://github.com/dask/dask.git@${daskpin} \
+       "distributed!=2.5.0" \
        "dask-kubernetes==0.9.1" \
        "holoviews[recommended]" \
        datashader \

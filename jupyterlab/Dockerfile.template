@@ -188,8 +188,8 @@ RUN  pip3 install --upgrade \
        tables \
        papermill \
        git+https://github.com/dask/dask.git@${daskpin} \
-       "distributed!=2.5.0" \
-       "dask-kubernetes==0.9.1" \
+       distributed \
+       git+https://github.com/dask/dask-kubernetes.git@refs/pull/162/merge \
        "holoviews[recommended]" \
        datashader \
        nclib \
@@ -259,8 +259,8 @@ RUN  source ${LOADSTACK} && \
        tables \
        papermill \
        git+https://github.com/dask/dask.git@${daskpin} \
-       "distributed!=2.5.0" \
-       "dask-kubernetes==0.9.1" \
+       distributed \
+       git+https://github.com/dask/dask-kubernetes.git@refs/pull/162/merge \
        "holoviews[recommended]" \
        datashader \
        vaex-core \

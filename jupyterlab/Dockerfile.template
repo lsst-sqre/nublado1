@@ -6,8 +6,7 @@ ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
-# Uncomment once RFC-631 is implemented
-#RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
+RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 # PROD branch only: Pin versions
 # Install all the repos
 RUN  S="script.rpm.sh" && \

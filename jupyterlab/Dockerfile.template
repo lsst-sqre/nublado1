@@ -188,7 +188,7 @@ RUN  pip3 install --upgrade \
        tables \
        papermill \
        git+https://github.com/dask/dask.git@${daskpin} \
-       distributed \
+       git+https://github.com/dask/distributed.git \
        git+https://github.com/dask/dask-kubernetes.git@refs/pull/162/merge \
        "holoviews[recommended]" \
        datashader \
@@ -259,7 +259,7 @@ RUN  source ${LOADSTACK} && \
        tables \
        papermill \
        git+https://github.com/dask/dask.git@${daskpin} \
-       distributed \
+       git+https://github.com/dask/distributed.git \
        git+https://github.com/dask/dask-kubernetes.git@refs/pull/162/merge \
        "holoviews[recommended]" \
        datashader \

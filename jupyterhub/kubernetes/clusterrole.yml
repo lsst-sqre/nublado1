@@ -4,8 +4,11 @@ metadata:
   name: hub
 rules:
 - apiGroups: [""]
-  resources: ["pods","events", "namespaces", "serviceaccounts",
+  resources: ["pods","events", "namespaces", "serviceaccounts", "services",
   "persistentvolumeclaims", "persistentvolumes", "resourcequotas"]
+  verbs: ["get", "list", "create", "watch", "delete"]
+- apiGroups: [""]
+  resources: ["pods/log"]
   verbs: ["get", "list", "create", "watch", "delete"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings"]

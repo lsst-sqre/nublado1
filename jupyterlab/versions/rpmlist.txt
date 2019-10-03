@@ -129,7 +129,7 @@ java-1.8.0-openjdk-headless-1.8.0.222.b10-1.el7_7.x86_64
 javapackages-tools-3.4.1-11.el7.noarch
 jbigkit-libs-2.0-11.el7.x86_64
 json-c-0.11-4.el7_0.x86_64
-kernel-headers-3.10.0-1062.1.1.el7.x86_64
+kernel-headers-3.10.0-1062.1.2.el7.x86_64
 keyutils-libs-1.5.8-3.el7.x86_64
 keyutils-libs-devel-1.5.8-3.el7.x86_64
 kmod-20-25.el7.x86_64

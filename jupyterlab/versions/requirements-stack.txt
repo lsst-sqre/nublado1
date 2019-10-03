@@ -1,5 +1,8 @@
 pip==19.2.3
 setuptools==41.2.0
+git+https://github.com/dask/dask.git@76af7b73c28d553eab8400ab738c4598fb7404a2
+git+https://github.com/dask/distributed.git@78d8cad9e8934a3b863999832b7c46dfe8162683
+git+https://github.com/dask/dask-kubernetes.git@refs/pull/162/merge
 aiohttp==3.6.1
 aioinflux==0.9.0
 alembic==1.2.1
@@ -42,15 +45,12 @@ coverage==4.5.4
 cryptography==2.6.1
 cycler==0.10.0
 Cython==0.29.13
-git+https://github.com/dask/dask.git@76af7b73c28d553eab8400ab738c4598fb7404a2
-dask-kubernetes==0.9.1
 dask-labextension==1.0.3
 datashader==0.7.0
 datashape==0.5.2
 decorator==4.4.0
 defusedxml==0.6.0
 Deprecated==1.2.5
-distributed==2.5.1
 docutils==0.15.2
 entrypoints==0.3
 fastparquet==0.3.2

@@ -189,8 +189,8 @@ RUN  pip3 install --upgrade \
        tables \
        papermill \
        git+https://github.com/dask/dask.git@refs/pull/5453/merge \
-       git+https://github.com/dask/distributed.git \
-       git+https://github.com/dask/dask-kubernetes.git \
+       distributed \
+       dask-kubernetes \
        "holoviews[recommended]" \
        datashader \
        nclib \
@@ -260,8 +260,8 @@ RUN  source ${LOADSTACK} && \
        tables \
        papermill \
        git+https://github.com/dask/dask.git@refs/pull/5453/merge \
-       git+https://github.com/dask/distributed.git \
-       git+https://github.com/dask/dask-kubernetes.git \
+       distributed \
+       dask-kubernetes \
        "holoviews[recommended]" \
        datashader \
        vaex-core \
@@ -365,50 +365,6 @@ RUN  mkdir -p ${verdir} && \
 #      pip3 install -e . && \
 #      cd js && \
 #      jupyter labextension install
-#RUN  cd ${srcdir} && \
-#      b="tickets/DM-19974" && \
-#      git clone -b ${b} https://github.com/lsst-sqre/nbdime.git && \
-#      cd nbdime && \
-#      jlpm install && \
-#      pip3 install -e . && \
-#      jupyter serverextension enable --py nbdime --sys-prefix && \
-#      jupyter nbextension install --py nbdime --sys-prefix && \
-#      jupyter nbextension enable --py nbdime --sys-prefix && \
-#      jupyter labextension install packages/labextension --no-build
-#RUN  cd ${srcdir} && \
-#      pr="134" && \
-#      git clone https://github.com/jupyterhub/jupyter-server-proxy.git && \
-#      cd jupyter-server-proxy && \
-#      git fetch origin pull/${pr}/head:pr${pr} && \
-#      git checkout pr${pr} && \
-#      cd jupyterlab-server-proxy && \
-#      jlpm install --unsafe-perm && \
-#      jlpm run build && \
-#      jupyter labextension install --no-build
-#RUN  cd ${srcdir} && \
-#      pr="63" && \
-#      git clone https://github.com/dask/dask-labextension.git && \
-#      cd dask-labextension && \
-#      git fetch origin pull/${pr}/head:pr${pr} && \
-#      git checkout pr${pr} && \
-#      jlpm install --unsafe-perm ; \
-#      jlpm run build ; \
-#      jupyter labextension install --no-build  && \
-#      pip install -e . && \
-#      jupyter serverextension enable --sys-prefix dask_labextension && \
-#      source ${LOADSTACK} && \
-#      pip install -e . && \
-#      jupyter serverextension enable --sys-prefix dask_labextension
-#RUN  cd ${srcdir} && \
-#      pr="66" && \
-#      git clone https://github.com/bokeh/jupyterlab_bokeh.git && \
-#      cd jupyterlab_bokeh && \
-#      git fetch origin pull/${pr}/head:pr${pr} && \
-#      git checkout pr${pr} && \
-#      jlpm install --unsafe-perm && \
-#      jlpm run build && \
-#      jupyter labextension install --no-build
-#RUN  gitxt="ipyaladin" && \
 RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \

@@ -59,7 +59,7 @@ elfutils-libs-0.176-2.el7.x86_64
 emacs-common-24.3-22.el7.x86_64
 emacs-filesystem-24.3-22.el7.noarch
 emacs-nox-24.3-22.el7.x86_64
-epel-release-7-11.noarch
+epel-release-7-12.noarch
 expat-2.1.0-10.el7_3.x86_64
 file-5.11-35.el7.x86_64
 file-libs-5.11-35.el7.x86_64

@@ -9,6 +9,7 @@ from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1HostPathVolumeSource
 from kubespawner.objects import make_pod
 from jupyterhubutils import SingletonScanner
+from time import sleep
 from tornado import gen
 
 
@@ -62,10 +63,10 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         owner = os.getenv("LAB_REPO_OWNER") or "lsstsqre"
         name = os.getenv("LAB_REPO_NAME") or "sciplat-lab"
         host = os.getenv("LAB_REPO_HOST") or "hub.docker.com"
-        experimentals = int(os.getenv("PREPULLER_EXPERIMENTALS") or 0)
-        dailies = int(os.getenv("PREPULLER_DAILIES") or 3)
-        weeklies = int(os.getenv("PREPULLER_WEEKLIES") or 2)
-        releases = int(os.getenv("PREPULLER_RELEASES") or 1)
+        experimentals = int(os.getenv("PREPULLER_EXPERIMENTALS", 0))
+        dailies = int(os.getenv("PREPULLER_DAILIES", 3))
+        weeklies = int(os.getenv("PREPULLER_WEEKLIES", 2))
+        releases = int(os.getenv("PREPULLER_RELEASES", 1))
         cachefile = os.getenv("HOME") + "/repo-cache.json"
         debug = False
         if os.getenv("DEBUG"):
@@ -79,8 +80,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                                    releases=releases,
                                    cachefile=cachefile,
                                    debug=debug)
-        scanner.scan()
         self._scanner = scanner
+        self._sync_scan()
         lnames, ldescs = scanner.extract_image_info()
         if not lnames or len(lnames) < 2:
             return ""
@@ -155,6 +156,22 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         optform += "<hr />\n"
         optform += "Menu updated at %s<br />\n" % nowstr
         return optform
+
+    def _sync_scan(self):
+        scanner = self._scanner
+        delay_interval = 5
+        max_delay = 300
+        delay = 0
+        while scanner.last_updated == datetime.datetime(1970, 1, 1):
+            self.log.warning("Scan results not available yet; sleeping " +
+                             "{}s ({}s so far).".format(delay_interval,
+                                                        delay))
+            sleep(delay_interval)
+            delay = delay + delay_interval
+            if delay >= max_delay:
+                errstr = ("Scan results did not become available in " +
+                          "{}s.".format(max_delay))
+                raise RuntimeError(errstr)
 
     def _make_sizemap(self):
         sizes = self.sizelist

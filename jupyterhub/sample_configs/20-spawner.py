@@ -162,8 +162,8 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         delay_interval = 5
         max_delay = 300
         delay = 0
-        while not scanner._results:
-            self.log.warning("Scan results not availble yet; sleeping " +
+        while scanner.last_updated == datetime.datetime(1970, 1, 1):
+            self.log.warning("Scan results not available yet; sleeping " +
                              "{}s ({}s so far).".format(delay_interval,
                                                         delay))
             sleep(delay_interval)

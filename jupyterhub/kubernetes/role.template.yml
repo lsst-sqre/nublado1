@@ -5,5 +5,8 @@ metadata:
   name: hub
 rules:
 - apiGroups: [""]
-  resources: ["pods","events"]
-  verbs: ["get", "list", "create", "watch", "delete"]
+  resources: ["pods", "events", "services"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]

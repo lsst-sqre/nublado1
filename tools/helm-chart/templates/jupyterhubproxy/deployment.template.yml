@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "nublado.fullname" . }}-proxy
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: {{ template "nublado.fullname" . }}-proxy
+    spec:
+      serviceAccountName: {{ template "nublado.fullname" . }}-hub
+      containers:
+        - name: {{ template "nublado.fullname" . }}-hub
+          imagePullPolicy: "Always"
+          image: "jupyterhub/configurable-http-proxy"
+          command:
+            - configurable-http-proxy
+            - --ip=0.0.0.0
+            - --api-ip=0.0.0.0
+            - --api-port=8001
+            - --default-target=http://{{ template "nublado.fullname" . }}-hub:8081
+            - --error-target=http://{{ template "nublado.fullname" . }}-hub:8081/hub/error
+            - --port=8000
+          env:
+            - name: CONFIGPROXY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nublado.fullname" . }}-hub
+                  key: configproxy_auth_token
+            - name: NODE_OPTIONS
+              value: "--max-http-header-size={{ .Values.proxy.max_http_header_size }}"
+              # This needs to be 16K or more for JWT.  Value is in bytes.
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 200m
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 8001
+              name: api

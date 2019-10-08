@@ -1,14 +1,11 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: hub
+  name: {{ template "nublado.fullname" . }}-hub
 rules:
 - apiGroups: [""]
-  resources: ["pods","events", "namespaces", "serviceaccounts", "services",
+  resources: ["pods","events", "namespaces", "serviceaccounts",
   "persistentvolumeclaims", "persistentvolumes", "resourcequotas"]
-  verbs: ["get", "list", "create", "watch", "delete"]
-- apiGroups: [""]
-  resources: ["pods/log"]
   verbs: ["get", "list", "create", "watch", "delete"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings"]

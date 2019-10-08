@@ -94,7 +94,7 @@ allowed_groups:
 
 
 ### Session storage location.  Any SQLAlchemy URL will work.
-# session_db_url: 'sqlite:////home/jupyter/jupyterhub.sqlite'
+# session_db_url: 'sqlite:////home/jovyan/jupyterhub.sqlite'
 
 ### Auto repo URLs.  Any URLs here will be checked out with git at
 # container start.

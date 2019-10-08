@@ -14,6 +14,7 @@ spec:
         # Run as "jovyan" rather than root.
         runAsUser: 768
         runAsGroup: 768
+        fsGroup: 768
       containers:
         - name: hub
           imagePullPolicy: "Always"
@@ -196,8 +197,8 @@ spec:
           # If you use sqlite, you want this to persist sessions across
           #  jupyterhub restarts.
           volumeMounts:
-            - name: home-jupyter
-              mountPath: /home/jupyter
+            - name: home-jovyan
+              mountPath: /home/jovyan
             - name: hub-config
               mountPath: /opt/lsst/software/jupyterhub/config
             - name: fs-mounts
@@ -239,7 +240,7 @@ spec:
         #- name: cloudsql-instance-credentials
         #  secret:
         #    secretName: cloudsql-instance-credentials
-        - name: home-jupyter
+        - name: home-jovyan
           persistentVolumeClaim:
            claimName: hub-physpvc
         - name: hub-config

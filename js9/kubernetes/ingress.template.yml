@@ -7,11 +7,12 @@ metadata:
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/proxy-body-size: "0m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.org/websocket-services: "ws-js9"
     nginx.ingress.kubernetes.io/rewrite-target: {{JS9_ROUTE}}$1$2
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Forwarded-Path /js9;
+      proxy_set_header X-Forwarded-Path /{{JS9_ROUTE}};
 spec:
   tls:
   - hosts:
@@ -21,6 +22,10 @@ spec:
   - host: {{HOSTNAME}}
     http:
       paths:
+      - path: {{JS9_ROUTE}}/socket.io(/|$)(.*)
+        backend:
+          serviceName: ws-js9
+          servicePort: 2718
       - path: {{JS9_ROUTE}}(/|$)(.*)
         backend:
           serviceName: js9

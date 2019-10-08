@@ -172,7 +172,7 @@ locals {
 
 variable "session_db_url" {
   description = "session storage location; any SQLAlchemy URL will work"
-  default     = "sqlite:////home/jupyter/jupyterhub.sqlite"
+  default     = "sqlite:////home/jovyan/jupyterhub.sqlite"
 }
 
 /* Automatically refreshed repositories */

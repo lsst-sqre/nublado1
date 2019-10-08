@@ -1,0 +1,48 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: reaper
+spec:
+  schedule: "{{REAPER_MINUTE}} {{REAPER_HOUR}} * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: "Never"
+          securityContext:
+            # Run as provisionator, not root.
+            runAsUser: 769
+            runAsGroup: 769
+          containers:
+            - name: reaper
+              imagePullPolicy: "Always"
+              image: "lsstsqre/sciplatlab-reaper"
+              env:
+              - name: DEBUG
+                value: "{{DEBUG}}"
+              # Defaults are usually fine
+              - name: IMAGE_REAPER_HOST
+                value: "{{IMAGE_REAPER_HOST}}"
+              - name: IMAGE_REAPER_OWNER
+                value: "{{IMAGE_REAPER_OWNER}}"
+              - name: IMAGE_REAPER_IMAGE_NAME
+                value: "{{IMAGE_REAPER_IMAGE_NAME}}"
+              - name: IMAGE_REAPER_PORT
+                value: "{{IMAGE_REAPER_PORT}}"
+              - name: IMAGE_REAPER_CACHEFILE
+                value: "{{IMAGE_REAPER_CACHEFILE}}"
+              # Normally 10/15/78
+              - name: IMAGE_REAPER_KEEP_EXPERIMENTALS
+                value: "{{IMAGE_REAPER_KEEP_EXPERIMENTALS}}"
+              - name: IMAGE_REAPER_KEEP_DAILIES
+                value: "{{IMAGE_REAPER_KEEP_DAILIES}}"
+              - name: IMAGE_REAPER_KEEP_WEEKLIES
+                value: "{{IMAGE_REAPER_KEEP_WEEKLIES}}"
+              # A user on the repo with the power to delete Lab images/tags
+              - name: IMAGE_REAPER_USER
+                value: "{{IMAGE_REAPER_USER}}"
+              - name: IMAGE_REAPER_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: reaper
+                    key: image_reaper_password

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: js9
+  labels:
+    name: js9
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    name: js9

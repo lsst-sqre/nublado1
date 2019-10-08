@@ -584,16 +584,6 @@ class LSSTNotebookAspectDeployment(object):
     def _normalize_params(self):
         """Some parameters are calculated.  Do that.
         """
-        sz = int(self.params['volume_size_gigabytes'])
-        self.params['volume_size'] = str(sz) + "Gi"
-        if sz > 1:
-            nfs_sz = str(int(0.95 * sz)) + "Gi"
-        else:
-            nfs_sz = "950Mi"
-        self.params['nfs_volume_size'] = nfs_sz
-        logging.info("Volume size: %s / NFS volume size: %s" %
-                     (self.params['volume_size'],
-                      self.params['nfs_volume_size']))
         self.params['oauth_callback_url'] = ("https://" +
                                              self.params['hostname'] +
                                              self.params['hub_route'] +
@@ -654,10 +644,9 @@ class LSSTNotebookAspectDeployment(object):
             pw = self._generate_random_pw()
             # ns = self.params["kubernetes_cluster_namespace"]
             # url = "mysql://proxyuser:" + pw + "@127.0.0.1:3306/" + ns
-            url = "sqlite:////home/jupyter/jupyterhub.sqlite"
+            url = "sqlite:////home/jovyan/jupyterhub.sqlite"
             self.params['session_db_url'] = url
             self.params['session_db_pw'] = pw
-            # Used to be 'sqlite:////home/jupyter/jupyterhub.sqlite'
         if self._empty_param('tls_dhparam'):
             self._check_executables(["openssl"])
             if self._empty_param('dhparam_bits'):
@@ -853,8 +842,6 @@ class LSSTNotebookAspectDeployment(object):
                               'configproxy_auth_token'),
                           CLUSTER_IDENTIFIER=p[
                               'kubernetes_cluster_namespace'],
-                          SHARED_VOLUME_SIZE=p[
-                              'nfs_volume_size'],
                           PHYSICAL_SHARED_VOLUME_SIZE=p[
                               'volume_size'],
                           ROOT_CHAIN_PEM=self.encode_file('tls_root_chain'),
@@ -981,7 +968,7 @@ class LSSTNotebookAspectDeployment(object):
                     'beats_cert', 'beats_key', 'beats_ca']
         fullpathvars = set()
         ignore = ['oauth_callback_url', 'crypto_key', 'configproxy_auth_token',
-                  'dhparams', 'nfs_volume_size', 'volume_size']
+                  'dhparams', 'volume_size']
         for p in pathvars:
             v = self.params.get(p)
             if v:

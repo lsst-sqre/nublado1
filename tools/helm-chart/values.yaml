@@ -1,0 +1,108 @@
+# Default values for nublado.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Variables you absolutely need (with examples commented out):
+#fqdn: 'test.lsst.rocks'
+scheme: 'http://'
+
+# GitHub Application settings for OAuth apps
+# Get these from github.com OAuth settings by creating an app
+#oauth_client_id: 'f457c71304e31654c665'
+#oauth_secret: '2eb0f52c3a416f7286287e498599214d451fef2d'
+
+# Set up debugging, set to enable
+debug: 'true'
+
+# OAuth provider to use: 
+# One of "github", "cilogon", or "jwt"
+oauth_provider: 'github'
+
+# Allow and deny lists
+github_organization_whitelist: ''
+github_organization_denylist: ''
+cilogon_group_whitelist: ''
+cilogon_group_denylist: ''
+
+hub:
+  uid: 768
+  gid: 768
+  #proxy_auth_token: ''
+  #crypto_key: ''
+
+# Dask settings
+dask:
+  allow_spawn: 'true'
+  restrict_nodes: ''
+  max_workers: 25
+
+lab:
+  restrict_nodes: ''
+
+  # If you don't want to use the prepuller to scan for images, put in a full
+  # image here.
+  # image_name: 'lsstsqre/sciplat-lab:latest'
+  image_name: ''
+
+  # Configure the scanner to find images to put in the spawner
+  image:
+    repo_host: ''
+    repo_owner: 'lsstsqre'
+    repo_name: 'sciplat-lab'
+
+    # Number of images of each type to put in the spawner page
+    experimentals: 0
+    dailies: 3
+    weeklies: 2
+    releases: 1
+
+  resources:
+    cpu_limit: 1.0
+    mem_limit: '2048M'
+    cpu_guarantee: 0.02
+    mem_guarantee: '64K'
+    # what are these for?
+    #nodejs_max_mem: ''
+    #tiny_cpu_max: ''
+    #mb_per_cpu: ''
+    size_range: 4
+    size_index: 1
+
+  # How long to wait before reaping idle container (in seconds)
+  idle_timeout: 43200
+
+  repos: 'https://github.com/lsst-sqre/notebook-demo'
+
+proxy:
+  max_http_header_size: 16384
+
+routes:
+  hub: '/nb'
+  firefly: '/firefly'
+  js9: '/js9'
+  api: '/api'
+  tap: '/api/tap'
+  soda: '/api/soda'
+  
+  external:
+    fileserver: ''
+    firefly: ''
+    js9: ''
+    instance: ''
+    api: ''
+    soda: ''
+    hub: ''
+
+fileserver:
+  mounts:
+    - home
+    - datasets
+    - project
+    - scratch
+    - software
+  shared_volume_size: '10Gi'
+
+prepuller:
+  minute_to_run: 35
+  uid: 769
+  gid: 769

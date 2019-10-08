@@ -1,0 +1,63 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ template "nublado.fullname" . }}-prepuller
+spec:
+  schedule: "{{.Values.prepuller.minute_to_run}} * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: "Never"
+          serviceAccountName: {{ template "nublado.fullname" . }}-prepuller
+          securityContext:
+            # Run as provisionator, not root.
+            runAsUser: {{ .Values.prepuller.uid }}
+            runAsGroup: {{ .Values.prepuller.gid }}
+          containers:
+            - name: {{ template "nublado.fullname" . }}-prepuller
+              imagePullPolicy: "Always"
+              image: "lsstsqre/prepuller"
+              env:
+              - name: DEBUG
+                value: "{{.Values.debug}}"
+              # image_list and no_scan can be used to completely replace
+              #  the prepull repository scan with a static list of images.
+              - name: PREPULLER_IMAGE_LIST
+                value: "{{.Values.lab.image_name}}"
+              - name: PREPULLER_NO_SCAN
+                value: "{{.Values.lab.image_name}}"
+              # Use the next three with your own image with an LSST/DM
+              #  dated tag format ( [d|w][YYYYMMDD] or r[MajMin])
+              - name: PREPULLER_REPO
+                value: "{{.Values.lab.image.repo_host}}"
+              - name: PREPULLER_OWNER
+                value: "{{.Values.lab.image.repo_owner}}"
+              - name: PREPULLER_IMAGE_NAME
+                value: "{{.Values.lab.image.image_name}}"
+              # Normally 0/3/2/1
+              - name: PREPULLER_EXPERIMENTALS
+                value: "{{.Values.lab.image.experimentals}}"
+              - name: PREPULLER_DAILIES
+                value: "{{.Values.lab.image.dailies}}"
+              - name: PREPULLER_WEEKLIES
+                value: "{{.Values.lab.image.weeklies}}"
+              - name: PREPULLER_RELEASES
+                value: "{{.Values.lab.image.releases}}"
+              # Probably won't need to change any of these.
+              - name: PREPULLER_INSECURE
+                value: ""
+              - name: PREPULLER_PORT
+                value: ""
+              - name: PREPULLER_SORT_FIELD
+                value: ""
+              - name: PREPULLER_COMMAND
+                value: ""
+              - name: PREPULLER_NAMESPACE
+                value: "{{.Release.Namespace}}"
+              - name: ALLOW_DASK_SPAWN
+                value: "{{.Values.dask.allow_spawn}}"
+              - name: RESTRICT_LAB_NODES
+                value: "{{.Values.lab.restrict_nodes}}"
+              - name: RESTRICT_DASK_NODES
+                value: "{{.Values.lab.restrict_dask}}"

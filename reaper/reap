@@ -1,0 +1,35 @@
+#!/bin/sh
+cmd="reaper"
+if [ -z "${IMAGE_REAPER_USER}" ]; then
+    echo 1>&2 "IMAGE_REAPER_USER must be set."
+    exit 2
+fi
+if [ -z "${IMAGE_REAPER_PASSWORD}" ]; then
+    echo 1>&2 "IMAGE_REAPER_PASSWORD must be set."
+    exit 2
+fi
+if [ -n "${DEBUG}" ]; then
+    cmd="${cmd} -d"
+fi
+if [ -n "${IMAGE_REAPER_HOST}" ]; then
+    cmd="${cmd} -r ${IMAGE_REAPER_HOST}"
+fi
+if [ -n "${IMAGE_REAPER_OWNER}" ]; then
+    cmd="${cmd} -o ${IMAGE_REAPER_OWNER}"
+fi
+if [ -n "${IMAGE_REAPER_IMAGE_NAME}" ]; then
+    cmd="${cmd} -n ${IMAGE_REAPER_IMAGE_NAME}"
+fi
+if [ -n "${IMAGE_REAPER_DAILIES}" ]; then
+    cmd="${cmd} -q ${IMAGE_REAPER_KEEP_DAILIES}"
+fi
+if [ -n "${IMAGE_REAPER_KEEP_WEEKLIES}" ]; then
+    cmd="${cmd} -w ${IMAGE_REAPER_KEEP_WEEKLIES}"
+fi
+if [ -n "${IMAGE_REAPER_EXPERIMENTALS}" ]; then
+    cmd="${cmd} -e ${IMAGE_REAPER_KEEP_EXPERIMENTALS}"
+fi
+if [ -f "${IMAGE_REAPER_CACHEFILE}" ]; then
+    cmd="${cmd} -p ${IMAGE_REAPER_CACHEFILE}"
+fi
+exec $cmd

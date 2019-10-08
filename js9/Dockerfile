@@ -27,13 +27,13 @@ RUN  mkdir -p /usr/local/src && \
       make && \
       make install
 FROM alpine:latest
-RUN  rm -rf /usr/local/bin /usr/local/include /usr/local/lib && \
+RUN  mkdir -p /usr/local/bin /usr/local/include /usr/local/lib && \
       apk update && \
-      apk add nodejs
-COPY --from=builder /usr/local/include /usr/local
-COPY --from=builder /usr/local/lib /usr/local
-COPY --from=builder /usr/local/bin /usr/local
-COPY --from=builder /www/js9 /www/js9/js9
+      apk add nodejs bash
+COPY --from=builder /usr/local/include/ /usr/local/include
+COPY --from=builder /usr/local/lib/ /usr/local/lib
+COPY --from=builder /usr/local/bin/ /usr/local/bin
+COPY --from=builder /www/js9/ /www/js9/js9
 COPY --from=builder /www/js9/index.html /www/js9/index.html
 COPY --from=gobuilder /src/tinyserver/tinyserver /usr/local/bin/tinyserver
 COPY casa.fits.gz /www/js9/js9/fits/casa.fits.gz

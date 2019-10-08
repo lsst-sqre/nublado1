@@ -1,4 +1,4 @@
-FROM lsstsqre/sciplat-hub:0.16.6
+FROM lsstsqre/sciplat-hub:0.16.7
 USER root
 ENV  jc=/opt/lsst/software/jupyterhub/config
 ENV  jcd=jupyterhub_config.d
@@ -8,6 +8,6 @@ COPY jupyterhub_config/${jcd}/* ${jc}/${jcd}/
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub-with-config" \
        name="lsstsqre/sciplat-hub-with-config" \
-       version="0.16.6"
+       version="0.16.7"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]
 

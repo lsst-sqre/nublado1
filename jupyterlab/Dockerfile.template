@@ -188,7 +188,8 @@ RUN  pip3 install --upgrade \
        ipyvolume \
        tables \
        papermill \
-       git+https://github.com/dask/dask.git@refs/pull/5453/merge \
+       git+https://github.com/dask/dask.git \
+       git+https://github.com/dask/gcsfs.git \
        distributed \
        dask-kubernetes \
        "holoviews[recommended]" \
@@ -207,7 +208,6 @@ RUN  pip3 install --upgrade \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
-       gcsfs \
        jupyterlabutils \
        hvplot \
        intake \
@@ -259,7 +259,8 @@ RUN  source ${LOADSTACK} && \
        ipyvolume \
        tables \
        papermill \
-       git+https://github.com/dask/dask.git@refs/pull/5453/merge \
+       git+https://github.com/dask/dask.git \
+       git+https://github.com/dask/gcsfs.git \
        distributed \
        dask-kubernetes \
        "holoviews[recommended]" \
@@ -278,7 +279,6 @@ RUN  source ${LOADSTACK} && \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
-       gcsfs \
        jupyterlabutils \
        hvplot \
        intake \

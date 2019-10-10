@@ -1,6 +1,7 @@
 @jupyter-widgets/jupyterlab-manager@v1.0.2
-@jupyterlab/celltags@v0.1.5
+@jupyterlab/celltags@v0.2.0
 @jupyterlab/toc@v1.0.1
+@jupyterlab/hdf5@0.2.1
 @lsst-sqre/jupyterlab-lsstextensions@v0.0.4
 @lsst-sqre/jupyterlab-savequit@v1.0.0-alpha.7
 @pyviz/jupyterlab_pyviz@v0.8.0

@@ -428,7 +428,7 @@ xorg-x11-proto-devel-2018.4-1.el7.noarch
 xorg-x11-server-utils-7.7-20.el7.x86_64
 xz-5.2.2-1.el7.x86_64
 xz-libs-5.2.2-1.el7.x86_64
-yarn-1.19.0-1.noarch
+yarn-1.19.1-1.noarch
 yum-3.4.3-163.el7.centos.noarch
 yum-metadata-parser-1.1.4-10.el7.x86_64
 yum-plugin-fastestmirror-1.1.31-52.el7.noarch

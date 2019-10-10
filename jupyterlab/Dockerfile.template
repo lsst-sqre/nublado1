@@ -319,7 +319,7 @@ COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
           nbdime"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
-ENV LBXT="@jupyterlab/celltags @jupyterlab/toc \
+ENV LBXT="@jupyterlab/celltags @jupyterlab/toc @jupyterlab/hdf5 \
           bqplot ipyevents ipyvolume jupyter-threejs \
           nbdime-jupyterlab \
           dask-labextension \

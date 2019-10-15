@@ -1,0 +1,7 @@
+#!/bin/sh
+argorepo="https://raw.githubusercontent.com/argoproj/argo/stable/manifests"
+iy="install.yaml"
+mkdir -p kubernetes
+curl "${argorepo}/${iy}" | sed -e '/namespace:/d' > "kubernetes/argo-${iy}"
+
+    

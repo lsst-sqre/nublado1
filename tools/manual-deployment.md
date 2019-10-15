@@ -85,6 +85,23 @@ If you are here, consider one of the more automated deployment methods:
   end of the filename), it should have the template variables (denoted
   with double curly brackets, e.g. `{{HOSTNAME}}`) substituted with a
   value before use.
+  
+### Namespaces
+
+* Ideally, the installation goes in several namespaces, and each spawned
+  user gets an individual namespace.
+  
+* Jupyterhub and the configurable proxy should be in the same
+  namespace.  If used, the Argo workflow components should be in the
+  same namespace.
+  
+* The remaining optional components (the prepuller, the logstashrmq
+  instance, the fileserver, and the landing page) should each have its
+  own namespace.
+  
+* This is really just a matter of organizational convenience, and if all
+  components are in a single common namespace, everything will function
+  just fine.
 
 ### Creating secrets
 
@@ -460,7 +477,8 @@ customization on your part.
 * The Configurable HTTP Proxy is a Jupyter-provided piece that manages
   per-user routes to spawned Lab servers.
 
-* This is located in `proxy`.
+* This is located in `proxy`.  It must be in the same namespace as
+  JupyterHub.
 
 * Create the service with `kubectl -f service.yml`.
 
@@ -472,6 +490,16 @@ customization on your part.
   indicated lines and ensure that MAX_HTTP_HEADER_SIZE is at least
   16384. Create the resource with `kubectl -f` against the
   working file.
+
+### Argo Workflow (optional)
+
+* This is located in `argo`.  It must be in the same namespace as
+  JupyterHub.
+
+* Retrieve the YAML to create the workflow CRD by executing the `fetch`
+  script from the `argo` directory.
+  
+* `kubectl -f kubernetes/argo-install.yml`
 
 ### Landing Page (optional)
 

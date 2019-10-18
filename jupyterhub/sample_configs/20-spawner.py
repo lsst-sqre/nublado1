@@ -9,6 +9,7 @@ import shlex
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1HostPathVolumeSource
 from kubernetes.client.models import V1ConfigMap, V1ConfigMapVolumeSource
+from kubernetes.client.models import V1KeyToPath
 from kubernetes.client import V1ObjectMeta
 from kubespawner.objects import make_pod
 from jupyterhubutils import SingletonScanner
@@ -728,15 +729,15 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         if not cmdline:
             cmdline = "/bin/true"
         cmds = shlex.split(cmdline)
-        cmds_s = json.dumps(cmds)
         cmdict = {"type": "cmd",
-                  "command": cmds_s}
-        cmobj = V1ConfigMap(data=cmdict,
+                  "command": cmds}
+        cmd_s = json.dumps({"value": cmdict})
+        cmobj = V1ConfigMap(data=cmd_s,
                             metadata=V1ObjectMeta(name="noninteractive_json"))
         namespace = self.get_user_namespace()
         self.log.debug("Creating namespaced config map from {}".format(cmdict))
         self.api.create_namespaced_config_map(namespace, cmobj)
-        ktp = V1KeyToPath("command", ...)
+        ktp = V1KeyToPath("value", 444, "command.json")
         # FIXME create volume
 
     def options_from_form(self, formdata=None):

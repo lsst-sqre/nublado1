@@ -75,6 +75,14 @@ function start_dask_worker() {
     exit 0 # Not reached
 }
 
+function start_noninteractive() {
+    create_dask_yaml
+    cmd='/opt/lsst/software/jupyterlab/noninteractive'
+    echo "Starting noninteractive container: ${cmd}"
+    exec ${cmd}
+    exit 0 # Not reached
+}
+
 # Set DEBUG to a non-empty value to turn on debugging
 if [ -n "${DEBUG}" ]; then
     set -x
@@ -134,6 +142,9 @@ FIREFLY_HTML="slate.html"
 export FIREFLY_URL FIREFLY_HTML
 if [ -n "${DASK_WORKER}" ]; then
     start_dask_worker
+    exit 0 # Not reached
+elif [ -n "${NONINTERACTIVE}" ]; then
+    start_noninteractive
     exit 0 # Not reached
 else
     # Create dask worker yml if we are a Lab and not a worker

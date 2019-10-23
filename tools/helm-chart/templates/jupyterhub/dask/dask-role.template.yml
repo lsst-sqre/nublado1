@@ -4,5 +4,8 @@ metadata:
   name: {{ template "nublado.fullname" . }}-dask
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "create", "delete"]
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]

@@ -161,6 +161,7 @@ RUN  pip3 install --upgrade \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
+       jupyterlabutils \
        virtualenv \
        virtualenvwrapper \
        pyshp \
@@ -208,7 +209,6 @@ RUN  pip3 install --upgrade \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
-       jupyterlabutils \
        hvplot \
        intake \
        intake-parquet \
@@ -237,6 +237,7 @@ RUN  source ${LOADSTACK} && \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
+       jupyterlabutils \
        setuptools \
        virtualenv \
        virtualenvwrapper \
@@ -279,7 +280,6 @@ RUN  source ${LOADSTACK} && \
        firefly_client \
        jupyter-firefly-extensions \
        mysqlclient \
-       jupyterlabutils \
        hvplot \
        intake \
        intake-parquet \

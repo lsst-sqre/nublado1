@@ -76,8 +76,8 @@ function start_dask_worker() {
 }
 
 function start_noninteractive() {
-    create_dask_yaml
-    cmd='/opt/lsst/software/jupyterlab/noninteractive'
+    # create_dask_yaml
+    cmd='/opt/lsst/software/jupyterlab/noninteractive/noninteractive'
     echo "Starting noninteractive container: ${cmd}"
     exec ${cmd}
     exit 0 # Not reached

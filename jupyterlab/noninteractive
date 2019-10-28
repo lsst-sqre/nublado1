@@ -3,7 +3,7 @@
 # This is a launcher for noninteractive LSST containers.
 
 # It expects to find a JSON document describing the command to run, at
-#  /opt/lsst/software/jupyterlab/noninteractive/command.json
+#  /opt/lsst/software/jupyterlab/noninteractive/command/command.json
 #
 # That document should be passed into the container as a mounted ConfigMap.
 
@@ -29,7 +29,7 @@ if os.getenv("DEBUG"):
     logging.debug("Debug logging enabled.")
 
 j = None
-fn = '/opt/lsst/software/jupyterlab/noninteractive/command.json'
+fn = '/opt/lsst/software/jupyterlab/noninteractive/command/command.json'
 with open(fn) as f:
     j = json.load(f)
 if not j:
@@ -42,7 +42,7 @@ if typ == "nb":
     kernel = j.get("kernel")
     if not kernel:
         raise ValueError("No kernel specified for notebook!")
-cmd = j.get("cmd")
+cmd = j.get("command")
 if not cmd:
     raise ValueError("No command specified!")
 if type(cmd) is not list:

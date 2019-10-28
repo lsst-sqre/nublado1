@@ -447,6 +447,8 @@ RUN  sed -i -e \
      fi
 RUN  groupadd -g 769 provisionator
 RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
+COPY  noninteractive /opt/lsst/software/jupyterlab/noninteractive/
+# Mount configmap at ^^ command/command.json
 WORKDIR /tmp
 # This needs to be numeric for k8s non-root contexts
 USER 769:769

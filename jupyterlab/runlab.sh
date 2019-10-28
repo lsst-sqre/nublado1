@@ -137,7 +137,10 @@ if [ -n "${HUB_SERVICE_HOST}" ]; then
     jh_path=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f 4-)
     port=${HUB_SERVICE_PORT_API}
     if [ -z "${port}" ]; then
-        port="8081"
+        port=${HUB_SERVICE_PORT}
+        if [ -z "${port}" ]; then
+            port="8081"
+        fi
     fi
     jh_api="${jh_proto}//${HUB_SERVICE_HOST}:${port}/${jh_path}"
     JUPYTERHUB_API_URL=${jh_api}

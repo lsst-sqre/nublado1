@@ -5,12 +5,8 @@ import datetime
 import json
 import namespacedkubespawner
 import os
-import shlex
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1HostPathVolumeSource
-from kubernetes.client.models import V1ConfigMap, V1ConfigMapVolumeSource
-from kubernetes.client.models import V1KeyToPath
-from kubernetes.client import V1ObjectMeta
 from kubespawner.objects import make_pod
 from jupyterhubutils import SingletonScanner
 from time import sleep
@@ -156,33 +152,9 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         optform += " value=\"true\">"
         optform += " Clear <tt>.local</tt> directory (caution!)<br />"
         optform += "</td></tr>\n"
-        optform += "<td><tr>\n"
-        # Add 'noninteractive box' and field
-        optform += "<input type=\"checkbox\" name=\"noninteractive\""
-        optform += " onclick=\"ShowHideCommand(this)\""
-        optform += " value=\"true\">"
-        optform += "<div id=\"ni-cmd-div\""
-        optform += " style=\"display:none;\">\n"
-        optform += "Command: <input type=\"text\" name=\"ni_cmd\" width=80"
-        optform += " value=\"/bin/true\">"
-        optform += "</div>\n"
-        optform += "</td></tr>\n"
         optform += "      </table>\n"
         optform += "<hr />\n"
         optform += "Menu updated at %s<br />\n" % nowstr
-        optform += "<script>\n"
-        optform += "function ShowHideCommand(d)\n"
-        optform += "{\n"
-        optform += "  var cmdline = document.getElementById(\"ni-cmd-div\")\n"
-        optform += "  if ( d.checked == true )\n"
-        optform += "  {\n"
-        optform += "    cmdline.style.display = \"block\";\n"
-        optform += "  }\n"
-        optform += "  else\n"
-        optform += "  {\n"
-        optform += "    cmdline.style.display = \"none\";\n"
-        optform += "  }\n"
-        optform += "}\n"
         return optform
 
     def _sync_scan(self):
@@ -362,8 +334,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         self.default_url = '/lab'
         self.image_pull_policy = 'Always'
         clear_dotlocal = False
-        noninteractive = False
-        ni_cmd = None
         if self.user_options:
             self.log.debug("user_options: %s" % json.dumps(self.user_options,
                                                            sort_keys=True,
@@ -396,9 +366,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
                 if size:
                     image_size = self._sizemap[size]
                 clear_dotlocal = self.user_options.get('clear_dotlocal')
-                noninteractive = self.user_options.get('noninteractive')
-                if noninteractive:
-                    ni_cmd = self.user_options.get('ni_cmd')
         mem_limit = os.getenv('LAB_MEM_LIMIT') or '2048M'
         cpu_limit = os.getenv('LAB_CPU_LIMIT') or 1.0
         if image_size:
@@ -472,9 +439,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             pod_env['DEBUG'] = os.getenv('DEBUG')
         if clear_dotlocal:
             pod_env['CLEAR_DOTLOCAL'] = "true"
-        if noninteractive:
-            pod_env['NONINTERACTIVE'] = "true"
-            self._add_ni_configmap(ni_cmd)
         # Add service routes
         # Check if we need trailing slash anymore for firefly
         hub_route = os.getenv('HUB_ROUTE') or "/nb"
@@ -724,21 +688,6 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
             if vmro:
                 vmount["readOnly"] = True
             self.volume_mounts.append(vmount)
-
-    def _add_ni_configmap(self, cmdline):
-        if not cmdline:
-            cmdline = "/bin/true"
-        cmds = shlex.split(cmdline)
-        cmdict = {"type": "cmd",
-                  "command": cmds}
-        cmd_s = json.dumps({"value": cmdict})
-        cmobj = V1ConfigMap(data=cmd_s,
-                            metadata=V1ObjectMeta(name="noninteractive_json"))
-        namespace = self.get_user_namespace()
-        self.log.debug("Creating namespaced config map from {}".format(cmdict))
-        self.api.create_namespaced_config_map(namespace, cmobj)
-        ktp = V1KeyToPath("value", 444, "command.json")
-        # FIXME create volume
 
     def options_from_form(self, formdata=None):
         options = None

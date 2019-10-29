@@ -422,7 +422,7 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         cull_policy = os.getenv('LAB_CULL_POLICY')
         if not cull_policy:
             cull_policy = "idle:remote"
-        pod_env['CULL_POLICY'] = cull_policy
+        pod_env['JUPYTERLAB_CULL_POLICY'] = cull_policy
         if os.getenv('RESTRICT_DASK_NODES'):
             pod_env['RESTRICT_DASK_NODES'] = "true"
         if os.getenv('LAB_NODEJS_MAX_MEM'):

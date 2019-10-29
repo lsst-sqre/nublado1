@@ -344,9 +344,14 @@ variable "lab_nodejs_max_mem" {
 
 /* Idle timeout for reaping user containers */
 
-variable "lab_idle_timeout" {
-  description = "Time in seconds before idle container is reaped"
+variable "lab_cull_timeout" {
+  description = "Time in seconds before lab container is reaped"
   default     = 43200
+}
+
+variable "lab_cull_policy" {
+  description = "Policy for lab pod reaping"
+  default     = "idle:remote"
 }
 
 /* Restrict nodes */

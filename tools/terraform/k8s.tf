@@ -109,7 +109,7 @@ module "jupyterhub" {
   prepuller_weeklies             = "${var.prepuller_weeklies}"
   prepuller_releases             = "${var.prepuller_releases}"
   lab_image                      = "${var.lab_image}"
-  lab_idle_timeout               = "${var.lab_idle_timeout}"
+  lab_cull_timeout               = "${var.lab_cull_timeout}"
   tiny_max_cpu                   = "${var.tiny_max_cpu}"
   mb_per_cpu                     = "${var.mb_per_cpu}"
   lab_size_range                 = "${var.lab_size_range}"

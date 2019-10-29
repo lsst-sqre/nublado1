@@ -78,8 +78,13 @@ spec:
               value: '{{LAB_IMAGE}}'
             # Set if you want something other than 12 hours.  Setting to
             # zero or a negative value disables.
-            - name: LAB_IDLE_TIMEOUT
-              value: '{{LAB_IDLE_TIMEOUT}}'
+            - name: LAB_CULL_TIMEOUT
+              value: '{{LAB_CULL_TIMEOUT}}'
+            #  one of 'idle' or 'age', a colon, and one of 'local' or
+            #  'remote' ; locality is relative to the user lab pod.
+            #  'idle:remote' is default.
+            - name: LAB_CULL_POLICY
+              value: '{{LAB_CULL_POLICY}}'
             - name: LAB_MEM_LIMIT
               value: '{{LAB_MEM_LIMIT}}'
             - name: LAB_CPU_LIMIT

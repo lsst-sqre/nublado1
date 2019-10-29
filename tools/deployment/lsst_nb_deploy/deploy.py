@@ -138,7 +138,8 @@ PARAMETER_NAMES = REQUIRED_DEPLOYMENT_PARAMETER_NAMES + [
     "lab_repo_host",
     "lab_image",
     "lab_selector_title",
-    "lab_idle_timeout",
+    "lab_cull_timeout",
+    "lab_cull_policy",
     "lab_cpu_limit",
     "lab_mem_limit",
     "lab_cpu_guarantee",
@@ -501,8 +502,10 @@ class LSSTNotebookAspectDeployment(object):
             self.params['lab_image'] = ''
         if self._empty_param('lab_selector_title'):
             self.params['lab_selector_title'] = "LSST Stack Selector"
-        if self._empty_param('lab_idle_timeout'):
-            self.params['lab_idle_timeout'] = "43200"  # string, not int
+        if self._empty_param('lab_cull_timeout'):
+            self.params['lab_cull_timeout'] = "43200"  # string, not int
+        if self._empty_param['lab_cull_policy']:
+            self.params['lab_cull_policy'] = "idle:remote"
         if self._empty_param('lab_mem_limit'):
             self.params['lab_mem_limit'] = "3G"
         if self._empty_param('lab_nodejs_max_mem'):
@@ -611,6 +614,8 @@ class LSSTNotebookAspectDeployment(object):
         if not self._empty_param("prepuller_image_list"):
             self.params["prepuller_image_list"] = ",".join(
                 self.params["prepuller_image_list"])
+        # Renamed
+        self.params["lab_idle_timeout"] = self.params["lab_cull_timeout"]
         now = datetime.datetime.now()
         # First prepuller run in 15 minutes; should give us time to finish
         self.params["prepuller_minute"] = (now.minute + 15) % 60
@@ -878,7 +883,9 @@ class LSSTNotebookAspectDeployment(object):
                           LAB_REPO_NAME=p['lab_repo_name'],
                           LAB_IMAGE=p['lab_image'],
                           LAB_SELECTOR_TITLE=p['lab_selector_title'],
+                          LAB_CULL_TIMEOUT=p['lab_cull_timeout'],
                           LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],
+                          LAB_CULL_POLICY=['lab_cull_policy'],
                           LAB_MEM_LIMIT=p['lab_mem_limit'],
                           LAB_CPU_LIMIT=p['lab_cpu_limit'],
                           LAB_MEM_GUARANTEE=p['lab_mem_guarantee'],

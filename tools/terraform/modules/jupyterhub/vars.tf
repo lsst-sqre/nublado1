@@ -62,8 +62,12 @@ variable "lab_image" {
   description = "Single image for presenting"
 }
 
-variable "lab_idle_timeout" {
-  description = "Time in seconds before idle container is reaped"
+variable "lab_cull_timeout" {
+  description = "Time in seconds before lab container is reaped"
+}
+
+variable "lab_cull_policy" {
+  description = "Container reaping policy."
 }
 
 variable "tiny_max_cpu" {

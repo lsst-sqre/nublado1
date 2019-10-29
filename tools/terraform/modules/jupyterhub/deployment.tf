@@ -108,9 +108,14 @@ resource "kubernetes_deployment" "jupyterhub" {
           }
 
           env {
-            name  = "LAB_IDLE_TIMEOUT"
-            value = "${var.lab_idle_timeout}"
+            name  = "LAB_CULL_TIMEOUT"
+            value = "${var.lab_cull_timeout}"
           }
+
+          env {
+            name  = "LAB_CULL_POLICY"
+            value = "${var.lab_cull_policy}"
+	  }
 
           env {
             name  = "TINY_CPU_MAX"

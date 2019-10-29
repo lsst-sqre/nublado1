@@ -29,9 +29,19 @@ def cull_me(url, api_token, username, policy, timeout_i):
     #  too short.
     #
     # Kids, don't do it like this.
-    c = "ps -C runlab.sh | grep -v PID | sort -n | head -1 | awk '{print $1}'"
+    #  Find the PIDs of the jupyter-labhub processes (should only be one...)
+    #  Then sort them numerically, take the first (that is, the oldest) one
+    #
+    # If we are running under "debug", "runlab.sh" is the process (it executes
+    #  labhub, waits after exit, and then restarts, so you can get into the
+    #  container if labhub crashes).  If not, it's "jupyter-labhub"
+    lcmd = "jupyter-labhub"
+    debug = os.getenv('DEBUG')
+    if debug:
+        lcmd = "runlab.sh"
+    get_jl_pid = "ps -C {} -o pid= | sort -n | head -1".format(lcmd)
     user_lab_pid = subprocess.check_output(
-        [c], shell=True).decode('UTF-8').strip()
+        [get_jl_pid], shell=True).decode('UTF-8').strip()
     age_t = subprocess.check_output(["ps", "-o", "etime=", "-p", user_lab_pid])
     # Sure, we could write an awful regex to parse the age.
     #  Or we could just do it like this.
@@ -132,7 +142,7 @@ def cull_me(url, api_token, username, policy, timeout_i):
             # Cull me!
             logger.info("Culling server (locally) for user [%s]" % username)
             logger.info("Attempting to kill process {}".format(user_lab_pid))
-            os.kill(int(user_lab_pid, signal.SIGTERM))
+            os.kill(int(user_lab_pid), signal.SIGTERM)
     else:
         if criterion == "idle":
             logger.info("User [%s] last active [%s]; not culling." % (

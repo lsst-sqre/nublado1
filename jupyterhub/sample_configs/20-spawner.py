@@ -410,9 +410,19 @@ class LSSTSpawner(namespacedkubespawner.NamespacedKubeSpawner):
         self.log.info("Replacing pod name from options form: %s" %
                       pod_name)
         pod_env = self.get_env()
-        idle_timeout = int(os.getenv('LAB_IDLE_TIMEOUT') or 43200)
-        if idle_timeout > 0 and 'JUPYTERLAB_IDLE_TIMEOUT' not in pod_env:
-            pod_env['JUPYTERLAB_IDLE_TIMEOUT'] = str(idle_timeout)
+        timeoutstr = os.getenv('LAB_CULL_TIMEOUT')
+        if timeoutstr is None:
+            timeoutstr = os.getenv('LAB_IDLE_TIMEOUT')
+        if timeoutstr is None or '':
+            timeoutstr = '43200'
+        cull_timeout = int(timeoutstr)
+        if cull_timeout > 0 and 'JUPYTERLAB_CULL_TIMEOUT' not in pod_env:
+            pod_env['JUPYTERLAB_CULL_TIMEOUT'] = timeoutstr
+            pod_env['JUPYTERLAB_IDLE_TIMEOUT'] = timeoutstr
+        cull_policy = os.getenv('LAB_CULL_POLICY')
+        if not cull_policy:
+            cull_policy = "idle:remote"
+        pod_env['JUPYTERLAB_CULL_POLICY'] = cull_policy
         if os.getenv('RESTRICT_DASK_NODES'):
             pod_env['RESTRICT_DASK_NODES'] = "true"
         if os.getenv('LAB_NODEJS_MAX_MEM'):

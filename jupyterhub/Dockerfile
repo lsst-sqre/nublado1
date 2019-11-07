@@ -18,7 +18,7 @@ RUN  pip3 install \
       wheel \
       cryptography \
       mysqlclient \
-      jupyterhub-kubespawner \
+      git+https://github.com/jupyterhub/kubespawner.git \
       'kubernetes>=9.0.0,<10.0.0' \
       'requests>=2.0.0,<3.0.0' \
       'jupyterhubutils>=0.8.1' \
@@ -45,6 +45,8 @@ RUN  sed -i -e \
     's/ %}JupyterHub{% / %}LSST Science Platform Interactive Environment{% /' \
      /usr/local/share/jupyterhub/templates/page.html
 # jupyterhub_config.py is stored in a ConfigMap
+# And here is a nasty hack to get k8s 1.16 to work.
+COPY spawner.py /usr/local/lib/python3.6/site-packages/kubespawner/spawner.py
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jovyan
 RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
@@ -52,5 +54,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.16.8"
+       version="0.16.9"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

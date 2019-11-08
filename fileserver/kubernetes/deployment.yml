@@ -1,13 +1,18 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fileserver
+  labels:
+    app: fileserver
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         name: fileserver
+    selector:
+      matchLabels:
+        app: fileserver
     spec:
       containers:
         - name: fileserver

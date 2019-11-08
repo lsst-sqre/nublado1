@@ -1,13 +1,18 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: js9
+  labels:
+    app: js9
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         name: js9
+    selector:
+      matchLabels:
+        app: js9
     spec:
       containers:
         - name: js9

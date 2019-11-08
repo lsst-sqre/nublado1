@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: firefly
@@ -8,6 +8,10 @@ spec:
     metadata:
       labels:
         name: firefly
+        app: firefly
+  selector:
+    matchLabels:
+      app: firefly
     spec:
       containers:
         - name: "firefly"

@@ -1,12 +1,17 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: logstashrmq
+  labels:
+    app: logstashrmq
 spec:
   template:
     metadata:
       labels:
         name: logstashrmq
+    selector:
+      matchLabels:
+        app: logstashrmq
     spec:
       containers:
         - name: logstashrmq

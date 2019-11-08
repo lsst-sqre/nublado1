@@ -1,13 +1,18 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: landing-page
+  labels:
+    app: landing-page
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         name: landing-page
+    selector:
+      matchLabels:
+        app: landing-page
     spec:
       containers:
         - name: landing-page

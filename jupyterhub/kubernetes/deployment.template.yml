@@ -1,13 +1,18 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hub
+  labels:
+    app: hub
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         name: hub
+    selector:
+      matchLabels:
+        app: hub
     spec:
       serviceAccountName: hub
       securityContext:

@@ -1,6 +1,8 @@
-# nginx-ingress controller
+# nginx-ingress-controller
 
-This is boilerplate taken from
-https://github.com/kubernetes/ingress-nginx and then turned into
-individual files.
+Use the stuff at https://github.com/kubernetes/ingress-nginx, especially
 
+https://github.com/kubernetes/ingress-nginx/blob/master/docs/deploy/index.md
+
+Start with:
+https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml

@@ -5,6 +5,15 @@ import os
 from jupyter_client.localinterfaces import public_ips
 from urllib.parse import urlparse
 
+
+def _get_namespace():
+    ns_path = '/var/run/secrets/kubernetes.io/serviceaccount/namespace'
+    if os.path.exists(ns_path):
+        with open(ns_path) as f:
+            return f.read().strip()
+    return None
+
+
 # Set up auth environment
 authtype = os.environ.get('OAUTH_PROVIDER') or "github"
 
@@ -53,7 +62,11 @@ if hub_route != '/':
 # Set the Hub URLs
 c.JupyterHub.bind_url = 'http://0.0.0.0:8000' + hub_route
 c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
-hub_svc_address = os.environ.get('HUB_SERVICE_HOST') or public_ips()[0]
+ns = _get_namespace()
+if ns:
+    hub_svc_address = "hub." + ns + ".svc.cluster.local"
+else:
+    hub_svc_address = os.environ.get('HUB_SERVICE_HOST') or public_ips()[0]
 hub_api_port = os.environ.get('HUB_SERVICE_PORT_API') or '8081'
 c.JupyterHub.hub_connect_url = "http://{}:{}{}".format(hub_svc_address,
                                                        hub_api_port,

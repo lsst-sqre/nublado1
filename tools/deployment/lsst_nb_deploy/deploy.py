@@ -486,7 +486,7 @@ class LSSTNotebookAspectDeployment(object):
         for pname in ['prepuller_image_list', 'prepuller_no_scan',
                       'prepuller_repo', 'prepuller_owner',
                       'prepuller_image_name',
-                      'prepuller_experimentals' 'prepuller_dailies',
+                      'prepuller_experimentals', 'prepuller_dailies',
                       'prepuller_weeklies', 'prepuller_releases',
                       'prepuller_port', 'prepuller_sort_field',
                       'prepuller_command', 'prepuller_namespace']:
@@ -504,7 +504,7 @@ class LSSTNotebookAspectDeployment(object):
             self.params['lab_selector_title'] = "LSST Stack Selector"
         if self._empty_param('lab_cull_timeout'):
             self.params['lab_cull_timeout'] = "43200"  # string, not int
-        if self._empty_param['lab_cull_policy']:
+        if self._empty_param('lab_cull_policy'):
             self.params['lab_cull_policy'] = "idle:remote"
         if self._empty_param('lab_mem_limit'):
             self.params['lab_mem_limit'] = "3G"
@@ -823,8 +823,7 @@ class LSSTNotebookAspectDeployment(object):
         # We do not yet know NFS_SERVER_IP_ADDRESS so leave it a template.
         #  Same with DB_IDENTIFIER
         return tpl.render(CLUSTERNAME=p['kubernetes_cluster_name'],
-                          OAUTH_PROVIDER=self.encode_value(
-                              'oauth_provider'),
+                          OAUTH_PROVIDER=p['oauth_provider'],
                           OAUTH_CLIENT_ID=self.encode_value(
                               'oauth_client_id'),
                           OAUTH_SECRET=self.encode_value(
@@ -848,7 +847,7 @@ class LSSTNotebookAspectDeployment(object):
                           CLUSTER_IDENTIFIER=p[
                               'kubernetes_cluster_namespace'],
                           PHYSICAL_SHARED_VOLUME_SIZE=p[
-                              'volume_size'],
+                              'volume_size_gigabytes'],
                           ROOT_CHAIN_PEM=self.encode_file('tls_root_chain'),
                           DHPARAM_PEM=self.encode_value("dhparams"),
                           TLS_CRT=self.encode_file('tls_cert'),
@@ -885,7 +884,7 @@ class LSSTNotebookAspectDeployment(object):
                           LAB_SELECTOR_TITLE=p['lab_selector_title'],
                           LAB_CULL_TIMEOUT=p['lab_cull_timeout'],
                           LAB_IDLE_TIMEOUT=p['lab_idle_timeout'],
-                          LAB_CULL_POLICY=['lab_cull_policy'],
+                          LAB_CULL_POLICY=p['lab_cull_policy'],
                           LAB_MEM_LIMIT=p['lab_mem_limit'],
                           LAB_CPU_LIMIT=p['lab_cpu_limit'],
                           LAB_MEM_GUARANTEE=p['lab_mem_guarantee'],
@@ -926,26 +925,6 @@ class LSSTNotebookAspectDeployment(object):
                           DB_IDENTIFIER='{{DB_IDENTIFIER}}',
                           NFS_SERVER_IP_ADDRESS='{{NFS_SERVER_IP_ADDRESS}}',
                           )
-
-    def _rename_fileserver_templates(self):
-        """We did not finish substituting the fileserver, because
-        we need the service address.
-        """
-        directory = os.path.join(self.directory, "deployment",
-                                 "fileserver")
-        for m in MTPTS:
-            src = os.path.join(directory, "%s-pv.yml" % m)
-            tgt = os.path.join(directory, "%s-pv.template.yml" % m)
-            os.rename(src, tgt)
-
-    def _rename_jupyterhub_template(self):
-        """We did not finish subsituting JupyterHub, because we need the
-        database identifier.
-        """
-        directory = os.path.join(self.directory, "deployment", "jupyterhub")
-        src = os.path.join(directory, "deployment.yml")
-        tgt = os.path.join(directory, "deployment.template-stage2.yml")
-        os.rename(src, tgt)
 
     def _save_deployment_yml(self):
         """Either save the input file we used, or synthesize one from our
@@ -1648,26 +1627,6 @@ class LSSTNotebookAspectDeployment(object):
         self._run_kubectl_create(os.path.join(
             directory, "deployment.yml"))
 
-    def _substitute_db_identifier(self):
-        """Once we have the (internal) IP of the fileserver service, we
-        can substitute it into the deployment template, but that requires the
-        service to have been created first.
-        """
-        p = self.params
-        directory = os.path.join(self.directory, "deployment", "jupyterhub")
-        with open(os.path.join(directory,
-                               "deployment.template-stage2.yml"),
-                  "r") as fr:
-            if not p.get('database_instance_name'):
-                p['database_instance_name'] = "dummy"
-            db_identifier = (p['gke_project'] + ":" + p['gke_region'] + ":" +
-                             p['database_instance_name'])
-            tmpl = Template(fr.read())
-            out = tmpl.render(DB_IDENTIFIER=db_identifier)
-            ofn = "deployment.yml"
-            with open(os.path.join(directory, ofn), "w") as fw:
-                fw.write(out)
-
     def _destroy_jupyterhub(self):
         logging.info("Destroying JupyterHub")
         pv = self._get_pv_and_disk_from_pvc("physpvc")
@@ -1946,8 +1905,6 @@ class LSSTNotebookAspectDeployment(object):
             self._check_sourcedir()
             self._copy_deployment_files()
             self._substitute_templates()
-            self._rename_fileserver_templates()
-            self._rename_jupyterhub_template()
             self._save_deployment_yml()
 
     def deploy(self):

@@ -4,6 +4,7 @@ variable, which must be one of "github", "cilogon" or "jwt", and defaults to
 '''
 
 import asyncio
+import datetime
 import json
 import os
 import oauthenticator
@@ -347,6 +348,56 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         # This is taken from https://github.com/mogthesprog/jwtauthenticator
         #  but with our additional claim information checked and stuffed
         #  into auth_state, and allow/deny lists checked.
+        claims, token = self._check_auth_header()
+        username_claim_field = self.authenticator.username_claim_field
+        username = self.retrieve_username(claims, username_claim_field)
+        # Here is where we deviate from the vanilla JWT authenticator.
+        # We simply store all the JWT claims in auth_state, although we also
+        #  choose our field names to make the spawner reusable from the
+        #  OAuthenticator implementation.
+        auth_state = {"id": username,
+                      "access_token": token,
+                      "claims": claims}
+        user = self.user_from_username(username)
+        if not self.validate_user_from_claims_groups(claims):
+            # We're either in a forbidden group, or not in any allowed group
+            self.log.error("User did not validate from claims groups.")
+            raise web.HTTPError(403)
+        self.log.debug("Claims for user: {}".format(claims))
+        self.log.debug("Membership: {}".format(claims["isMemberOf"]))
+        gnames = [x["name"] for x in claims["isMemberOf"]]
+        self.log.debug("Setting authenticator groups: {}.".format(gnames))
+        self.authenticator.groups = gnames
+        modified_auth_state = self._mogrify_auth_state(auth_state)
+        yield user.save_auth_state(modified_auth_state)
+        self.set_login_cookie(user)
+
+        _url = url_path_join(self.hub.server.base_url, 'home')
+        next_url = self.get_argument('next', default=False)
+        if next_url:
+            _url = next_url
+
+        self.redirect(_url)
+
+    async def refresh_user(self, user, handler=None):
+        self.log.debug("Refreshing user data.")
+        try:
+            claims, token = self._check_auth_header()
+        except web.HTTPError:
+            # Force re-login
+            return False
+        username_claim_field = self.authenticator.username_claim_field
+        username = self.retrieve_username(claims, username_claim_field)
+        auth_state = {"id": username,
+                      "access_token": token,
+                      "claims": claims}
+        modified_auth_state = self._mogrify_auth_state(auth_state)
+        return modified_auth_state
+
+    def _check_auth_header(self):
+        # Either returns (valid) claims and token,
+        #  or throws a web error of some type.
+        self.log.debug("Checking authentication header.")
         header_name = self.authenticator.header_name
         param_name = self.authenticator.param_name
         header_is_authorization = self.authenticator.header_is_authorization
@@ -354,7 +405,6 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
         auth_cookie_content = self.get_cookie("XSRF-TOKEN", "")
         signing_certificate = self.authenticator.signing_certificate
         secret = self.authenticator.secret
-        username_claim_field = self.authenticator.username_claim_field
         audience = self.authenticator.expected_audience
         tokenParam = self.get_argument(param_name, default=False)
         if auth_header_content and tokenParam:
@@ -390,34 +440,13 @@ class LSSTJWTLoginHandler(JSONWebTokenLoginHandler):
             self.log.error("Could not verify JWT.")
             raise web.HTTPError(401)
 
-        username = self.retrieve_username(claims, username_claim_field)
-        # Here is where we deviate from the vanilla JWT authenticator.
-        # We simply store all the JWT claims in auth_state, although we also
-        #  choose our field names to make the spawner reusable from the
-        #  OAuthenticator implementation.
-        auth_state = {"id": username,
-                      "access_token": token,
-                      "claims": claims}
-        user = self.user_from_username(username)
-        if not self.validate_user_from_claims_groups(claims):
-            # We're either in a forbidden group, or not in any allowed group
-            self.log.error("User did not validate from claims groups.")
-            raise web.HTTPError(403)
-        self.log.debug("Claims for user: {}".format(claims))
-        self.log.debug("Membership: {}".format(claims["isMemberOf"]))
-        gnames = [x["name"] for x in claims["isMemberOf"]]
-        self.log.debug("Setting authenticator groups: {}.".format(gnames))
-        self.authenticator.groups = gnames
-        modified_auth_state = self._mogrify_auth_state(auth_state)
-        yield user.save_auth_state(modified_auth_state)
-        self.set_login_cookie(user)
-
-        _url = url_path_join(self.hub.server.base_url, 'home')
-        next_url = self.get_argument('next', default=False)
-        if next_url:
-            _url = next_url
-
-        self.redirect(_url)
+        # Check expiration
+        expiry = int(claims['exp'])
+        now = int(datetime.datetime.utcnow().timestamp())
+        if now > expiry:
+            self.log.error("JWT has expired!")
+            raise web.HTTPError(401)
+        return claims, token
 
     def _mogrify_auth_state(self, auth_state):
         astate = dict(auth_state)

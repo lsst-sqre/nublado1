@@ -22,6 +22,7 @@ if authtype == "cilogon":
     c.LSSTAuth = c.LSSTCILogonAuth
 elif authtype == "jwt":
     c.LSSTAuth = c.LSSTJWTAuth
+    c.LSSTAuth.auth_refresh_age = 900
 
 c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
 netloc = urlparse(c.LSSTAuth.oauth_callback_url).netloc

@@ -189,7 +189,7 @@ RUN  pip3 install --upgrade \
        ipyvolume \
        tables \
        papermill \
-       git+https://github.com/dask/dask.git \
+       dask \
        git+https://github.com/dask/gcsfs.git \
        distributed \
        dask-kubernetes \
@@ -260,7 +260,7 @@ RUN  source ${LOADSTACK} && \
        ipyvolume \
        tables \
        papermill \
-       git+https://github.com/dask/dask.git \
+       dask \
        git+https://github.com/dask/gcsfs.git \
        distributed \
        dask-kubernetes \

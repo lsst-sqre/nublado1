@@ -8,6 +8,6 @@ COPY jupyterhub_config/${jcd}/* ${jc}/${jcd}/
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub-with-config" \
        name="lsstsqre/sciplat-hub-with-config" \
-       version="0.16.7"
+       version="0.16.7.cfg2"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]
 

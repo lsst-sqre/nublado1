@@ -222,6 +222,7 @@ RUN  pip3 install --upgrade \
        awkward \
        awkward-numba \
        aioinflux \
+       swifter \
        pyvo
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -292,7 +293,8 @@ RUN  source ${LOADSTACK} && \
        numba \
        awkward \
        awkward-numba \
-       aioinflux \       
+       aioinflux \
+       swifter \
        pyvo
 # omit dask_labextension       
 # Pip installing breaks for cartopy: 23 Jan 2019

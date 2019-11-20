@@ -146,15 +146,11 @@ RUN  pip3 install --upgrade pip setuptools
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
 #  ...but you need numpy and cython first.
-# 2019-07-15: remove ipyaladin for now.
 RUN  pip3 install numpy cython && \
       cd ${srcdir}/thirdparty && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-#ENV  daskpin=76af7b73c28d553eab8400ab738c4598fb7404a2
-# 77d51a1ae3abfff6645132c7100911a37369d58c
-#       git+https://github.com/dask/dask-kubernetes.git@refs/pull/162/merge \
 RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
@@ -296,9 +292,6 @@ RUN  source ${LOADSTACK} && \
        aioinflux \
        swifter \
        pyvo
-# omit dask_labextension       
-# Pip installing breaks for cartopy: 23 Jan 2019
-# Install Proj into stack environment
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
 ENV  CARTOPY_VER="0.17.0"
@@ -334,11 +327,6 @@ ENV LBXT="@jupyterlab/celltags @jupyterlab/toc @jupyterlab/hdf5 \
           @pyviz/jupyterlab_pyviz"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
-# nbdime is special and already installed its extensions...but this forces
-#  a rebuild.  Perhaps just installing will do the trick.
-#RUN  nbdime extensions --disable && \
-#     source ${LOADSTACK} && \
-#     nbdime extensions --disable
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
@@ -359,14 +347,6 @@ RUN  mkdir -p ${verdir} && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
-#RUN  cd ${srcdir} && \
-#      git clone https://github.com/lsst-sqre/ipyaladin && \
-#      cd ipyaladin/js && \
-#      npm install --unsafe-perm && \
-#      cd .. && \
-#      pip3 install -e . && \
-#      cd js && \
-#      jupyter labextension install
 RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \

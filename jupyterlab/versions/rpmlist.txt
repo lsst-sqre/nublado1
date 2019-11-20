@@ -117,7 +117,7 @@ hdf5-devel-1.8.12-11.el7.x86_64
 hicolor-icon-theme-0.12-7.el7.noarch
 hostname-3.13-3.el7_7.1.x86_64
 httpd24-libcurl-7.61.1-2.el7.x86_64
-httpd24-libnghttp2-1.7.1-7.el7.x86_64
+httpd24-libnghttp2-1.7.1-7.el7.1.x86_64
 httpd24-runtime-1.1-18.el7.x86_64
 http-parser-2.7.1-8.el7.x86_64
 hwdata-0.252-9.3.el7.x86_64
@@ -129,7 +129,7 @@ java-1.8.0-openjdk-headless-1.8.0.232.b09-0.el7_7.x86_64
 javapackages-tools-3.4.1-11.el7.noarch
 jbigkit-libs-2.0-11.el7.x86_64
 json-c-0.11-4.el7_0.x86_64
-kernel-headers-3.10.0-1062.4.1.el7.x86_64
+kernel-headers-3.10.0-1062.4.3.el7.x86_64
 keyutils-libs-1.5.8-3.el7.x86_64
 keyutils-libs-devel-1.5.8-3.el7.x86_64
 kmod-20-25.el7.x86_64
@@ -267,7 +267,7 @@ ncurses-base-5.9-14.20130511.el7_4.noarch
 ncurses-devel-5.9-14.20130511.el7_4.x86_64
 ncurses-libs-5.9-14.20130511.el7_4.x86_64
 nettle-2.7.1-8.el7.x86_64
-nodejs-12.13.0-1nodesource.x86_64
+nodejs-12.13.1-1nodesource.x86_64
 nodesource-release-el7-1.noarch
 nspr-4.21.0-1.el7.x86_64
 nss-3.44.0-4.el7.x86_64

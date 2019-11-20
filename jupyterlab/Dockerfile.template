@@ -203,28 +203,12 @@ RUN  set -e && \
           jupyter labextension install ${l} --no-build ; \
       done
 # Create package version docs.
-#COPY versions/ipyaladin.pr ${verdir}/ipyaladin.pr
 ENV  instverdir=${jl}/versions.installed
 RUN  mkdir -p ${instverdir}
 RUN  pip3 freeze > ${instverdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
       pip3 freeze > ${instverdir}/requirements-stack.txt && \
       rpm -qa | sort > ${instverdir}/rpmlist.txt
-# Install ipyaladin extension from source until npm is updated.
-#RUN  cd ${srcdir} && \
-#      git clone https://github.com/cds-astro/ipyaladin && \
-#      cd ipyaladin && \
-#      ipa_pr="18" && \
-#      echo ${ipa_pr} > ${instverdir}/ipyaladin.pr && \
-#      git fetch origin pull/${ipa_pr}/head:pr${ipa_pr} && \
-#      git checkout pr${ipa_pr} && \
-#      cd js && \
-#      npm install --unsafe-perm && \
-#      cd .. && \
-#      pip3 install -e . && \
-#      cd js && \
-#      jupyter labextension install --no-build
-#RUN  gitxt="ipyaladin" && \
 RUN  LBXT=$(cat ${verdir}/labext.txt) && \
       set -e && \
       for l in ${LBXT} ${gitxt} ; do \

@@ -229,13 +229,14 @@ RUN  source ${LOADSTACK} && \
 RUN  source ${LOADSTACK} && \
       pip install --upgrade \
        pip \
+       setuptools \
+       wheel \
        tornado \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
        jupyterlabutils \
-       setuptools \
        virtualenv \
        virtualenvwrapper \
        pyshp \

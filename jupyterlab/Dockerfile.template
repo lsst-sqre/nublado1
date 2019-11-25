@@ -141,7 +141,7 @@ RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
            /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
            /usr/bin
 # Get newer setuptools before Python packages
-RUN  pip3 install --upgrade pip setuptools
+RUN  pip3 install --upgrade pip setuptools wheel
 # Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
@@ -229,13 +229,14 @@ RUN  source ${LOADSTACK} && \
 RUN  source ${LOADSTACK} && \
       pip install --upgrade \
        pip \
+       setuptools \
+       wheel \
        tornado \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
        jupyterlabutils \
-       setuptools \
        virtualenv \
        virtualenvwrapper \
        pyshp \

@@ -207,6 +207,9 @@ spec:
           # If you use sqlite, you want this to persist sessions across
           #  jupyterhub restarts.
           volumeMounts:
+            - name: metadata
+              mountPath: /etc/metadata
+              readOnly: false
             - name: home-jovyan
               mountPath: /home/jovyan
             - name: hub-config
@@ -250,6 +253,15 @@ spec:
         #- name: cloudsql-instance-credentials
         #  secret:
         #    secretName: cloudsql-instance-credentials
+        - name: metadata
+          downwardAPI:
+            items:
+              - path: "annotations"
+                fieldRef:
+                  fieldPath: metadata.annotations
+              - path: "labels"
+                fieldRef:
+                  fieldPath: metadata.labels
         - name: home-jovyan
           persistentVolumeClaim:
            claimName: hub-physpvc

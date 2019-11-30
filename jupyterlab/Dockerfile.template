@@ -378,7 +378,7 @@ RUN  groupadd -g 768 jovyan && \
 RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
       yum clean all
 # Custom local files
-COPY local02-hub.sh local03-showmotd.sh  \
+COPY local01-nbstripjq.sh local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \
      local08-virtualenvwrapper.sh \
      /etc/profile.d/

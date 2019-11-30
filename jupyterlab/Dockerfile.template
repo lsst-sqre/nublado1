@@ -15,7 +15,7 @@ RUN  yum -y install \
       python3 python3-setuptools python3-devel \
       http-parser perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      ack screen tmux tree vim-enhanced emacs-nox \
+      ack screen tmux tree vim-enhanced emacs-nox jq \
       graphviz geos-devel hdf5-devel \
       sqlite-devel \
       mariadb mysql mysql-devel \

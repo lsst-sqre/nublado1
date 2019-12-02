@@ -1,27 +1,104 @@
-"""Bootstrapper configuration for JupyterHub
-Based on:
+'''Runtime configuration for JupyterHub in the LSST environment.
+'''
 
-https://github.com/yuvipanda/jupyterhub-singlenode-deploy/blob/master/modules/jupyterhub/files/bootstrap_config.py
-
-Looks for all files inside the directory specified by the environment
-variable 'JUPYTERHUB_CONFIG_DIR'.  If that variable is not set,
-'jupyterhub_config.d' is used.
-
-If the directory name does not start with '/' it is assumed to be relative to
-the location of this file.  Once the directory is determined, we load all
-the .py files inside it. This allows us to have small modular config files
-instead of one monolithic one.
-
-The filenames should be of form NN-something.py, where NN is a two
-digit priority number. The files will be loaded in ascending order of
-NN. Filenames not ending in .py will be ignored.
-"""
+from jupyterhubutils import LSSTSpawner
+from jupyterhubutils import LSSTCILogonOAuthenticator
+from jupyterhubutils import LSSTGitHubOAuthenticator
+from jupyterhubutils import LSSTJWTAuthenticator
+from jupyterhubutils.lsstmgr.utils import get_execution_namespace
 import os
-from glob import glob
+from jupyter_client.localinterfaces import public_ips
+from urllib.parse import urlparse
 
-dirname = os.getenv('JUPYTERHUB_CONFIG_DIR') or 'jupyterhub_config.d'
-if dirname[0] != '/':
-    confdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), dirname)
+# This only works in the Hub configuration environment
+c = get_config()
 
-for f in sorted(glob(os.path.join(confdir, '*.py'))):
-    load_subconfig(f)
+c.JupyterHub.spawner_class = LSSTSpawner
+
+
+# Set up auth environment according to authtype
+authtype = (os.environ.get('AUTH_PROVIDER') or
+            os.environ.get('OAUTH_PROVIDER') or
+            "github")
+
+if authtype == "github":
+    c.LSSTAuth = LSSTGitHubOAuthenticator
+elif authtype == "cilogon":
+    c.LSSTAuth = LSSTCILogonOAuthenticator
+elif authtype == "jwt":
+    c.LSSTAuth = LSSTJWTAuthenticator
+else:
+    raise ValueError("Auth type '{}' not one of 'github'".format(authtype) +
+                     ", 'cilogon', or 'jwt'!")
+
+c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+netloc = urlparse(c.LSSTAuth.oauth_callback_url).netloc
+scheme = urlparse(c.LSSTAuth.oauth_callback_url).scheme
+aud = None
+if netloc and scheme:
+    aud = scheme + "://" + netloc
+if authtype == 'jwt':
+    # Parameters for JWT
+    c.LSSTAuth.signing_certificate = '/opt/jwt/signing-certificate.pem'
+    c.LSSTAuth.username_claim_field = 'uid'
+    c.LSSTAuth.expected_audience = (aud or os.getenv('OAUTH_CLIENT_ID') or '')
+else:
+    c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
+    c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
+if authtype == 'cilogon':
+    c.LSSTAuth.scope = ['openid', 'org.cilogon.userinfo']
+    skin = os.getenv("CILOGON_SKIN") or "LSST"
+    c.LSSTAuth.skin = skin
+    idp = os.getenv("CILOGON_IDP_SELECTION")
+    if idp:
+        c.LSSTAuth.idp = idp
+if netloc:
+    c.LSSTAuth.logout_url = netloc + "/oauth2/sign_in"
+
+
+# Don't try to cleanup servers on exit - since in general for k8s, we want
+# the hub to be able to restart without losing user containers
+c.JupyterHub.cleanup_servers = False
+# Set Session DB URL if we have one
+db_url = os.getenv('SESSION_DB_URL')
+if db_url:
+    c.JupyterHub.db_url = db_url
+# Allow style overrides
+c.JupyterHub.template_paths = ["/opt/lsst/software/jupyterhub/templates/"]
+
+hub_route = os.environ.get('HUB_ROUTE') or "/"
+if hub_route != '/':
+    c.JupyterHub.base_url = hub_route
+
+# Set the Hub URLs
+c.JupyterHub.bind_url = 'http://0.0.0.0:8000' + hub_route
+c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
+ns = get_execution_namespace()
+if ns:
+    helm_tag = os.getenv("HELM_TAG")
+    if helm_tag:
+        hub = helm_tag + "-hub"
+    else:
+        hub = "hub"
+    hub_svc_address = hub + "." + ns + ".svc.cluster.local"
+else:
+    hub_svc_address = os.environ.get('HUB_SERVICE_HOST') or public_ips()[0]
+hub_api_port = os.environ.get('HUB_SERVICE_PORT_API') or '8081'
+c.JupyterHub.hub_connect_url = "http://{}:{}{}".format(hub_svc_address,
+                                                       hub_api_port,
+                                                       hub_route)
+
+# External proxy
+c.ConfigurableHTTPProxy.should_start = False
+proxy_host = os.getenv('PROXY_SERVICE_HOST') or '127.0.0.1'
+proxy_port = os.getenv('PROXY_SERVICE_PORT_API') or '8001'
+proxy_url = "http://" + proxy_host + ":" + proxy_port
+c.ConfigurableHTTPProxy.api_url = proxy_url
+
+# Skin and restricted IDP for CILogon
+c.LSSTCILogonAuth.scope = ['openid', 'org.cilogon.userinfo']
+skin = os.getenv("CILOGON_SKIN") or "LSST"
+c.LSSTCILogonAuth.skin = skin
+idp = os.getenv("CILOGON_IDP_SELECTION")
+if idp:
+    c.LSSTCILogonAuth.idp = idp

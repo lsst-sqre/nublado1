@@ -8,8 +8,6 @@ RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
 RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools
 ENV  PYCURL_SSL_LIBRARY=openssl
-# Need master versions of authenticators and hub
-#  GitHub Oauthenticator and Tornado 6 don't play well.
 RUN  pip3 install \
       tornado \
       ipykernel \
@@ -18,15 +16,15 @@ RUN  pip3 install \
       wheel \
       cryptography \
       mysqlclient \
-      git+https://github.com/jupyterhub/kubespawner.git \
+      jupyterhub-kubespawner \
       'kubernetes>=9.0.0,<10.0.0' \
       'requests>=2.0.0,<3.0.0' \
-      'jupyterhubutils>=0.8.1' \
+      git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011 \
       'namespacedkubespawner>=0.0.21' \
       jupyterlab \
       jupyterhub \
       oauthenticator \
-      git+https://github.com/mogthesprog/jwtauthenticator.git
+      jupyterhub-jwtauthenticator
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
@@ -54,5 +52,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.16.9"
+       version="exp_0.16.10.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

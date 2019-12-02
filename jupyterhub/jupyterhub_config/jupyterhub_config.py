@@ -5,7 +5,8 @@ from jupyterhubutils import LSSTSpawner
 from jupyterhubutils import LSSTCILogonOAuthenticator
 from jupyterhubutils import LSSTGitHubOAuthenticator
 from jupyterhubutils import LSSTJWTAuthenticator
-from jupyterhubutils.lsstmgr.utils import get_execution_namespace
+from jupyterhubutils.lsstmgr.utils import (
+    get_execution_namespace, make_logger, str_bool)
 import os
 from jupyter_client.localinterfaces import public_ips
 from urllib.parse import urlparse
@@ -13,6 +14,8 @@ from urllib.parse import urlparse
 # This only works in the Hub configuration environment
 c = get_config()
 
+debug = (str_bool(os.getenv('DEBUG')) or False)
+log = make_logger(debug=debug)
 c.JupyterHub.spawner_class = LSSTSpawner
 
 
@@ -20,40 +23,41 @@ c.JupyterHub.spawner_class = LSSTSpawner
 authtype = (os.environ.get('AUTH_PROVIDER') or
             os.environ.get('OAUTH_PROVIDER') or
             "github")
-
+log.debug("Authentication type: {}".format(authtype))
 if authtype == "github":
-    c.LSSTAuth = LSSTGitHubOAuthenticator
+    c.Authenticator = LSSTGitHubOAuthenticator
 elif authtype == "cilogon":
-    c.LSSTAuth = LSSTCILogonOAuthenticator
+    c.Authenticator = LSSTCILogonOAuthenticator
 elif authtype == "jwt":
-    c.LSSTAuth = LSSTJWTAuthenticator
+    c.Authenticator = LSSTJWTAuthenticator
 else:
     raise ValueError("Auth type '{}' not one of 'github'".format(authtype) +
                      ", 'cilogon', or 'jwt'!")
 
-c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-netloc = urlparse(c.LSSTAuth.oauth_callback_url).netloc
-scheme = urlparse(c.LSSTAuth.oauth_callback_url).scheme
+c.Authenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+netloc = urlparse(c.Authenticator.oauth_callback_url).netloc
+scheme = urlparse(c.Authenticator.oauth_callback_url).scheme
 aud = None
 if netloc and scheme:
     aud = scheme + "://" + netloc
 if authtype == 'jwt':
     # Parameters for JWT
-    c.LSSTAuth.signing_certificate = '/opt/jwt/signing-certificate.pem'
-    c.LSSTAuth.username_claim_field = 'uid'
-    c.LSSTAuth.expected_audience = (aud or os.getenv('OAUTH_CLIENT_ID') or '')
+    c.Authenticator.signing_certificate = '/opt/jwt/signing-certificate.pem'
+    c.Authenticator.username_claim_field = 'uid'
+    c.Authenticator.expected_audience = (
+        aud or os.getenv('OAUTH_CLIENT_ID') or '')
 else:
-    c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
-    c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
+    c.Authenticator.client_id = os.environ['OAUTH_CLIENT_ID']
+    c.Authenticator.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 if authtype == 'cilogon':
-    c.LSSTAuth.scope = ['openid', 'org.cilogon.userinfo']
+    c.Authenticator.scope = ['openid', 'org.cilogon.userinfo']
     skin = os.getenv("CILOGON_SKIN") or "LSST"
-    c.LSSTAuth.skin = skin
+    c.Authenticator.skin = skin
     idp = os.getenv("CILOGON_IDP_SELECTION")
     if idp:
-        c.LSSTAuth.idp = idp
+        c.Authenticator.idp = idp
 if netloc:
-    c.LSSTAuth.logout_url = netloc + "/oauth2/sign_in"
+    c.Authenticator.logout_url = netloc + "/oauth2/sign_in"
 
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
@@ -74,6 +78,7 @@ if hub_route != '/':
 c.JupyterHub.bind_url = 'http://0.0.0.0:8000' + hub_route
 c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
 ns = get_execution_namespace()
+log.debug("Namespace: {}".format(ns))
 if ns:
     helm_tag = os.getenv("HELM_TAG")
     if helm_tag:

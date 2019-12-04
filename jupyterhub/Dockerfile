@@ -19,8 +19,6 @@ RUN  pip3 install \
       jupyterhub-kubespawner \
       'kubernetes>=9.0.0,<10.0.0' \
       'requests>=2.0.0,<3.0.0' \
-      git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011 \
-      'namespacedkubespawner>=0.0.21' \
       jupyterlab \
       jupyterhub \
       oauthenticator \
@@ -28,6 +26,8 @@ RUN  pip3 install \
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
+# Move this up when we're done
+RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions

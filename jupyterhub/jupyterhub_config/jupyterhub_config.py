@@ -5,7 +5,7 @@ from jupyterhubutils import LSSTSpawner
 from jupyterhubutils import LSSTCILogonOAuthenticator
 from jupyterhubutils import LSSTGitHubOAuthenticator
 from jupyterhubutils import LSSTJWTAuthenticator
-from jupyterhubutils.lsstmgr.utils import (
+from jupyterhubutils.utils import (
     get_execution_namespace, make_logger, str_bool)
 import os
 from jupyter_client.localinterfaces import public_ips
@@ -25,39 +25,46 @@ authtype = (os.environ.get('AUTH_PROVIDER') or
             "github")
 log.debug("Authentication type: {}".format(authtype))
 if authtype == "github":
-    c.Authenticator = LSSTGitHubOAuthenticator
+    authclass = LSSTGitHubOAuthenticator
 elif authtype == "cilogon":
-    c.Authenticator = LSSTCILogonOAuthenticator
+    authclass = LSSTCILogonOAuthenticator
 elif authtype == "jwt":
-    c.Authenticator = LSSTJWTAuthenticator
+    authclass = LSSTJWTAuthenticator
 else:
     raise ValueError("Auth type '{}' not one of 'github'".format(authtype) +
                      ", 'cilogon', or 'jwt'!")
 
-c.Authenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-netloc = urlparse(c.Authenticator.oauth_callback_url).netloc
-scheme = urlparse(c.Authenticator.oauth_callback_url).scheme
+
+class LSSTAuth(authclass):
+    pass
+
+
+c.JupyterHub.authenticator_class = LSSTAuth
+
+c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+netloc = urlparse(c.LSSTAuth.oauth_callback_url).netloc
+scheme = urlparse(c.LSSTAuth.oauth_callback_url).scheme
 aud = None
 if netloc and scheme:
     aud = scheme + "://" + netloc
 if authtype == 'jwt':
     # Parameters for JWT
-    c.Authenticator.signing_certificate = '/opt/jwt/signing-certificate.pem'
-    c.Authenticator.username_claim_field = 'uid'
-    c.Authenticator.expected_audience = (
+    c.LSSTAuth.signing_certificate = '/opt/jwt/signing-certificate.pem'
+    c.LSSTAuth.username_claim_field = 'uid'
+    c.LSSTAuth.expected_audience = (
         aud or os.getenv('OAUTH_CLIENT_ID') or '')
 else:
-    c.Authenticator.client_id = os.environ['OAUTH_CLIENT_ID']
-    c.Authenticator.client_secret = os.environ['OAUTH_CLIENT_SECRET']
+    c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
+    c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
 if authtype == 'cilogon':
-    c.Authenticator.scope = ['openid', 'org.cilogon.userinfo']
+    c.LSSTAuth.scope = ['openid', 'org.cilogon.userinfo']
     skin = os.getenv("CILOGON_SKIN") or "LSST"
-    c.Authenticator.skin = skin
+    c.LSSTAuth.skin = skin
     idp = os.getenv("CILOGON_IDP_SELECTION")
     if idp:
-        c.Authenticator.idp = idp
+        c.LSSTAuth.idp = idp
 if netloc:
-    c.Authenticator.logout_url = netloc + "/oauth2/sign_in"
+    c.LSSTAuth.logout_url = netloc + "/oauth2/sign_in"
 
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want

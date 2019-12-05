@@ -2,115 +2,47 @@
 '''
 
 from jupyterhubutils import LSSTSpawner
-from jupyterhubutils import LSSTCILogonOAuthenticator
-from jupyterhubutils import LSSTGitHubOAuthenticator
-from jupyterhubutils import LSSTJWTAuthenticator
-from jupyterhubutils.utils import (
-    get_execution_namespace, make_logger, str_bool)
-import os
-from jupyter_client.localinterfaces import public_ips
-from urllib.parse import urlparse
+from jupyterhubutils.config_helpers import (get_authenticator_class,
+                                            configure_authenticator,
+                                            get_db_url, get_hub_parameters,
+                                            get_proxy_url)
 
 # This only works in the Hub configuration environment
 c = get_config()
 
-debug = (str_bool(os.getenv('DEBUG')) or False)
-log = make_logger(debug=debug)
+# Set up the spawner
 c.JupyterHub.spawner_class = LSSTSpawner
 
-
-# Set up auth environment according to authtype
-authtype = (os.environ.get('AUTH_PROVIDER') or
-            os.environ.get('OAUTH_PROVIDER') or
-            "github")
-log.debug("Authentication type: {}".format(authtype))
-if authtype == "github":
-    authclass = LSSTGitHubOAuthenticator
-elif authtype == "cilogon":
-    authclass = LSSTCILogonOAuthenticator
-elif authtype == "jwt":
-    authclass = LSSTJWTAuthenticator
-else:
-    raise ValueError("Auth type '{}' not one of 'github'".format(authtype) +
-                     ", 'cilogon', or 'jwt'!")
-
-
-class LSSTAuth(authclass):
-    pass
-
-
-c.JupyterHub.authenticator_class = LSSTAuth
-
-c.LSSTAuth.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-netloc = urlparse(c.LSSTAuth.oauth_callback_url).netloc
-scheme = urlparse(c.LSSTAuth.oauth_callback_url).scheme
-aud = None
-if netloc and scheme:
-    aud = scheme + "://" + netloc
-if authtype == 'jwt':
-    # Parameters for JWT
-    c.LSSTAuth.signing_certificate = '/opt/jwt/signing-certificate.pem'
-    c.LSSTAuth.username_claim_field = 'uid'
-    c.LSSTAuth.expected_audience = (
-        aud or os.getenv('OAUTH_CLIENT_ID') or '')
-else:
-    c.LSSTAuth.client_id = os.environ['OAUTH_CLIENT_ID']
-    c.LSSTAuth.client_secret = os.environ['OAUTH_CLIENT_SECRET']
-if authtype == 'cilogon':
-    c.LSSTAuth.scope = ['openid', 'org.cilogon.userinfo']
-    skin = os.getenv("CILOGON_SKIN") or "LSST"
-    c.LSSTAuth.skin = skin
-    idp = os.getenv("CILOGON_IDP_SELECTION")
-    if idp:
-        c.LSSTAuth.idp = idp
-if netloc:
-    c.LSSTAuth.logout_url = netloc + "/oauth2/sign_in"
-
+# Set up the authenticator
+c.JupyterHub.authenticator_class = get_authenticator_class()
+configure_authenticator()
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
 c.JupyterHub.cleanup_servers = False
+
 # Set Session DB URL if we have one
-db_url = os.getenv('SESSION_DB_URL')
+db_url = get_db_url()
 if db_url:
     c.JupyterHub.db_url = db_url
 # Allow style overrides
 c.JupyterHub.template_paths = ["/opt/lsst/software/jupyterhub/templates/"]
 
-hub_route = os.environ.get('HUB_ROUTE') or "/"
+# Set Hub networking/routing parameters
+hub_api_parms = get_hub_parameters()
+hub_route = hub_api_parms["route"]
+hub_svc_address = hub_api_parms["svc"]
+hub_api_port = hub_api_parms["port"]
 if hub_route != '/':
     c.JupyterHub.base_url = hub_route
 
 # Set the Hub URLs
 c.JupyterHub.bind_url = 'http://0.0.0.0:8000' + hub_route
 c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
-ns = get_execution_namespace()
-log.debug("Namespace: {}".format(ns))
-if ns:
-    helm_tag = os.getenv("HELM_TAG")
-    if helm_tag:
-        hub = helm_tag + "-hub"
-    else:
-        hub = "hub"
-    hub_svc_address = hub + "." + ns + ".svc.cluster.local"
-else:
-    hub_svc_address = os.environ.get('HUB_SERVICE_HOST') or public_ips()[0]
-hub_api_port = os.environ.get('HUB_SERVICE_PORT_API') or '8081'
 c.JupyterHub.hub_connect_url = "http://{}:{}{}".format(hub_svc_address,
                                                        hub_api_port,
                                                        hub_route)
 
 # External proxy
 c.ConfigurableHTTPProxy.should_start = False
-proxy_host = os.getenv('PROXY_SERVICE_HOST') or '127.0.0.1'
-proxy_port = os.getenv('PROXY_SERVICE_PORT_API') or '8001'
-proxy_url = "http://" + proxy_host + ":" + proxy_port
-c.ConfigurableHTTPProxy.api_url = proxy_url
-
-# Skin and restricted IDP for CILogon
-c.LSSTCILogonAuth.scope = ['openid', 'org.cilogon.userinfo']
-skin = os.getenv("CILOGON_SKIN") or "LSST"
-c.LSSTCILogonAuth.skin = skin
-idp = os.getenv("CILOGON_IDP_SELECTION")
-if idp:
-    c.LSSTCILogonAuth.idp = idp
+c.ConfigurableHTTPProxy.api_url = get_proxy_url()

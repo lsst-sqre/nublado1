@@ -1,48 +1,41 @@
 '''Runtime configuration for JupyterHub in the LSST environment.
 '''
 
-from jupyterhubutils import LSSTSpawner
-from jupyterhubutils.config_helpers import (get_authenticator_class,
-                                            configure_authenticator,
-                                            get_db_url, get_hub_parameters,
-                                            get_proxy_url)
+from jupyterhubutils import LSSTConfig, lsst_configure
 
-# This only works in the Hub configuration environment
+# get_config() only works in the Hub configuration environment
 c = get_config()
 
+lc = LSSTConfig()
+lsst_configure(lc)
+
 # Set up the spawner
-c.JupyterHub.spawner_class = LSSTSpawner
+c.JupyterHub.spawner_class = lc.spawner_class
 
 # Set up the authenticator
-c.JupyterHub.authenticator_class = get_authenticator_class()
-configure_authenticator()
+c.JupyterHub.authenticator_class = lc.authenticator_class
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
 c.JupyterHub.cleanup_servers = False
 
 # Set Session DB URL if we have one
-db_url = get_db_url()
+db_url = lc.session_db_url
 if db_url:
     c.JupyterHub.db_url = db_url
 # Allow style overrides
 c.JupyterHub.template_paths = ["/opt/lsst/software/jupyterhub/templates/"]
 
 # Set Hub networking/routing parameters
-hub_api_parms = get_hub_parameters()
-hub_route = hub_api_parms["route"]
-hub_svc_address = hub_api_parms["svc"]
-hub_api_port = hub_api_parms["port"]
+hub_route = lc.hub_route
 if hub_route != '/':
-    c.JupyterHub.base_url = hub_route
+    c.JupyterHub.base_url = lc.hub_route
 
 # Set the Hub URLs
-c.JupyterHub.bind_url = 'http://0.0.0.0:8000' + hub_route
-c.JupyterHub.hub_bind_url = 'http://0.0.0.0:8081' + hub_route
-c.JupyterHub.hub_connect_url = "http://{}:{}{}".format(hub_svc_address,
-                                                       hub_api_port,
-                                                       hub_route)
+c.JupyterHub.bind_url = lc.bind_url
+c.JupyterHub.hub_bind_url = lc.hub_bind_url
+c.JupyterHub.hub_connect_url = lc.hub_connect_url
 
 # External proxy
 c.ConfigurableHTTPProxy.should_start = False
-c.ConfigurableHTTPProxy.api_url = get_proxy_url()
+c.ConfigurableHTTPProxy.api_url = lc.proxy_api_url

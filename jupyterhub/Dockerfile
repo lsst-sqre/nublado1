@@ -29,7 +29,7 @@ RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
 # Move this up when we're done
-RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011
+RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011B
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -38,7 +38,8 @@ RUN  mkdir ${jh}/config ${jh}/templates
 RUN  pip3 freeze > ${verdir}/requirements.txt && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
 COPY hublauncher.sh /opt/lsst/software/jupyterhub/
-COPY title.html /opt/lsst/software/jupyterhub/templates/
+COPY title.html options_form.template.html \
+      /opt/lsst/software/jupyterhub/templates/
 # The template override is not working.  Here is a nasty hack to get
 #  the same effect.
 RUN  sed -i -e \
@@ -54,5 +55,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-a       version="exp_0.16.10.1"
+       version="exp_0.16.10.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

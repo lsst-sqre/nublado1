@@ -3,9 +3,7 @@
     "mountpoint": "/example -- if it doesn't start with '/' we add it",
     "mode": "rw or ro, defaults to 'ro'",
     "hostpath": "if set, this overrides kubernetes-volume and all NFS config",
-    "kubernetes-volume": "this overrides host, export, and options",
     "fileserver-host": "omit to use Hub settings",
-    "fileserver-export": "defaults to '/exports<mountpoint>'",
-    "options": "whatever NFS options are desired, e.g. local_lock=all"
+    "fileserver-export": "defaults to '/exports<mountpoint>'"
   }
 ]

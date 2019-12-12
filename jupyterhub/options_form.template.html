@@ -1,0 +1,50 @@
+<style>
+    td#clear_dotlocal {
+        border: 1px solid black;
+        padding: 2%;
+    }
+    td#images {
+        padding-right: 5%;
+    }
+</style>
+<table>
+        <tr><th>Image</th></th><th>Size<br /></th></tr>
+        <tr>
+	    <td rowspan=2 id="images">
+{% for item in desclist %}
+            <input type="radio"
+                   name="kernel_image"
+                   value="{{item.name}}"
+    {% if loop.previtem is not defined %}
+	          checked="checked"
+    {% endif %}
+	   > {{item.desc}}<br />
+{% endfor %}
+            <input type="radio"
+                   name="kernel_image"
+                   value="{{custtag}}"> or select image tag
+	             <select name="image_tag"
+                     onchange="document.forms['spawn_form'].kernel_image.value='{{custtag}}'"
+		       <option value="latest"><br /></option>
+{% for tag in all_tags %}
+                       <option value="{{tag}}">{{tag}}<br /></option>
+{% endfor %}
+                    </select><br />
+            </td>
+            <td valign="top">
+{% for item in sizemap %}
+            <input type="radio" name="size"
+{% if defaultsize == loop.index0 %}
+                   checked="checked"
+{% endif %}
+                   value="{{item}}">{{sizemap[item]["desc"]}}<br />
+{% endfor %}
+       </td></tr>
+       <tr><td id="clear_dotlocal">
+            <input type="checkbox" name="clear_dotlocal"
+                   value="true">
+            Clear <tt>.local</tt> directory (caution!)<br />
+       </td></tr>
+</table>
+<hr />
+Menu updated at {{nowstr}}<br />

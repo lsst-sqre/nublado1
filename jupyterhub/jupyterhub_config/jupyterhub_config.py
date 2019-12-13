@@ -1,13 +1,19 @@
 '''Runtime configuration for JupyterHub in the LSST environment.
 '''
 
-from jupyterhubutils import LSSTConfig, lsst_configure
+import jupyterhubutils
+import logging
 
 # get_config() only works in the Hub configuration environment
 c = get_config()
 
-lc = LSSTConfig()
-lsst_configure(lc)
+lc = jupyterhubutils.LSSTConfig()
+jupyterhubutils.lsst_configure(lc)
+if lc.debug:
+    root_logger = logging.getLogger(name='jupyterhubutils')
+    root_logger.setLevel(logging.DEBUG)
+    root_logger.debug("Enabling 'jupyterhubutils' debug-level logging.")
+    root_logger.warning("If there's not a prior debug log something is wrong.")
 
 # Set up the spawner
 c.JupyterHub.spawner_class = lc.spawner_class

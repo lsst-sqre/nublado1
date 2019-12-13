@@ -32,12 +32,12 @@
                     </select><br />
             </td>
             <td valign="top">
-{% for item in sizemap %}
+{% for item in sizelist %}
             <input type="radio" name="size"
 {% if defaultsize == loop.index0 %}
                    checked="checked"
 {% endif %}
-                   value="{{item}}">{{sizemap[item]["desc"]}}<br />
+                   value="{{item["name"]}}">{{item["desc"]}}<br />
 {% endfor %}
        </td></tr>
        <tr><td id="clear_dotlocal">

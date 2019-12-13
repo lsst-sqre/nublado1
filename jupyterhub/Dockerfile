@@ -20,16 +20,16 @@ RUN  pip3 install \
       'kubernetes>=9.0.0,<10.0.0' \
       'requests>=2.0.0,<3.0.0' \
       jupyterlab \
-      jupyterhub \
       oauthenticator \
       namespacedkubespawner \
       semver \
+      git+https://github.com/jupyterhub/jupyterhub \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
 # Move this up when we're done
-RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011B
+RUN  pip install  git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011B
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -46,8 +46,6 @@ RUN  sed -i -e \
     's/ %}JupyterHub{% / %}LSST Science Platform Interactive Environment{% /' \
      /usr/local/share/jupyterhub/templates/page.html
 # jupyterhub_config.py is stored in a ConfigMap
-# And here is a nasty hack to get k8s 1.16 to work.
-COPY spawner.py /usr/local/lib/python3.6/site-packages/kubespawner/spawner.py
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jovyan
 RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan

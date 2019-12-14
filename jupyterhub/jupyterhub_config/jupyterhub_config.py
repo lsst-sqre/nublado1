@@ -8,12 +8,12 @@ import logging
 c = get_config()
 
 lc = jupyterhubutils.LSSTConfig()
-jupyterhubutils.lsst_configure(lc)
+jupyterhubutils.configure_auth_and_spawner(lc)
+jhu_logger = jupyterhubutils.utils.make_logger(name='jupyterhubutils')
 if lc.debug:
-    root_logger = jupyterhubutils.utils.make_logger(name='jupyterhubutils')
-    root_logger.setLevel(logging.DEBUG)
-    root_logger.debug("Enabling 'jupyterhubutils' debug-level logging.")
-    root_logger.warning("If there's not a prior debug log something is wrong.")
+    jhu_logger.setLevel(logging.DEBUG)
+    jhu_logger.debug("Enabling 'jupyterhubutils' debug-level logging.")
+    jhu_logger.warning("If there's not a prior debug log something is wrong.")
 
 # Set up the spawner
 c.JupyterHub.spawner_class = lc.spawner_class

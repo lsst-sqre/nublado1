@@ -28,8 +28,9 @@ RUN  pip3 install \
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
-# Move this up when we're done
-RUN  pip install  git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011B
+#Remove this and move the pip install back up when we are done
+ARG  BUILDTRIGGER="Sat Dec 14 17:23:43 MST 2019"
+RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils.git@tickets/DM-22011B
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions

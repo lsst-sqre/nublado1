@@ -39,6 +39,9 @@ spec:
               value: INFO
             - name: FQDN
               value: '{{HOSTNAME}}'
+            # Only set if you're deploying with Helm
+            - name: HELM_TAG
+              value: ''
             - name: LAB_SELECTOR_TITLE
               value: '{{LAB_SELECTOR_TITLE}}'
             # Set to non-empty value to enable debugging.
@@ -270,20 +273,9 @@ spec:
             name: hub-config
             #  Create with `kubectl create configmap hub-config \
             #   --from-file=config/jupyterhub_config.py \
-            #   --from-file=config/jupyterhub_config.d`
-            #  It is sort of annoying that you still have to specify
-            #   each file in the directory.
             items:
             - key: jupyterhub_config.py
               path: jupyterhub_config.py
-            - key: 00-preamble.py
-              path: jupyterhub_config.d/00-preamble.py
-            - key: 10-authenticator.py
-              path: jupyterhub_config.d/10-authenticator.py
-            - key: 20-spawner.py
-              path: jupyterhub_config.d/20-spawner.py
-            - key: 30-environment.py
-              path: jupyterhub_config.d/30-environment.py
         - configMap:
               #  Create with `kubectl create configmap jwt-cert \
               #   --from-file=config/signing-certificate.pem`

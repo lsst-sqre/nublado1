@@ -1,27 +1,47 @@
-"""Bootstrapper configuration for JupyterHub
-Based on:
+'''Runtime configuration for JupyterHub in the LSST environment.
+'''
 
-https://github.com/yuvipanda/jupyterhub-singlenode-deploy/blob/master/modules/jupyterhub/files/bootstrap_config.py
+import jupyterhubutils
+import logging
 
-Looks for all files inside the directory specified by the environment
-variable 'JUPYTERHUB_CONFIG_DIR'.  If that variable is not set,
-'jupyterhub_config.d' is used.
+# get_config() only works in the Hub configuration environment
+c = get_config()
 
-If the directory name does not start with '/' it is assumed to be relative to
-the location of this file.  Once the directory is determined, we load all
-the .py files inside it. This allows us to have small modular config files
-instead of one monolithic one.
+lc = jupyterhubutils.LSSTConfig()
+jupyterhubutils.configure_auth_and_spawner(lc)
+jhu_logger = jupyterhubutils.utils.make_logger(name='jupyterhubutils')
+if lc.debug:
+    jhu_logger.setLevel(logging.DEBUG)
+    jhu_logger.debug("Enabling 'jupyterhubutils' debug-level logging.")
+    jhu_logger.warning("If there's not a prior debug log something is wrong.")
 
-The filenames should be of form NN-something.py, where NN is a two
-digit priority number. The files will be loaded in ascending order of
-NN. Filenames not ending in .py will be ignored.
-"""
-import os
-from glob import glob
+# Set up the spawner
+c.JupyterHub.spawner_class = lc.spawner_class
 
-dirname = os.getenv('JUPYTERHUB_CONFIG_DIR') or 'jupyterhub_config.d'
-if dirname[0] != '/':
-    confdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), dirname)
+# Set up the authenticator
+c.JupyterHub.authenticator_class = lc.authenticator_class
 
-for f in sorted(glob(os.path.join(confdir, '*.py'))):
-    load_subconfig(f)
+# Don't try to cleanup servers on exit - since in general for k8s, we want
+# the hub to be able to restart without losing user containers
+c.JupyterHub.cleanup_servers = False
+
+# Set Session DB URL if we have one
+db_url = lc.session_db_url
+if db_url:
+    c.JupyterHub.db_url = db_url
+# Allow style overrides
+c.JupyterHub.template_paths = ["/opt/lsst/software/jupyterhub/templates/"]
+
+# Set Hub networking/routing parameters
+hub_route = lc.hub_route
+if hub_route != '/':
+    c.JupyterHub.base_url = lc.hub_route
+
+# Set the Hub URLs
+c.JupyterHub.bind_url = lc.bind_url
+c.JupyterHub.hub_bind_url = lc.hub_bind_url
+c.JupyterHub.hub_connect_url = lc.hub_connect_url
+
+# External proxy
+c.ConfigurableHTTPProxy.should_start = False
+c.ConfigurableHTTPProxy.api_url = lc.proxy_api_url

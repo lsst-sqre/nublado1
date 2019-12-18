@@ -8,12 +8,11 @@ resource "kubernetes_role_binding" "prepuller" {
     kind      = "ServiceAccount"
     name      = "prepuller"
     namespace = "${var.prepuller_namespace}"
-    api_group = ""
   }
 
   role_ref {
     kind      = "Role"
     name      = "prepuller"
-    api_group = ""
+    api_group = "rbac.authorization.k8s.io"
   }
 }

@@ -6,9 +6,8 @@ subjects:
 - kind: ServiceAccount
   name: hub
   namespace: {{CLUSTER_IDENTIFIER}}
-  apiGroup: ""
 roleRef:
   kind: Role
   name: hub
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io
 

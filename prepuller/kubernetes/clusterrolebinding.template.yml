@@ -6,9 +6,8 @@ subjects:
 - kind: ServiceAccount
   name: prepuller
   namespace: {{CLUSTER_IDENTIFIER}}
-  apiGroup: ""
 roleRef:
   kind: ClusterRole
   name: prepuller
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io
 

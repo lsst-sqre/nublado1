@@ -6,9 +6,8 @@ subjects:
 - kind: ServiceAccount
   name: dask
   namespace: {{CLUSTER_IDENTIFIER}}
-  apiGroup: ""
 roleRef:
   kind: Role
   name: dask
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io
 

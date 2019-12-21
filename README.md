@@ -35,9 +35,10 @@ and a mechanism to allow dask nodes for parallel computing.
   `private`, or `read:org` must be among the scopes granted by the
   OAuth token.
 
-* While the code supports CILogon with the NCSA identity provider, our
-  assumption is that if that's what you want to do, NCSA is managing the
-  kubernetes cluster for you and installation instructions are thus
+* While the code supports CILogon with the NCSA identity provider (and
+  an OAuth2 proxy there that yields a JWT we use for authentication),
+  our assumption is that if that's what you want to do, NCSA is managing
+  the kubernetes cluster for you and installation instructions are thus
   irrelevant to you.
 
 ### Using the LSST Stack
@@ -54,20 +55,9 @@ and a mechanism to allow dask nodes for parallel computing.
 
 ## Deploying an LSST Science Platform Notebook Aspect Kubernetes Cluster
 
-### Terraform
+### Helm
 
-See [Terraform Deployment README](tools/terraform/README.md) for what
-will eventually be the way to deploy the cluster.  Note that full
-functionality is gated behind Terraform 0.12, which is not yet published
-at the time of writing.
-
-### Quick Start: Automated Tool
-
-See [Deployment Tool README](tools/deployment/README.md) for an
-automated deployment using an LSST-developed tool.
-
-### Manual deployment
-
-See [Manual Deployment](tools/manual-deployment.md) for a full
-explanation of what each step of the automated deployment methods is
-doing.
+There are Helm charts available at https://github.com/lsst-sqre/charts
+in the `nublado` directory.  We deploy with Argo CD, and our
+site-specific values are held in the `services/nublado` directory of
+https://github.com/lsst-sqre/lsp-deploy .

@@ -1,6 +1,0 @@
-/*
-terraform {
-  backend "s3" {}
-}
-*/
-

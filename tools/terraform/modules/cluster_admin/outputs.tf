@@ -1,3 +1,0 @@
-output "complete" {
-  value = "done"
-}

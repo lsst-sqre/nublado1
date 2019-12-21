@@ -16,21 +16,21 @@ RUN  pip3 install \
       wheel \
       cryptography \
       mysqlclient \
-      jupyterhub-kubespawner \
-      'kubernetes>=9.0.0,<10.0.0' \
+      'kubernetes>=9.0.0' \
       'requests>=2.0.0,<3.0.0' \
       jupyterlab \
       oauthenticator \
-      namespacedkubespawner \
       semver \
-      'jupyterhubutils>=0.11.0,<1.0.0' \
+      'jupyterhubutils>=0.12.1' \
       git+https://github.com/jupyterhub/jupyterhub \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
-#Use this when doing quick test cycles.
-#ARG  BUILDTRIGGER="Tue Dec 17 17:03:10 MST 2019"
+#Uncomment this and add a git+https URL on a pip install below it when doing
+# rapid test iteration.  Substitute date before rebuild.
+#ARG  BUILDTRIGGER="Fri Dec 20 15:56:04 MST 2019"
+RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils@tickets/DM-22719
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -39,13 +39,8 @@ RUN  mkdir ${jh}/config ${jh}/templates
 RUN  pip3 freeze > ${verdir}/requirements.txt && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
 COPY hublauncher.sh /opt/lsst/software/jupyterhub/
-COPY title.html options_form.template.html \
+COPY page.html options_form.template.html \
       /opt/lsst/software/jupyterhub/templates/
-# The template override is not working.  Here is a nasty hack to get
-#  the same effect.
-RUN  sed -i -e \
-    's/ %}JupyterHub{% / %}LSST Science Platform Interactive Environment{% /' \
-     /usr/local/share/jupyterhub/templates/page.html
 # jupyterhub_config.py is stored in a ConfigMap
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jovyan
@@ -54,5 +49,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.16.11"
+       version="0.16.13"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

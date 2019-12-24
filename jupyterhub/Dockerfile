@@ -20,9 +20,9 @@ RUN  pip3 install \
       'kubernetes>=9.0.0' \
       'requests>=2.0.0,<3.0.0' \
       jupyterlab \
-      oauthenticator \
       semver \
-      'jupyterhubutils>=0.12.1,<1.0.0' \
+      oauthenticator \
+      'jupyterhubutils>=0.12.6,<1.0.0' \
       git+https://github.com/jupyterhub/jupyterhub \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
@@ -31,7 +31,7 @@ RUN  pip uninstall pycurl && \
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 #ARG  BUILDTRIGGER="Fri Dec 20 15:56:04 MST 2019"
-RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils@tickets/DM-22719
+#RUN  pip install git+https://github.com/lsst-sqre/jupyterhubutils@tickets/DM-22719
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -50,5 +50,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.16.14"
+       version="0.16.15"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

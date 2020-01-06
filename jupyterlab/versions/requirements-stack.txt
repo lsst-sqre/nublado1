@@ -60,7 +60,7 @@ fastparquet==0.3.2
 firefly-client==2.2.0
 fsspec==0.6.2
 future==0.17.1
-gcsfs==0.6.0+2.gd7b832e
+gcsfs==0.6.0
 ginga==3.0.1
 gitdb2==2.0.6
 GitPython==3.0.5

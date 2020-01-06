@@ -125,12 +125,15 @@ RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
            /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
            /usr/bin
 COPY versions/requirements-system.txt ${verdir}/requirements-system.txt
-# Get newer setuptools before Python packages
+# Get newer pip/setuptools/wheel before Python packages
 RUN  pipver=$(grep ^pip\= ${verdir}/requirements-system.txt \
       | cut -d '=' -f 3) && \
       setupver=$(grep ^setuptools ${verdir}/requirements-system.txt \
       | cut -d '=' -f 3) && \
-      pip3 install --upgrade pip==${pipver} setuptools==${setupver}
+      wheelver=$(grep ^wheel ${verdir}/requirements-system.txt \
+      | cut -d '=' -f 3) && \
+      pip3 install --upgrade pip==${pipver} setuptools==${setupver} \
+       wheel==${wheelver}
 # Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649

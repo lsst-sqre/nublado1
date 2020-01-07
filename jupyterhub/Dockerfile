@@ -22,7 +22,7 @@ RUN  pip3 install \
       jupyterlab \
       semver \
       oauthenticator \
-      'jupyterhubutils>=0.12.9,<1.0.0' \
+      'jupyterhubutils>=0.12.11,<1.0.0' \
       git+https://github.com/jupyterhub/jupyterhub \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \

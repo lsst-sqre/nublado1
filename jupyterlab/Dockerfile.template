@@ -186,7 +186,7 @@ RUN  pip3 install --upgrade \
        tables \
        papermill \
        dask \
-       git+https://github.com/dask/gcsfs.git \
+       gcsfs \
        distributed \
        dask-kubernetes \
        "holoviews[recommended]" \
@@ -219,7 +219,8 @@ RUN  pip3 install --upgrade \
        awkward-numba \
        aioinflux \
        swifter \
-       pyvo
+       pyvo \
+       git+https://github.com/lsst-sqre/wfdispatcher.git
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -259,7 +260,7 @@ RUN  source ${LOADSTACK} && \
        tables \
        papermill \
        dask \
-       git+https://github.com/dask/gcsfs.git \
+       gcsfs \
        distributed \
        dask-kubernetes \
        "holoviews[recommended]" \
@@ -292,7 +293,8 @@ RUN  source ${LOADSTACK} && \
        awkward-numba \
        aioinflux \
        swifter \
-       pyvo
+       pyvo \
+       git+https://github.com/lsst-sqre/wfdispatcher.git
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
 ENV  CARTOPY_VER="0.17.0"

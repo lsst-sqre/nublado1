@@ -6,7 +6,7 @@ RUN  yum -y upgrade
 RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
       git patch python-alembic mariadb mysql python3 python3-devel
 RUN  python3 -m ensurepip
-RUN  pip3 install --upgrade pip setuptools
+RUN  pip3 install --upgrade setuptools pip
 ENV  PYCURL_SSL_LIBRARY=openssl
 RUN  pip3 install \
       tornado \
@@ -22,15 +22,16 @@ RUN  pip3 install \
       jupyterlab \
       semver \
       oauthenticator \
-      'jupyterhubutils>=0.12.16,<1.0.0' \
-      git+https://github.com/jupyterhub/jupyterhub \
+      jupyterhub \
+      'jupyterhubutils>=0.14.0,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
-      pip install --compile --install-option="--with-nss" --no-cache-dir pycurl
+      pip install --compile --install-option="--with-nss" --no-cache-dir \
+       pycurl
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
-# ARG  BUILDTRIGGER="Mon Dec 30 15:12:29 MST 2019"
+#ARG  BUILDTRIGGER="Fri Jan 31 09:46:32 MST 2020"
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -49,5 +50,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.16.19"
+       version="0.18.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

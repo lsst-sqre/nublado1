@@ -220,7 +220,7 @@ RUN  pip3 install --upgrade \
        aioinflux \
        swifter \
        pyvo \
-       git+https://github.com/lsst-sqre/wfdispatcher.git
+       wfdispatcher
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -294,7 +294,7 @@ RUN  source ${LOADSTACK} && \
        aioinflux \
        swifter \
        pyvo \
-       git+https://github.com/lsst-sqre/wfdispatcher.git
+       wfdispatcher
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
 ENV  CARTOPY_VER="0.17.0"

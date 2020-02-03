@@ -31,7 +31,10 @@ RUN  pip uninstall pycurl && \
        pycurl
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
-#ARG  BUILDTRIGGER="Fri Jan 31 09:46:32 MST 2020"
+ARG  BUILDTRIGGER="Fri Jan 31 09:46:32 MST 2020"
+ARG  TKT="tickets/DM-23244"
+RUN  pip3 install --upgrade \
+      https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -50,5 +53,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.18.1"
+       version="exp_0.18.2"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

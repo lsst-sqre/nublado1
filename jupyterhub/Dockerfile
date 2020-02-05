@@ -23,7 +23,7 @@ RUN  pip3 install \
       semver \
       oauthenticator \
       jupyterhub \
-      'jupyterhubutils>=0.14.3,<1.0.0' \
+      'jupyterhubutils>=0.15.0,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
@@ -31,7 +31,7 @@ RUN  pip uninstall pycurl && \
        pycurl
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
-#ARG  BUILDTRIGGER="Mon Feb  3 12:37:13 MST 2020"
+#ARG  BUILDTRIGGER="Wed Feb  5 15:34:47 MST 2020"
 #ARG  TKT="tickets/DM-23244"
 #RUN  pip3 install --upgrade \
 #      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
@@ -53,5 +53,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.18.3"
+       version="0.18.4"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

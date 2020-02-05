@@ -12,13 +12,13 @@ RUN  pip3 install \
       python-jose[cryptography] \
       mock \
       inflection \
-      'jupyterhubutils>=0.14.2,<1.0.0' \
-      'wfdispatcher>=0.0.3,<1.0.0'
+      'jupyterhubutils>=0.15.0,<1.0.0' \
+      'wfdispatcher>=0.0.4,<1.0.0'
 #ARG  TKT="tickets/DM-23244"
-#ARG  BUILDTRIGGER="Mon Feb  3 12:33:46 MST 2020"
+#ARG  BUILDTRIGGER="Wed Feb  5 15:39:03 MST 2020"
 #RUN  pip3 install --upgrade \
-#     git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
-#     git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
+#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
+#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
 ENV  wf=/opt/lsst/software/workflow
 ENV  verdir=${wf}/versions
 RUN  mkdir -p ${verdir}
@@ -32,5 +32,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.0.3"
+       version="0.0.4"
 CMD [ "/usr/local/bin/start-wf-api" ]

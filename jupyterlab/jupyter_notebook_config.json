@@ -6,5 +6,8 @@
   },
   "MappingKernelManager": {
     "cull_connected": true
+  },
+  "ContentsManager": {
+    "hide_globs": []
   }
 }

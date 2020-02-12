@@ -1,4 +1,5 @@
 #!/bin/sh
+
 function setup_git() {
     # If we have a token, remove old token and update with new one.
     # That way if we change permissions on our scope, the old (possibly
@@ -12,6 +13,17 @@ function setup_git() {
         echo "${entry}" >> ${file}
         chmod 0600 ${file}
         unset GITHUB_ACCESS_TOKEN
+    fi
+}
+
+function manage_access_token() {
+    local tokfile="${HOME}/.access_token"
+    # Clear it out each new interactive lab start.
+    #  Will need to revisit if we have multiple simultaneous lab
+    #  environments...maybe.
+    rm -f "${tokfile}"
+    if [ -n "${ACCESS_TOKEN}" ]; then
+	echo "${ACCESS_TOKEN}" > "${tokfile}"
     fi
 }
 
@@ -125,7 +137,10 @@ if [ -n "${HUB_SERVICE_HOST}" ]; then
     jh_path=$(echo $JUPYTERHUB_API_URL | cut -d '/' -f 4-)
     port=${HUB_SERVICE_PORT_API}
     if [ -z "${port}" ]; then
-        port="8081"
+        port=${HUB_SERVICE_PORT}
+        if [ -z "${port}" ]; then
+            port="8081"
+        fi
     fi
     jh_api="${jh_proto}//${HUB_SERVICE_HOST}:${port}/${jh_path}"
     JUPYTERHUB_API_URL=${jh_api}
@@ -149,6 +164,8 @@ elif [ -n "${NONINTERACTIVE}" ]; then
 else
     # Create dask worker yml if we are a Lab and not a worker
     create_dask_yml
+    # Manage access token (again, only if we are a Lab)
+    manage_access_token
     # Fetch/update magic notebook.
     . /opt/lsst/software/jupyterlab/refreshnb.sh
     # Clear eups cache.  Use a subshell.

@@ -5,4 +5,3 @@ case $- in
     *)
         ;;
 esac
-

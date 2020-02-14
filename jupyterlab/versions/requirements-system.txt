@@ -112,7 +112,7 @@ jupyterhubutils==0.15.0
 jupyterlab==1.2.6
 jupyterlab-lsstextensions==0.0.4
 jupyterlab-server==1.0.6
-jupyterlabutils==0.5.3
+jupyterlabutils==0.6.0
 kapteyn==2.3.1
 keyring==21.1.0
 kiwisolver==1.1.0

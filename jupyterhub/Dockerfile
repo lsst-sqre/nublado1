@@ -31,6 +31,9 @@ RUN  pip uninstall pycurl && \
        pycurl
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
+# Something like:
+# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
+#  Dockerfile && dedangle && ./bld
 #ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
 #ARG  TKT="tickets/DM-23510"
 #RUN  pip3 install --upgrade \

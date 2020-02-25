@@ -307,6 +307,16 @@ RUN  cd ${srcdir}/thirdparty/cartopy && \
 RUN  source ${LOADSTACK} && \
       cd ${srcdir}/thirdparty/cartopy && \
       python setup.py install
+#Uncomment this and add a git+https URL on a pip install below it when doing
+# rapid test iteration.  Substitute date before rebuild.
+# Something like:
+# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
+#  Dockerfile && dedangle && ./bld
+#  Dockerfile && dedangle && ./bld
+#ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
+#ARG  TKT="tickets/DM-23510"
+#RUN  pip3 install --upgrade \
+#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'

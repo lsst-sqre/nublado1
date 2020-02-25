@@ -12,10 +12,15 @@ RUN  pip3 install \
       python-jose[cryptography] \
       mock \
       inflection \
-      'jupyterhubutils>=0.15.3,<1.0.0' \
-      'wfdispatcher>=0.0.6,<1.0.0'
-#ARG  TKT="tickets/DM-23244"
-#ARG  BUILDTRIGGER="Wed Feb  5 15:39:03 MST 2020"
+      'jupyterhubutils>=0.15.4,<1.0.0' \
+      'wfdispatcher>=0.0.7,<1.0.0'
+#Uncomment this and add a git+https URL on a pip install below it when doing
+# rapid test iteration.  Substitute date before rebuild.
+# Something like:
+# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
+#  Dockerfile && dedangle && ./bld
+#ARG  TKT="tickets/DM-23510"
+#ARG  BUILDTRIGGER="Tue Feb 25 11:41:26 MST 2020"
 #RUN  pip3 install --upgrade \
 #      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
 #      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
@@ -32,5 +37,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.0.5"
+       version="0.0.6"
 CMD [ "/usr/local/bin/start-wf-api" ]

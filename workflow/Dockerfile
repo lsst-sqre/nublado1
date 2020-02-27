@@ -13,17 +13,17 @@ RUN  pip3 install \
       mock \
       inflection \
       'jupyterhubutils>=0.15.4,<1.0.0' \
-      'wfdispatcher>=0.0.7,<1.0.0'
+      'wfdispatcher>=0.0.6,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-#ARG  TKT="tickets/DM-23510"
-#ARG  BUILDTRIGGER="Tue Feb 25 11:41:26 MST 2020"
-#RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
-#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
+ARG  TKT="tickets/DM-23613"
+ARG  BUILDTRIGGER="Tue Feb 25 11:41:26 MST 2020"
+RUN  pip3 install --upgrade \
+      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
+      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
 ENV  wf=/opt/lsst/software/workflow
 ENV  verdir=${wf}/versions
 RUN  mkdir -p ${verdir}

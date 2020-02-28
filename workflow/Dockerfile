@@ -12,7 +12,7 @@ RUN  pip3 install \
       python-jose[cryptography] \
       mock \
       inflection \
-      'jupyterhubutils>=0.16.0,<1.0.0' \
+      'jupyterhubutils>=0.16.1,<1.0.0' \
       'wfdispatcher>=0.0.8,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.

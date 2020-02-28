@@ -12,18 +12,18 @@ RUN  pip3 install \
       python-jose[cryptography] \
       mock \
       inflection \
-      'jupyterhubutils>=0.15.4,<1.0.0' \
-      'wfdispatcher>=0.0.6,<1.0.0'
+      'jupyterhubutils>=0.16.0,<1.0.0' \
+      'wfdispatcher>=0.0.8,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-ARG  TKT="tickets/DM-23613"
-ARG  BUILDTRIGGER="Tue Feb 25 11:41:26 MST 2020"
-RUN  pip3 install --upgrade \
-      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
-      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
+# ARG  TKT="tickets/DM-23617"
+# ARG  BUILDTRIGGER="Thu Feb 27 16:59:35 MST 2020"
+# RUN  pip3 install --upgrade \
+#       git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
+#       git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
 ENV  wf=/opt/lsst/software/workflow
 ENV  verdir=${wf}/versions
 RUN  mkdir -p ${verdir}
@@ -37,5 +37,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.0.6"
+       version="0.0.7"
 CMD [ "/usr/local/bin/start-wf-api" ]

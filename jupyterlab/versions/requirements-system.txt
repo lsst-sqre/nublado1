@@ -112,7 +112,7 @@ jupyter-telemetry==0.0.5
 jupyterhub==1.1.0
 jupyterhub-jwtauthenticator==0.1
 jupyterhub-kubespawner==0.11.1
-jupyterhubutils==0.15.3
+jupyterhubutils==0.16.2
 jupyterlab==1.2.6
 jupyterlab-lsstextensions==0.0.4
 jupyterlab-server==1.0.6
@@ -256,7 +256,7 @@ virtualenvwrapper==4.8.4
 wcwidth==0.1.8
 webencodings==0.5.1
 websocket-client==0.57.0
-wfdispatcher==0.0.6
+wfdispatcher==0.0.8
 whichcraft==0.6.1
 widgetsnbextension==3.5.1
 ws4py==0.5.1

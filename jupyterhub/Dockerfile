@@ -23,7 +23,7 @@ RUN  pip3 install \
       semver \
       oauthenticator \
       jupyterhub \
-      'jupyterhubutils>=0.15.1,<1.0.0' \
+      'jupyterhubutils>=0.16.0,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
@@ -34,10 +34,10 @@ RUN  pip uninstall pycurl && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-#ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
-#ARG  TKT="tickets/DM-23510"
-#RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
+# ARG  BUILDTRIGGER="Thu Feb 27 17:00:58 MST 2020"
+# ARG  TKT="tickets/DM-23617"
+# RUN  pip3 install --upgrade \
+#       git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -56,5 +56,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.18.5"
+       version="0.18.6"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

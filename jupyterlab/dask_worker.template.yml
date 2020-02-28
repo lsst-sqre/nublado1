@@ -35,6 +35,6 @@ spec:
         memory: {{MEM_LIMIT}}
       requests:
         cpu: {{CPU_GUARANTEE}}
-        memory: "{{MEM_GUARANTEE}}M"
+        memory: {{MEM_GUARANTEE}}
     # VolumeMounts and Volumes will be fed in next, so the template file
     # must end here.

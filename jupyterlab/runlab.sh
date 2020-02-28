@@ -35,6 +35,15 @@ function create_dask_yml() {
         debug=${DEBUG}
     fi
     dw="${HOME}/dask/dask_worker.yml"
+    # Work around MEM_GUARANTEE bug
+    local mb_guarantee=MEM_GUARANTEE
+    local lastchar="$(echo ${mb_guarantee} | tail -c 1)"
+    case lastchar in
+	[0-9]) mb_guarantee="${mb_guarantee}M"
+	       ;;
+	*)
+	       ;;
+    esac
     sed -e "s|{{JUPYTER_IMAGE_SPEC}}|${JUPYTER_IMAGE_SPEC}|" \
         -e "s/{{EXTERNAL_GROUPS}}/${EXTERNAL_GROUPS}/" \
         -e "s/{{EXTERNAL_UID}}/${EXTERNAL_UID}/" \
@@ -42,7 +51,7 @@ function create_dask_yml() {
         -e "s/{{CPU_LIMIT}}/${CPU_LIMIT}/" \
         -e "s/{{MEM_LIMIT}}/${MEM_LIMIT}/" \
         -e "s/{{CPU_GUARANTEE}}/${CPU_GUARANTEE}/" \
-        -e "s/{{MEM_GUARANTEE}}/${MEM_GUARANTEE}/" \
+        -e "s/{{MEM_GUARANTEE}}/${mb_guarantee}/" \
         -e "s/{{DEBUG}}/${debug}/" \
         /opt/lsst/software/jupyterlab/dask_worker.template.yml \
         > "${dw}"

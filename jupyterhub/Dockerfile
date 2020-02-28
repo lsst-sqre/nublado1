@@ -23,7 +23,7 @@ RUN  pip3 install \
       semver \
       oauthenticator \
       jupyterhub \
-      'jupyterhubutils>=0.16.1,<1.0.0' \
+      'jupyterhubutils>=0.16.2,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \

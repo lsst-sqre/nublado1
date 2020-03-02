@@ -36,7 +36,7 @@ function create_dask_yml() {
     fi
     dw="${HOME}/dask/dask_worker.yml"
     # Work around MEM_GUARANTEE bug
-    local mb_guarantee=MEM_GUARANTEE
+    local mb_guarantee=${MEM_GUARANTEE}
     local lastchar="$(echo ${mb_guarantee} | tail -c 1)"
     case lastchar in
 	[0-9]) mb_guarantee="${mb_guarantee}M"

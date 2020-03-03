@@ -153,7 +153,7 @@ RUN  pip3 install numpy cython && \
       pip3 install kapteyn/
 RUN  pip3 install --upgrade \
        tornado \
-       jupyterlab \
+       'jupyterlab<2.0.0' \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
@@ -221,7 +221,10 @@ RUN  pip3 install --upgrade \
        swifter \
        pyvo \
        lsst-efd-client \
-       wfdispatcher
+       wfdispatcher \
+       jupyterlab_iframe \
+       astrowidgets \
+       git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -234,7 +237,7 @@ RUN  source ${LOADSTACK} && \
        setuptools \
        wheel \
        tornado \
-       jupyterlab \
+       'jupyterlab<2.0.0' \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
@@ -296,7 +299,10 @@ RUN  source ${LOADSTACK} && \
        swifter \
        pyvo \
        lsst-efd-client \
-       wfdispatcher
+       wfdispatcher \
+       jupyterlab_iframe \
+       astrowidgets \
+       git+https://github.com/ericmandel/pyjs9
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
 ENV  CARTOPY_VER="0.17.0"
@@ -329,10 +335,9 @@ COPY jupyter_notebook_config.json /usr/etc/jupyter
 ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
 ARG  TKT="tickets/DM-23686"
 ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
-          nbdime"
+          nbdime jupyterlab_iframe"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/toc \
-          @jupyterlab/celltags \
           @jupyterlab/hdf5 \
           bqplot \
           ipyevents \
@@ -346,7 +351,9 @@ ENV LBXT="@jupyterlab/toc \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
           jupyterlab_bokeh \
-          @pyviz/jupyterlab_pyviz"
+          @pyviz/jupyterlab_pyviz \
+          jupyterlab_iframe"
+#          @jupyterlab/celltags"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}

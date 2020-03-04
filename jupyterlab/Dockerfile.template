@@ -37,7 +37,7 @@ RUN  S="script.rpm.sh" && \
       git lfs install
 # Install newer nodejs for system; needed for JupyterLab build
 RUN  cd /tmp && \
-      curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
+      curl -sL https://rpm.nodesource.com/setup_13.x -o node_repo.sh && \
       chmod 0755 node_repo.sh && \
       ./node_repo.sh && \
       rm ./node_repo.sh && \
@@ -50,7 +50,7 @@ ENV  srcdir=/opt/lsst/src
 RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \
-     V="2.11.2" && \
+     V="2.14.1" && \
      FN="hub-linux-amd64-${V}" && \
      F="${FN}.tgz" && \
      URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
@@ -62,7 +62,7 @@ RUN  cd /tmp && \
 # Install Snappy
 # First we need a newer cmake
 RUN  cd /tmp && \
-      V="3.14.4" && \
+      V="3.16.5" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
@@ -74,7 +74,7 @@ RUN  cd /tmp && \
       rm -rf ${F} ${FN}
 # Now we can build Snappy
 RUN  cd ${srcdir}/thirdparty && \
-      V="1.1.7" && \
+      V="1.1.8" && \
       git clone -b ${V} https://github.com/google/snappy && \
       cd snappy && \
       git checkout -b ${V} && \
@@ -83,21 +83,10 @@ RUN  cd ${srcdir}/thirdparty && \
       /usr/local/bin/cmake -DBUILD_SHARED_LIBS=1 ../ && \
       make && \
       make install
-# Install newer Proj -- but 6.0 is not cartopy-happy yet
-RUN  cd ${srcdir}/thirdparty && \
-      V="5.2.0" && \
-      git clone -b ${V} https://github.com/OSGeo/proj.4.git && \
-      cd proj.4 && \
-      git checkout -b ${V} && \
-      mkdir build && \
-      cd build && \
-      cmake ../ && \
-      cmake --build . && \
-      make install
 # Install Pandoc
 RUN  cd /tmp && \
-      V="2.7.2" && \
-      FN="pandoc-${V}-linux" && \
+      V="2.9.2" && \
+      FN="pandoc-${V}-linux-amd64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
       cmd="curl -L ${URL} -o ${F}" && \
@@ -224,6 +213,9 @@ RUN  pip3 install --upgrade \
        wfdispatcher \
        jupyterlab_iframe \
        astrowidgets \
+       sidecar \
+       "python-socketio[client]" \
+       socketIO-client \
        git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -302,17 +294,20 @@ RUN  source ${LOADSTACK} && \
        wfdispatcher \
        jupyterlab_iframe \
        astrowidgets \
+       sidecar \
+       "python-socketio[client]" \
+       socketIO-client \
        git+https://github.com/ericmandel/pyjs9
+# This is only in the LSST stack.
 RUN  source ${LOADSTACK} && \
-      conda install -y -c conda-forge 'proj4==5.2.0'
-ENV  CARTOPY_VER="0.17.0"
+      conda install -c conda-forge geoviews
+# Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
-      git clone -b v${CARTOPY_VER} https://github.com/SciTools/cartopy
-RUN  cd ${srcdir}/thirdparty/cartopy && \
-      python3 setup.py install
-RUN  source ${LOADSTACK} && \
-      cd ${srcdir}/thirdparty/cartopy && \
-      python setup.py install
+      git clone https://github.com/mgckind/jjs9.git && \
+      cd jjs9 && \
+      pip3 install -e . && \
+      source ${LOADSTACK} && \
+      pip install -e .
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
@@ -350,15 +345,17 @@ ENV LBXT="@jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
-          jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz \
-          jupyterlab_iframe"
+          jupyterlab_iframe \
+          @jupyter-widgets/jupyterlab-sidecar \
+          @bokeh/jupyter_bokeh"
 #          @jupyterlab/celltags"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
+          echo "---$s---" ; \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
       done
 RUN  set -e && \
@@ -375,6 +372,7 @@ RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
+      conda list --export > ${verdir}/conda-stack.txt && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
 RUN  set -e && \
       for l in ${LBXT} ; do \

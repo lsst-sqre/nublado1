@@ -224,7 +224,11 @@ RUN  pip3 install --upgrade \
        wfdispatcher \
        jupyterlab_iframe \
        astrowidgets \
-       git+https://github.com/ericmandel/pyjs9
+       sidecar \
+       "python-socketio[client]" \
+       socketIO-client \
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/mgckind/jjs9       
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
@@ -302,7 +306,11 @@ RUN  source ${LOADSTACK} && \
        wfdispatcher \
        jupyterlab_iframe \
        astrowidgets \
-       git+https://github.com/ericmandel/pyjs9
+       sidecar \
+       "python-socketio[client]" \
+       socketIO-client \
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/mgckind/jjs9
 RUN  source ${LOADSTACK} && \
       conda install -y -c conda-forge 'proj4==5.2.0'
 ENV  CARTOPY_VER="0.17.0"
@@ -350,15 +358,17 @@ ENV LBXT="@jupyterlab/toc \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
-          jupyterlab_bokeh \
           @pyviz/jupyterlab_pyviz \
-          jupyterlab_iframe"
+          jupyterlab_iframe \
+          @jupyter-widgets/jupyterlab-sidecar \
+          @bokeh/jupyter_bokeh"
 #          @jupyterlab/celltags"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
+          echo "---$s---" ; \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
       done
 RUN  set -e && \

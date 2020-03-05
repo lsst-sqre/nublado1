@@ -269,7 +269,7 @@ ncurses-base-5.9-14.20130511.el7_4.noarch
 ncurses-devel-5.9-14.20130511.el7_4.x86_64
 ncurses-libs-5.9-14.20130511.el7_4.x86_64
 nettle-2.7.1-8.el7.x86_64
-nodejs-12.16.1-1nodesource.x86_64
+nodejs-13.10.0-1nodesource.x86_64
 nodesource-release-el7-1.noarch
 nspr-4.21.0-1.el7.x86_64
 nss-3.44.0-7.el7_7.x86_64

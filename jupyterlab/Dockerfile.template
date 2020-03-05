@@ -300,7 +300,7 @@ RUN  source ${LOADSTACK} && \
        git+https://github.com/ericmandel/pyjs9
 # This is only in the LSST stack.
 RUN  source ${LOADSTACK} && \
-      conda install -c conda-forge geoviews
+      conda install -y -c conda-forge geoviews
 # Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \

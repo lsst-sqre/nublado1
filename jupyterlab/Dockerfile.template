@@ -349,13 +349,11 @@ ENV LBXT="@jupyterlab/toc \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
           @bokeh/jupyter_bokeh"
-#          @jupyterlab/celltags"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
-          echo "---$s---" ; \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
       done
 RUN  set -e && \

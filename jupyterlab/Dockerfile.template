@@ -6,7 +6,6 @@ ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
-RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 # PROD branch only: Pin versions
 # Install all the repos
 RUN  S="script.rpm.sh" && \
@@ -16,11 +15,14 @@ RUN  S="script.rpm.sh" && \
       bash /tmp/script.rpm.sh && \
       rm /tmp/script.rpm.sh
 RUN  cd /tmp && \
-      curl -sL https://rpm.nodesource.com/setup_12.x -o node_repo.sh && \
+      curl -sL https://rpm.nodesource.com/setup_13.x -o node_repo.sh && \
       chmod 0755 node_repo.sh && \
       ./node_repo.sh && \
       rm ./node_repo.sh
-ENV  epel_release="epel-release-7-11.noarch"
+RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
+       > /etc/yum.repos.d/yarn.repo
+RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
+ENV  epel_release="epel-release-7-12.noarch"
 ENV  jl=/opt/lsst/software/jupyterlab
 ENV  verdir=${jl}/versions.input
 COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
@@ -29,13 +31,11 @@ RUN  yum repolist
 RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
 # Install pip3
 RUN  python3 -m ensurepip
-# Install git-lfs
-RUN  mkdir -p /usr/share/git
 ENV  srcdir=/opt/lsst/src
 RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \
-     V="2.11.2" && \
+     V="2.14.1" && \
      FN="hub-linux-amd64-${V}" && \
      F="${FN}.tgz" && \
      URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
@@ -47,7 +47,7 @@ RUN  cd /tmp && \
 # Install Snappy
 # First we need a newer cmake
 RUN  cd /tmp && \
-      V="3.14.4" && \
+      V="3.16.5" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
@@ -59,7 +59,7 @@ RUN  cd /tmp && \
       rm -rf ${F} ${FN}
 # Now we can build Snappy
 RUN  cd ${srcdir}/thirdparty && \
-      V="1.1.7" && \
+      V="1.1.8" && \
       git clone -b ${V} https://github.com/google/snappy && \
       cd snappy && \
       git checkout -b ${V} && \
@@ -68,21 +68,10 @@ RUN  cd ${srcdir}/thirdparty && \
       /usr/local/bin/cmake -DBUILD_SHARED_LIBS=1 ../ && \
       make && \
       make install
-# Install newer Proj -- but 6.0 is not cartopy-happy yet
-RUN  cd ${srcdir}/thirdparty && \
-      V="5.2.0" && \
-      git clone -b ${V} https://github.com/OSGeo/proj.4.git && \
-      cd proj.4 && \
-      git checkout -b ${V} && \
-      mkdir build && \
-      cd build && \
-      cmake ../ && \
-      cmake --build . && \
-      make install
 # Install Pandoc
 RUN  cd /tmp && \
-      V="2.7.2" && \
-      FN="pandoc-${V}-linux" && \
+      V="2.9.2" && \
+      FN="pandoc-${V}-linux-amd64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
       cmd="curl -L ${URL} -o ${F}" && \
@@ -117,7 +106,8 @@ RUN  cd /tmp && \
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
      upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
-     mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx
+     mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx \
+     latexmk dvipng beamer
 # This, bizarrely, has to be installed on its own to get the binaries.
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
      tlmgr install xetex && \
@@ -158,21 +148,38 @@ ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
       cd ${srcdir}/thirdparty && \
       pip install kapteyn/
-# Install Proj into stack environment
-RUN  source ${LOADSTACK} && \
-      conda install -y -c conda-forge 'proj4==5.2.0'
-COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt      
+COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt
 RUN  source ${LOADSTACK} && \
       pip install --upgrade -r ${verdir}/requirements-stack.txt
-# Pip installing breaks for cartopy: 23 Jan 2019
-ENV  CARTOPY_VER="0.17.0"
-RUN  cd ${srcdir}/thirdparty && \
-      git clone -b v${CARTOPY_VER} https://github.com/SciTools/cartopy && \
-      cd cartopy && \
-      python3 setup.py install
+COPY versions/conda.yml ${verdir}/conda.yml
 RUN  source ${LOADSTACK} && \
-      cd ${srcdir}/thirdparty/cartopy && \
-      python setup.py install
+      ce=$(conda env list | grep '\*' | awk '{print $1}') && \
+      conda env update -n ${ce} --file ${verdir}/conda.yml && \
+      conda clean -a
+# Install pyjs9 (not packaged)
+ARG  js9_ver="0dfd733fca4f3f42e79d81f238167e0c65809f6f"
+RUN  pip3 install git+https://github.com/ericmandel/pyjs9.git@${js9_ver} && \
+      source ${LOADSTACK} && \
+      pip install git+https://github.com/ericmandel/pyjs9.git@${js9_ver}
+# Install jjs9
+ARG  jjs9_ver="6588e98b937553311a9276eac8e2bd251c2a0732"
+RUN  cd ${srcdir}/thirdparty && \
+      git clone https://github.com/mgckind/jjs9.git && \
+      cd jjs9 && \
+      git checkout ${jjs9_ver} && \
+      pip3 install -e . && \
+      source ${LOADSTACK} && \
+      pip install -e .
+#Uncomment this and add a git+https URL on a pip install below it when doing
+# rapid test iteration.  Substitute date before rebuild.
+# Something like:
+# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
+#  Dockerfile && dedangle && ./bld
+#  Dockerfile && dedangle && ./bld
+#ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
+#ARG  TKT="tickets/DM-23686"
+#RUN  pip3 install --upgrade \
+#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
@@ -182,8 +189,10 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
-          nbdime"
+ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
+ARG  TKT="tickets/DM-23686"
+ENV  SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
+          nbdime jupyterlab_iframe"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
 # nbdime is special and already installed its extensions
 RUN  nbdime extensions --disable --sys-prefix && \
@@ -206,15 +215,16 @@ RUN  set -e && \
           jupyter labextension install ${l} --no-build ; \
       done
 # Create package version docs.
-ENV  instverdir=${jl}/versions.installed
-RUN  mkdir -p ${instverdir}
-RUN  pip3 freeze > ${instverdir}/requirements-system.txt && \
+ARG  instverdir="${jl}/versions.installed"
+RUN  mkdir -p ${instverdir} && \
+      pip3 freeze > ${instverdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
       pip3 freeze > ${instverdir}/requirements-stack.txt && \
+      conda list --export > ${instverdir}/conda-stack.txt && \
       rpm -qa | sort > ${instverdir}/rpmlist.txt
 RUN  LBXT=$(cat ${verdir}/labext.txt) && \
       set -e && \
-      for l in ${LBXT} ${gitxt} ; do \
+      for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \
       done
 RUN  jupyter labextension disable \
@@ -223,16 +233,16 @@ RUN  npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build
 RUN  jupyter labextension list 2>&1 | \
-      grep '^      ' | grep -v ':' | \
+      grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
       awk '{print $1,$2}' | tr ' ' '@' > ${instverdir}/labext.txt
 # Lab extensions require write permissions by running user.
+# If we recursively chown all of the lab directory, it gets rid of permission
+# errors on startup....but also radically slows down startup, by about
+# three minutes.
 RUN  groupadd -g 768 jovyan && \
      uls="/usr/local/share" && \
      jlb="jupyter/lab" && \
      u="${uls}/${jlb}" && \
-# If we recursively chown all of the lab directory, it gets rid of permission
-# errors on startup....but also radically slows down startup, by about
-# three minutes.
      mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
      set -e && \
      for i in ${srcdir} ${u}/staging; do \
@@ -243,7 +253,7 @@ RUN  groupadd -g 768 jovyan && \
 RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
       yum clean all
 # Custom local files
-COPY local02-hub.sh local03-showmotd.sh  \
+COPY local01-nbstripjq.sh local02-hub.sh local03-showmotd.sh  \
      local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \
      local08-virtualenvwrapper.sh \
      /etc/profile.d/
@@ -273,8 +283,6 @@ RUN  mkdir ${jl}/prov
 COPY prov/addlabuser.bash prov/changestagingid.bash \
      prov/writeusersudoer.bash \
      ${jl}/prov/
-COPY noninteractive /opt/lsst/software/jupyterlab/noninteractive/
-# Mount configmap at ^^ command/command.json
 # Otherwise ipyevents shows up in serverextensions, which it should not.
 #  This is fixed in ipyevents 1.4.1, but we will leave the workaround in
 #  place so we can rebuild previous releases if need be.
@@ -297,6 +305,8 @@ RUN  sed -i -e \
      fi
 RUN  groupadd -g 769 provisionator
 RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
+COPY noninteractive /opt/lsst/software/jupyterlab/noninteractive/
+# Mount configmap at ^^ command/command.json
 WORKDIR /tmp
 # This needs to be numeric for k8s non-root contexts
 USER 769:769

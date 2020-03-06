@@ -155,7 +155,7 @@ COPY versions/conda.yml ${verdir}/conda.yml
 RUN  source ${LOADSTACK} && \
       ce=$(conda env list | grep '\*' | awk '{print $1}') && \
       conda env update -n ${ce} --file ${verdir}/conda.yml && \
-      conda clean -a
+      conda clean -a -y
 # Install pyjs9 (not packaged)
 ARG  js9_ver="0dfd733fca4f3f42e79d81f238167e0c65809f6f"
 RUN  pip3 install git+https://github.com/ericmandel/pyjs9.git@${js9_ver} && \

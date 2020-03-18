@@ -27,6 +27,11 @@ function manage_access_token() {
     fi
 }
 
+function copy_lsst_dask() {
+    mkdir -p "${HOME}/.config/dask"
+    cp "/opt/lsst/software/jupyterlab/lsst_dask.yml" "${HOME}/.config/dask/"
+}
+
 function create_dask_yml() {
     # Overwrite any existing template.
     mkdir -p "${HOME}/dask"
@@ -97,7 +102,6 @@ function start_dask_worker() {
 }
 
 function start_noninteractive() {
-    # create_dask_yaml
     cmd='/opt/lsst/software/jupyterlab/noninteractive/noninteractive'
     echo "Starting noninteractive container: ${cmd}"
     exec ${cmd}
@@ -171,7 +175,8 @@ elif [ -n "${NONINTERACTIVE}" ]; then
     start_noninteractive
     exit 0 # Not reached
 else
-    # Create dask worker yml if we are a Lab and not a worker
+    # Create dask yml if we are a Lab and not a worker
+    copy_lsst_dask
     create_dask_yml
     # Manage access token (again, only if we are a Lab)
     manage_access_token

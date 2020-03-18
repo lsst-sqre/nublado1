@@ -46,7 +46,7 @@ RUN  cd /tmp && \
 RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
        > /etc/yum.repos.d/yarn.repo && \
       yum -y install yarn
-ENV  srcdir=/opt/lsst/src
+ARG  srcdir=/opt/lsst/src
 RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \
@@ -313,11 +313,10 @@ RUN  cd ${srcdir}/thirdparty && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-#  Dockerfile && dedangle && ./bld
 #ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
-#ARG  TKT="tickets/DM-23686"
+#ARG  TKT="tickets/DM-23780"
 #RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
+#      git+https://github.com/lsst-sqre/jupyterlabutils.git@${TKT}
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
@@ -349,8 +348,8 @@ ENV LBXT="@jupyterlab/toc \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
           @bokeh/jupyter_bokeh"
-ENV  jl=/opt/lsst/software/jupyterlab
-ENV  verdir="${jl}/versions.installed"
+ARG  jl=/opt/lsst/software/jupyterlab
+ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
@@ -427,6 +426,7 @@ COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash runlab.sh refreshnb.sh \
       prepuller.sh provisionator.bash \
       lsstwrapdask.bash dask_worker.template.yml \
+      lsst_dask.yml \
       ${jl}/
 RUN  mkdir ${jl}/prov
 COPY prov/addlabuser.bash prov/changestagingid.bash \

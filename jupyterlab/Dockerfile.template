@@ -22,16 +22,16 @@ RUN  cd /tmp && \
 RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
        > /etc/yum.repos.d/yarn.repo
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
-ENV  epel_release="epel-release-7-12.noarch"
-ENV  jl=/opt/lsst/software/jupyterlab
-ENV  verdir=${jl}/versions.input
+ARG  epel_release="epel-release-7-12.noarch"
+ARG  jl=/opt/lsst/software/jupyterlab
+ARG  verdir=${jl}/versions.input
 COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
 RUN  yum install -y ${epel_release}
 RUN  yum repolist
 RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
 # Install pip3
 RUN  python3 -m ensurepip
-ENV  srcdir=/opt/lsst/src
+ARG  srcdir=/opt/lsst/src
 RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \
@@ -277,7 +277,7 @@ COPY user_setups /etc/skel/notebooks/.user_setups
 COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash runlab.sh refreshnb.sh \
       prepuller.sh provisionator.bash \
-      lsstwrapdask.bash dask_worker.template.yml \
+      lsstwrapdask.bash dask_worker.template.yml lsst_dask.yml \
       ${jl}/
 RUN  mkdir ${jl}/prov
 COPY prov/addlabuser.bash prov/changestagingid.bash \

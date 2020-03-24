@@ -102,7 +102,7 @@ for id in ${ids}; do
 done
 
 psql -v ON_ERROR_STOP=0 --username "${POSTGRES_USER}" \
-     --dbname "${POSTGRES_DB}" ${OUTPUT_FILE}
+     --dbname "${POSTGRES_DB}" < ${OUTPUT_FILE}
 
 rm -rf ${tdir}
 

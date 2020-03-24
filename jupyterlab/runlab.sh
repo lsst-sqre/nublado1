@@ -168,6 +168,14 @@ if [ -n "${EXTERNAL_FIREFLY_URL}" ]; then
 fi
 FIREFLY_HTML="slate.html"
 export FIREFLY_URL FIREFLY_HTML
+if [ -z "${JUPYTERHUB_SERVICE_PREFIX}" ]; then
+    # dask.distributed gets cranky if it's not there (since it is used
+    #  in lsst_dask.yml); it will be for interactive use, and whether
+    #  or not the proxy dashboard URL is correct doesn't matter in a
+    #  noninteractive context.
+    JUPYTERHUB_SERVICE_PREFIX="/nb/user/${JUPYTERHUB_USER}"
+    export JUPYTERHUB_SERVICE_PREFIX
+fi
 if [ -n "${DASK_WORKER}" ]; then
     start_dask_worker
     exit 0 # Not reached
@@ -186,18 +194,10 @@ else
     ( source /opt/lsst/software/stack/loadLSST.bash && \
 	  eups admin clearCache )
 fi
-#if [ -z "${JUPYTERHUB_HOST}" ]; then
-#    if [ -n "${JUPYTERHUB_API_URL}" ]; then
-#	JUPYTERHUB_HOST=$(echo ${JUPYTERHUB_API_URL} | cut -d '/' -f -3)
-#    fi
-#fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}"
-#if [ -n "${JUPYTERHUB_HOST}" ]; then
-#    cmd="${cmd} --hub-host=${JUPYTERHUB_HOST}"
-#fi
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"
 fi

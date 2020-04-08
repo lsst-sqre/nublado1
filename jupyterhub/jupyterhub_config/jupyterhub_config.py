@@ -3,13 +3,23 @@
 
 import jupyterhubutils
 import logging
+from eliot.stdlib import EliotHandler
+from jupyterhubutils import LSSTConfig
+from jupyterhubutils.utils import make_logger
 
 # get_config() only works in the Hub configuration environment
 c = get_config()
 
-lc = jupyterhubutils.LSSTConfig()
+lc = LSSTConfig()
+# Set logging
+c.Application.log_format = lc.log_format
+c.Application.log_datefmt = lc.log_datefmt
+c.Application.log_level = lc.log_level
+c.Application.log = make_logger(name='JupyterHub')
+c.Application.log.handlers = [EliotHandler()]
+
 jupyterhubutils.configure_auth_and_spawner(lc)
-jhu_logger = jupyterhubutils.utils.make_logger(name='jupyterhubutils')
+jhu_logger = make_logger(name='jupyterhubutils')
 if lc.debug:
     jhu_logger.setLevel(logging.DEBUG)
     jhu_logger.debug("Enabling 'jupyterhubutils' debug-level logging.")

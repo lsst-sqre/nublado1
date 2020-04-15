@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 # We are going to expect environment variables to occur in triplets:
 #  VRO_DB_XXX_USER, VRO_DB_XXX_PASSWORD, VRO_DB_XXX_DB
 
@@ -13,6 +11,8 @@ set -x
 #  with the expectation that PostgreSQL will start up, create/alter
 #  roles and schemas as needed, and be ready for use before the timer
 #  expires and the files are removed.
+
+mkdir -p /var/lib/postgresql/data
 
 tdir=$(mktemp -d)
 OUTPUT_FILE="${tdir}/vro.sql"
@@ -44,7 +44,7 @@ done
 
 # Now we have the list of identifiers.
 
-if [ -z "${ids}"]; then
+if [ -z "${ids}" ]; then
     >&2 echo "No identifiers; no additional databases."
     exit 0
 fi
@@ -78,16 +78,16 @@ for id in ${ids}; do
     echo "-- role ${istr}" >> ${OUTPUT_FILE}
     echo "DO \$\$" >> ${OUTPUT_FILE}
     echo "BEGIN" >> ${OUTPUT_FILE}
-    echo "  CREATE ROLE ${user} WITH NOLOGIN" >> ${OUTPUT_FILE}
+    echo "  CREATE ROLE ${user} WITH NOLOGIN;" >> ${OUTPUT_FILE}
     echo "  EXCEPTION WHEN DUPLICATE_OBJECT THEN" >> ${OUTPUT_FILE}
-    echo "  RAISE NOTICE 'role ${user} already exists'" >> ${OUTPUT_FILE}
+    echo "  RAISE NOTICE 'role ${user} already exists';" >> ${OUTPUT_FILE}
     echo "END" >> ${OUTPUT_FILE}
     echo "\$\$;" >> ${OUTPUT_FILE}
 
     # Set the role's password
 
     echo "-- set password ${istr}" >> ${OUTPUT_FILE}
-    echo "ALTER ROLE '${user}' LOGIN ENCRYPTED PASSWORD '${pw}'" \
+    echo "ALTER ROLE ${user} LOGIN ENCRYPTED PASSWORD '${pw}';" \
          >> ${OUTPUT_FILE}
 
     # Create the database
@@ -98,7 +98,7 @@ for id in ${ids}; do
 
     # Change its ownership
     echo "-- change ownership ${istr}" >> ${OUTPUT_FILE}
-    echo "ALTER DATABASE '${db}' OWNER TO '${user}'" >> ${OUTPUT_FILE}
+    echo "ALTER DATABASE ${db} OWNER TO ${user}" >> ${OUTPUT_FILE}
 done
 
 psql -v ON_ERROR_STOP=0 --username "${POSTGRES_USER}" \

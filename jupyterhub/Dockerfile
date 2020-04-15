@@ -16,6 +16,7 @@ RUN  pip3 install \
       wheel \
       cryptography \
       mysqlclient \
+      psycopg2-binary \
       jupyterhub-kubespawner \
       'kubernetes>=10.0.0,<11.0.0' \
       'requests>=2.0.0,<3.0.0' \
@@ -56,5 +57,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.18.12"
+       version="0.18.13"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

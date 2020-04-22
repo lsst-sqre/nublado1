@@ -24,7 +24,7 @@ RUN  pip3 install \
       semver \
       oauthenticator \
       jupyterhub \
-      'jupyterhubutils>=0.16.10,<1.0.0' \
+      'jupyterhubutils>=0.17.0,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
@@ -57,5 +57,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.18.13"
+       version="0.19.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

@@ -113,7 +113,7 @@ jupyter-telemetry==0.0.5
 jupyterhub==1.1.0
 jupyterhub-jwtauthenticator==0.1
 jupyterhub-kubespawner==0.11.1
-jupyterhubutils==0.17.0
+jupyterhubutils==0.17.1
 jupyterlab==1.2.7
 jupyterlab-iframe==0.2.1
 jupyterlab-lsstextensions==0.0.4

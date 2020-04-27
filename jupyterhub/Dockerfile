@@ -11,7 +11,6 @@ ENV  PYCURL_SSL_LIBRARY=openssl
 RUN  pip3 install \
       tornado \
       ipykernel \
-      pyyaml \
       python-oauth2 \
       wheel \
       cryptography \
@@ -24,7 +23,8 @@ RUN  pip3 install \
       semver \
       oauthenticator \
       jupyterhub \
-      'jupyterhubutils>=0.17.2,<1.0.0' \
+      'pyyaml~=3.12' \
+      'jupyterhubutils>=0.17.3,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
@@ -57,5 +57,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.19.2"
+       version="0.19.3"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

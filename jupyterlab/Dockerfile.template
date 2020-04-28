@@ -157,12 +157,12 @@ RUN  source ${LOADSTACK} && \
       conda env update -n ${ce} --file ${verdir}/conda.yml && \
       conda clean -a -y
 # Install pyjs9 (not packaged)
-ARG  js9_ver="0dfd733fca4f3f42e79d81f238167e0c65809f6f"
+ARG  js9_ver="c79d428db29d23bb4c243f71590ae16d723c4404"
 RUN  pip3 install git+https://github.com/ericmandel/pyjs9.git@${js9_ver} && \
       source ${LOADSTACK} && \
       pip install git+https://github.com/ericmandel/pyjs9.git@${js9_ver}
 # Install jjs9
-ARG  jjs9_ver="6588e98b937553311a9276eac8e2bd251c2a0732"
+ARG  jjs9_ver="171b27610a2db28477b7b24e58cc25fe2ce13ab9"
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \
       cd jjs9 && \

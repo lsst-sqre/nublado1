@@ -4,7 +4,7 @@ RUN  yum install -y epel-release
 RUN  yum repolist && yum updateinfo
 RUN  yum -y upgrade
 RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
-      git patch python-alembic mariadb mysql python3 python3-devel
+      git patch python-alembic mariadb mysql python3 python3-devel postgresql
 RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade setuptools pip
 ENV  PYCURL_SSL_LIBRARY=openssl
@@ -24,7 +24,7 @@ RUN  pip3 install \
       oauthenticator \
       jupyterhub \
       'pyyaml~=3.12' \
-      'jupyterhubutils>=0.17.3,<1.0.0' \
+      'jupyterhubutils>=0.17.4,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
@@ -57,5 +57,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.19.3"
+       version="0.19.4"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

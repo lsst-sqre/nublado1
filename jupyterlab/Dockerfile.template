@@ -6,6 +6,7 @@ ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
+RUN  yum clean all
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 RUN  yum install -y epel-release man man-pages
 RUN  yum repolist

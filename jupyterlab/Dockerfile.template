@@ -22,7 +22,7 @@ RUN  yum -y install \
       mariadb mysql mysql-devel \
       unzip nano file ed \
       gcc gcc-c++ \
-      ncurses ncurses-devel
+      ncurses ncurses-devel wget
 # Make EPEL Python 3.6 system Python 3 and install pip3
 RUN  python3 -m ensurepip
 # Tkinter and git: install from SCL

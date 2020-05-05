@@ -13,7 +13,7 @@ RUN  pip3 install \
       mock \
       inflection \
       'pyyaml~=3.12' \
-      'jupyterhubutils>=0.18.1,<1.0.0' \
+      'jupyterhubutils>=0.18.2,<1.0.0' \
       'wfdispatcher>=0.0.12,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.

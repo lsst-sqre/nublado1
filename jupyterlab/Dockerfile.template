@@ -405,8 +405,8 @@ RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
       yum clean all
 # Custom local files
 COPY local01-nbstripjq.sh local02-hub.sh local03-showmotd.sh  \
-     local04-pythonrc.sh local05-path.sh local06-scl.sh local07-term.sh \
-     local08-virtualenvwrapper.sh \
+     local04-pythonrc.sh local05-path.sh local06-term.sh \
+     local07-virtualenvwrapper.sh \
      /etc/profile.d/
 RUN  cd /etc/profile.d && \
       set -e && \

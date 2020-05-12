@@ -120,8 +120,6 @@ fi
 unset SUDO_USER SUDO_UID SUDO_GID SUDO_COMMAND
 # Add paths
 source /etc/profile.d/local05-path.sh
-# Set up SCLs
-source /etc/profile.d/local06-scl.sh
 # Set GitHub configuration
 setup_git
 if [ -n "${GITHUB_EMAIL}" ]; then

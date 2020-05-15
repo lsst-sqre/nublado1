@@ -7,7 +7,7 @@ RUN  yum install -y python3 git
 RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools
 RUN  pip3 install \
-      'jupyterhubutils>=0.19.3' \
+      'jupyterhubutils>=0.19.4' \
       'pyyaml~=3.12'
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jovyan

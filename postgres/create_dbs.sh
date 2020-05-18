@@ -14,6 +14,12 @@
 
 mkdir -p /var/lib/postgresql/data
 
+# Set admin user to "postgres" if unset.
+if [ -z "$POSTGRES_USER" ]; then
+    POSTGRES_USER="postgres"
+    export POSTGRES_USER
+fi
+
 tdir=$(mktemp -d)
 OUTPUT_FILE="${tdir}/vro.sql"
 if [ -z "${SQL_ERASE_TIMEOUT}" ]; then
@@ -34,10 +40,10 @@ for a in ${alldb}; do
     if [ -n "${isuser}" ]; then
 	# Get the _XXX_ part
 	id=$(echo ${a} | cut -d '_' -f 3)
-	if [ -z "${users}" ]; then
+	if [ -z "${ids}" ]; then
 	    ids="${id}"
 	else
-	    ids="${identifiers} ${id}"
+	    ids="${ids} ${id}"
 	fi
     fi
 done
@@ -98,7 +104,7 @@ for id in ${ids}; do
 
     # Change its ownership
     echo "-- change ownership ${istr}" >> ${OUTPUT_FILE}
-    echo "ALTER DATABASE ${db} OWNER TO ${user}" >> ${OUTPUT_FILE}
+    echo "ALTER DATABASE ${db} OWNER TO ${user};" >> ${OUTPUT_FILE}
 done
 
 psql -v ON_ERROR_STOP=0 --username "${POSTGRES_USER}" \

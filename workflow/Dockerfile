@@ -13,8 +13,8 @@ RUN  pip3 install \
       mock \
       inflection \
       'pyyaml~=3.12' \
-      'jupyterhubutils>=0.19.4,<1.0.0' \
-      'wfdispatcher>=0.0.12,<1.0.0'
+      'jupyterhubutils>=0.20.0,<1.0.0' \
+      'wfdispatcher>=0.0.13,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
@@ -38,5 +38,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.0.22"
+       version="0.0.23"
 CMD [ "/usr/local/bin/start-wf-api" ]

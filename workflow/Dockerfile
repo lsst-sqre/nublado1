@@ -14,16 +14,16 @@ RUN  pip3 install \
       inflection \
       'pyyaml~=3.12' \
       'jupyterhubutils>=0.21.0,<1.0.0' \
-      'wfdispatcher>=0.1.0,<1.0.0'
+      'wfdispatcher>=0.2.0,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
 # ARG  TKT="tickets/DM-25025"
-# ARG  BUILDTRIGGER="Fri Jun  5 11:16:42 MST 2020"
+# ARG  BUILDTRIGGER="Fri Jun  5 18:02:32 MST 2020"
 # RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT} \
+#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT} 
 #      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 ARG  wf=/opt/lsst/software/workflow
 ARG  verdir=${wf}/versions
@@ -38,5 +38,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.1.0"
+       version="0.2.0"
 CMD [ "/usr/local/bin/start-wf-api" ]

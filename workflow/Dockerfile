@@ -21,10 +21,10 @@ RUN  pip3 install \
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
 # ARG  TKT="tickets/DM-25025"
-# ARG  BUILDTRIGGER="Wed Jun  3 15:05:23 MST 2020"
+# ARG  BUILDTRIGGER="Fri Jun  5 11:16:42 MST 2020"
 # RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT} \
-#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
+#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT} \
+#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 ARG  wf=/opt/lsst/software/workflow
 ARG  verdir=${wf}/versions
 RUN  mkdir -p ${verdir}

@@ -6,49 +6,33 @@ ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
 # This will be an interactive system, so we do want man pages after all
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
-RUN  yum clean all
-RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
-RUN  yum install -y epel-release man man-pages
-RUN  yum repolist
-RUN  yum -y upgrade
-RUN  yum -y install \
-      git sudo \
-      python3 python3-setuptools python3-devel \
-      http-parser perl-Digest-MD5 \
-      make zlib-devel perl-ExtUtils-MakeMaker gettext \
-      ack screen tmux tree vim-enhanced emacs-nox jq \
-      graphviz geos-devel hdf5-devel \
-      sqlite-devel \
-      mariadb mysql mysql-devel \
-      unzip nano file ed \
-      gcc gcc-c++ \
-      ncurses ncurses-devel wget
-# Make EPEL Python 3.6 system Python 3 and install pip3
-RUN  python3 -m ensurepip
-# Tkinter and git: install from SCL
-RUN  yum -y install centos-release-scl && \
-     yum -y install rh-git218
-# Install git-lfs repo and then git-lfs
+# PROD branch only: Pin versions
+# Install all the repos
 RUN  S="script.rpm.sh" && \
       curl -s \
        https://packagecloud.io/install/repositories/github/git-lfs/${S} \
        -o /tmp/script.rpm.sh && \
       bash /tmp/script.rpm.sh && \
-      rm /tmp/script.rpm.sh && \
-      yum -y install git-lfs && \
-      source scl_source enable rh-git218 && \
-      git lfs install
-# Install newer nodejs for system; needed for JupyterLab build
+      rm /tmp/script.rpm.sh
 RUN  cd /tmp && \
       curl -sL https://rpm.nodesource.com/setup_13.x -o node_repo.sh && \
       chmod 0755 node_repo.sh && \
       ./node_repo.sh && \
-      rm ./node_repo.sh && \
-      yum -y install nodejs
-# Install yarn repo and then yarn
+      rm ./node_repo.sh
 RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
-       > /etc/yum.repos.d/yarn.repo && \
-      yum -y install yarn
+       > /etc/yum.repos.d/yarn.repo
+RUN  yum clean all
+RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
+# FIXME when we have a stable upstream
+ARG  epel_release="epel-release"
+ARG  jl=/opt/lsst/software/jupyterlab
+ARG  verdir=${jl}/versions.input
+COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
+RUN  yum install -y ${epel_release}
+RUN  yum repolist
+RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
+# Install pip3
+RUN  python3 -m ensurepip
 ARG  srcdir=/opt/lsst/src
 RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
@@ -112,202 +96,152 @@ RUN  cd ${srcdir}/thirdparty && \
       done
 # Install minimal LaTeX from TexLive
 COPY texlive.profile /tmp
+# FIXME: remove verify-repo=none and no-verify-downloads once it works again
 RUN  cd /tmp && \
       FN="install-tl-unx.tar.gz" && \
       wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
       tar xvpfz ${FN} && \
-      ./install-tl-*/install-tl --repository \
+      ./install-tl-*/install-tl -no-verify-downloads --repository \
         http://ctan.math.illinois.edu/systems/texlive/tlnet \
         --profile /tmp/texlive.profile && \
       rm -rf /tmp/${FN} /tmp/install-tl*
 # More TeX stuff we need for PDF export
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
-     tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
+     tlmgr --verify-repo=none install \
+     caption lm adjustbox xkeyval collectbox xcolor \
      upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
      mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx \
      latexmk dvipng beamer
 # This, bizarrely, has to be installed on its own to get the binaries.
 RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
-     tlmgr install xetex && \
+     tlmgr --verify-repo=none install xetex && \
      ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
            /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
            /usr/bin
-# Get newer setuptools before Python packages
-RUN  pip3 install --upgrade pip setuptools wheel
-# Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
-#  following workaround does the trick:
-#  https://github.com/SheffieldML/GPy/issues/649
-#  ...but you need numpy and cython first.
-RUN  pip3 install numpy cython && \
-      cd ${srcdir}/thirdparty && \
-      git clone https://github.com/kapteyn-astro/kapteyn && \
-      find kapteyn -name '*.pyx' -exec cython {} \; && \
-      pip3 install kapteyn/
-RUN  pip3 install --upgrade \
-       tornado \
-       'jupyterlab<2.0.0' \
-       jupyterlab_server \
-       jupyterhub \
-       jupyter-server-proxy \
-       jupyterlabutils \
-       virtualenv \
-       virtualenvwrapper \
-       pyshp \
-       ipykernel \
-       pipenv \
-       nbval \
-       numpy \
-       scipy \
-       pandas \
-       astropy \
-       pypandoc \
-       ipyevents \
-       ipywidgets \
-       matplotlib \
-       astroquery \
-       healpy \
-       bokeh \
-       pyarrow \
-       cloudpickle \
-       ipympl \
-       fastparquet \
-       paramnb \
-       ginga \
-       bqplot \
-       ipyvolume \
-       tables \
-       papermill \
-       dask \
-       gcsfs \
-       distributed \
-       dask-kubernetes \
-       "holoviews[recommended]" \
-       datashader \
-       nclib \
-       python-snappy \
-       graphviz \
-       vaex-core \
-       vaex-viz \
-       vaex-server \
-       vaex-hdf5 \
-       vaex-astro \
-       vaex-distributed \
-       vaex-jupyter \
-       vaex-arrow \
-       firefly_client \
-       jupyter-firefly-extensions \
-       mysqlclient \
-       hvplot \
-       intake \
-       intake-parquet \
-       jupyter-server-proxy \
-       jupyterlab_lsstextensions \
-       toolz \
-       partd \
-       nbdime \
-       dask_labextension \
-       numba \
-       awkward \
-       awkward-numba \
-       aioinflux \
-       swifter \
-       pyvo \
-       lsst-efd-client \
-       wfdispatcher \
-       jupyterlab_iframe \
-       astrowidgets \
-       sidecar \
-       "python-socketio[client]" \
-       socketIO-client \
-       git+https://github.com/ericmandel/pyjs9
+COPY versions/requirements-system.txt ${verdir}/requirements-system.txt
+# Get newer pip/setuptools/wheel before Python packages
+RUN  pipver=$(grep ^pip\= ${verdir}/requirements-system.txt \
+      | cut -d '=' -f 3) && \
+      setupver=$(grep ^setuptools ${verdir}/requirements-system.txt \
+      | cut -d '=' -f 3) && \
+      wheelver=$(grep ^wheel ${verdir}/requirements-system.txt \
+      | cut -d '=' -f 3) && \
+      pip3 install --upgrade pip==${pipver} setuptools==${setupver} \
+       wheel==${wheelver}
+RUN  pip3 install --upgrade -r ${verdir}/requirements-system.txt
+RUN  pip3 install https://www.astro.rug.nl/software/kapteyn/kapteyn-3.0.tar.gz
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
-# Work around the vaex-astro problem mentioned above, in the LSST stack env.
+COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt
+# Should be a no-op
+# Really really isn't.  Conda solve is awful.
+# RUN  source ${LOADSTACK} && conda install proj4 cartopy
+#
+# What happens when we don't mess with conda?
+#
+#RUN  source ${LOADSTACK} && \
+#      ce=$(conda env list | grep '\*' | awk '{print $1}') && \
+#      conda env update -n ${ce} --file ${verdir}/conda.yml && \
+#      conda clean -a -y
+# PyYAML must not be present in requirements-stack
 RUN  source ${LOADSTACK} && \
-      cd ${srcdir}/thirdparty && \
-      pip install kapteyn/
+      pip install --upgrade -r ${verdir}/requirements-stack.txt
+
 RUN  source ${LOADSTACK} && \
-      pip install --upgrade \
-       pip \
-       setuptools \
-       wheel \
-       tornado \
-       'jupyterlab<2.0.0' \
-       jupyterlab_server \
-       jupyterhub \
-       jupyter-server-proxy \
-       jupyterlabutils \
-       virtualenv \
-       virtualenvwrapper \
-       pyshp \
-       ipykernel \
-       pipenv \
-       nbval \
-       pypandoc \
-       astroquery \
-       ipywidgets \
-       ipyevents \
-       bokeh \
-       pyarrow \
-       cloudpickle \
-       ipympl \
-       fastparquet \
-       paramnb \
-       ginga \
-       bqplot \
-       ipyvolume \
-       tables \
-       papermill \
-       dask \
-       gcsfs \
-       distributed \
-       dask-kubernetes \
-       "holoviews[recommended]" \
-       datashader \
-       vaex-core \
-       vaex-viz \
-       vaex-server \
-       vaex-hdf5 \
-       vaex-astro \
-       vaex-distributed \
-       vaex-jupyter \
-       vaex-arrow \
-       nclib \
-       python-snappy cython \
-       graphviz \
-       firefly_client \
-       jupyter-firefly-extensions \
-       mysqlclient \
-       hvplot \
-       intake \
-       intake-parquet \
-       jupyter-server-proxy \
-       jupyterlab_lsstextensions \
-       toolz \
-       partd \
-       nbdime \
-       dask_labextension \
-       numba \
-       awkward \
-       awkward-numba \
-       aioinflux \
-       swifter \
-       pyvo \
-       lsst-efd-client \
-       wfdispatcher \
-       jupyterlab_iframe \
-       astrowidgets \
-       sidecar \
-       "python-socketio[client]" \
-       socketIO-client \
-       git+https://github.com/ericmandel/pyjs9
-# This is only in the LSST stack.
-RUN  source ${LOADSTACK} && \
-      conda install -y -c conda-forge geoviews
+      pip3 install https://www.astro.rug.nl/software/kapteyn/kapteyn-3.0.tar.gz
+
+#RUN  source ${LOADSTACK} && \
+#      cd ${srcdir}/thirdparty && \
+#      pip install kapteyn/
+#RUN  source ${LOADSTACK} && \
+#      pip install --upgrade \
+#       pip \
+#       setuptools \
+#       wheel \
+#       tornado \
+#       'jupyterlab<2.0.0' \
+#       jupyterlab_server \
+#       jupyterhub \
+#       jupyter-server-proxy \
+#       jupyterlabutils \
+#       virtualenv \
+#       virtualenvwrapper \
+#       pyshp \
+#       ipykernel \
+#       pipenv \
+#       nbval \
+#       pypandoc \
+#       astroquery \
+#       ipywidgets \
+#       ipyevents \
+#       bokeh \
+#       pyarrow \
+#       cloudpickle \
+#       ipympl \
+#       fastparquet \
+#       paramnb \
+#       ginga \
+#       bqplot \
+#       ipyvolume \
+#       tables \
+#       papermill \
+#       dask \
+#       gcsfs \
+#       distributed \
+#       dask-kubernetes \
+#       "holoviews[recommended]" \
+#       datashader \
+#       vaex-core \
+#       vaex-viz \
+#       vaex-server \
+#       vaex-hdf5 \
+#       vaex-astro \
+#       vaex-distributed \
+#       vaex-jupyter \
+#       vaex-arrow \
+#       nclib \
+#       python-snappy cython \
+#       graphviz \
+#       firefly_client \
+#       jupyter-firefly-extensions \
+#       mysqlclient \
+#       hvplot \
+#       intake \
+#       intake-parquet \
+#       jupyter-server-proxy \
+#       jupyterlab_lsstextensions \
+#       toolz \
+#       partd \
+#       nbdime \
+#       dask_labextension \
+#       numba \
+#       awkward \
+#       awkward-numba \
+#       aioinflux \
+#       swifter \
+#       pyvo \
+#       lsst-efd-client \
+#       wfdispatcher \
+#       jupyterlab_iframe \
+#       astrowidgets \
+#       sidecar \
+#       "python-socketio[client]" \
+#       socketIO-client \
+#       git+https://github.com/ericmandel/pyjs9
+
+# Install conda versions before pip?  Shouldn't help.
+COPY versions/conda.yml ${verdir}/conda.yml
+# Install pyjs9 (not packaged)
+ARG  js9_ver="c79d428db29d23bb4c243f71590ae16d723c4404"
+RUN  pip3 install git+https://github.com/ericmandel/pyjs9.git@${js9_ver} && \
+      source ${LOADSTACK} && \
+      pip install git+https://github.com/ericmandel/pyjs9.git@${js9_ver}
 # Install jjs9
+ARG  jjs9_ver="171b27610a2db28477b7b24e58cc25fe2ce13ab9"
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \
       cd jjs9 && \
+      git checkout ${jjs9_ver} && \
       pip3 install -e . && \
       source ${LOADSTACK} && \
       pip install -e .
@@ -316,10 +250,11 @@ RUN  cd ${srcdir}/thirdparty && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
+#  Dockerfile && dedangle && ./bld
 #ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
-#ARG  TKT="tickets/DM-23780"
+#ARG  TKT="tickets/DM-23686"
 #RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/jupyterlabutils.git@${TKT}
+#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
@@ -331,28 +266,13 @@ RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
 ARG  TKT="tickets/DM-23686"
-ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
+ENV  SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
           nbdime jupyterlab_iframe"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
-ENV LBXT="@jupyterlab/toc \
-          @jupyterlab/hdf5 \
-          bqplot \
-          ipyevents \
-          ipyvolume \
-          jupyter-threejs \
-          nbdime-jupyterlab \
-          dask-labextension \
-          @lsst-sqre/jupyterlab-savequit \
-	  @lsst-sqre/jupyterlab-lsstextensions \
-          @jupyter-widgets/jupyterlab-manager \
-          jupyter-matplotlib \
-          jupyter_firefly_extensions \
-          @pyviz/jupyterlab_pyviz \
-          jupyterlab_iframe \
-          @jupyter-widgets/jupyterlab-sidecar \
-          @bokeh/jupyter_bokeh"
-ARG  jl=/opt/lsst/software/jupyterlab
-ARG  verdir="${jl}/versions.installed"
+# nbdime is special and already installed its extensions
+RUN  nbdime extensions --disable --sys-prefix && \
+     source ${LOADSTACK} && \
+     nbdime extensions --disable --sys-prefix
 RUN  mkdir -p ${jl}
 RUN  set -e && \
       for s in $SVXT; do \
@@ -363,19 +283,25 @@ RUN  set -e && \
           jupyter nbextension install ${n} --py --sys-prefix && \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
       done
+COPY versions/labext.txt ${verdir}/labext.txt
 RUN  set -e && \
+      LBXT=$(cat ${verdir}/labext.txt) && \
       for l in ${LBXT}; do \
+          echo "install: ${l}" ; \
           jupyter labextension install ${l} --no-build ; \
       done
 # Create package version docs.
-RUN  mkdir -p ${verdir} && \
-      pip3 freeze > ${verdir}/requirements-system.txt && \
+ARG  instverdir="${jl}/versions.installed"
+RUN  mkdir -p ${instverdir} && \
+      pip3 freeze > ${instverdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
-      pip3 freeze > ${verdir}/requirements-stack.txt && \
-      conda list --export > ${verdir}/conda-stack.txt && \
-      rpm -qa | sort > ${verdir}/rpmlist.txt
-RUN  set -e && \
+      pip3 freeze > ${instverdir}/requirements-stack.txt && \
+      conda list --export > ${instverdir}/conda-stack.txt && \
+      rpm -qa | sort > ${instverdir}/rpmlist.txt
+RUN  LBXT=$(cat ${verdir}/labext.txt) && \
+      set -e && \
       for l in ${LBXT} ; do \
+          echo "enable: ${l}" ; \
           jupyter labextension enable ${l} ; \
       done
 RUN  jupyter labextension disable \
@@ -385,7 +311,7 @@ RUN  npm cache clean --force && \
       jupyter lab build
 RUN  jupyter labextension list 2>&1 | \
       grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
-      awk '{print $1,$2}' | tr ' ' '@' > ${verdir}/labext.txt
+      awk '{print $1,$2}' | tr ' ' '@' > ${instverdir}/labext.txt
 # Lab extensions require write permissions by running user.
 # If we recursively chown all of the lab directory, it gets rid of permission
 # errors on startup....but also radically slows down startup, by about
@@ -428,8 +354,7 @@ COPY user_setups /etc/skel/notebooks/.user_setups
 COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash runlab.sh refreshnb.sh \
       prepuller.sh provisionator.bash \
-      lsstwrapdask.bash dask_worker.template.yml \
-      lsst_dask.yml \
+      lsstwrapdask.bash dask_worker.template.yml lsst_dask.yml \
       ${jl}/
 RUN  mkdir ${jl}/prov
 COPY prov/addlabuser.bash prov/changestagingid.bash \
@@ -457,7 +382,7 @@ RUN  sed -i -e \
      fi
 RUN  groupadd -g 769 provisionator
 RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
-COPY  noninteractive /opt/lsst/software/jupyterlab/noninteractive/
+COPY noninteractive /opt/lsst/software/jupyterlab/noninteractive/
 # Mount configmap at ^^ command/command.json
 WORKDIR /tmp
 # This needs to be numeric for k8s non-root contexts

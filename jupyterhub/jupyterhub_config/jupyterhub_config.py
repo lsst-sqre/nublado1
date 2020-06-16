@@ -5,12 +5,14 @@ import jupyterhubutils
 import logging
 from eliot.stdlib import EliotHandler
 from jupyterhubutils import LSSTConfig
+from jupyterhubutils.scanrepo import prime_repo_cache
 from jupyterhubutils.utils import make_logger
 
 # get_config() only works in the Hub configuration environment
 c = get_config()
 
 lc = LSSTConfig()
+
 # Set logging
 c.Application.log_format = lc.log_format
 c.Application.log_datefmt = lc.log_datefmt
@@ -23,7 +25,10 @@ jhu_logger = make_logger(name='jupyterhubutils')
 if lc.debug:
     jhu_logger.setLevel(logging.DEBUG)
     jhu_logger.debug("Enabling 'jupyterhubutils' debug-level logging.")
-    jhu_logger.warning("If there's not a prior debug log something is wrong.")
+    jhu_logger.warning("If there is no prior debug log something is wrong.")
+
+# Prime the repo cache
+prime_repo_cache(lc)
 
 # Set up the spawner
 c.JupyterHub.spawner_class = lc.spawner_class

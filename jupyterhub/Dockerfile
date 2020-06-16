@@ -4,7 +4,7 @@ RUN  yum install -y epel-release
 RUN  yum repolist && yum updateinfo
 RUN  yum -y upgrade
 RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
-      git patch python-alembic mariadb mysql python3 python3-devel postgresql
+      patch git python-alembic mariadb mysql python3 python3-devel postgresql
 RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade setuptools pip
 ENV  PYCURL_SSL_LIBRARY=openssl
@@ -23,8 +23,8 @@ RUN  pip3 install \
       semver \
       oauthenticator \
       jupyterhub \
-      'pyyaml' \
-      'jupyterhubutils>=0.21.0,<1.0.0' \
+      pyyaml \
+      'jupyterhubutils>=0.22.0,<1.0.0' \
       git+https://github.com/mogthesprog/jwtauthenticator.git
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
@@ -35,10 +35,10 @@ RUN  pip uninstall pycurl && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-ARG  BUILDTRIGGER="Mon Jun  8 17:25:30 MST 2020"
-ARG  TKT="tickets/DM-25330"
-RUN  pip3 install --upgrade \
-      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
+# ARG  BUILDTRIGGER="Mon Jun 15 18:17:47 MST 2020"
+# ARG  TKT="tickets/DM-25330"
+# RUN  pip3 install --upgrade \
+#       git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -57,5 +57,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="exp_0.22.0"
+       version="0.22.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

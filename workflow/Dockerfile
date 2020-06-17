@@ -13,7 +13,7 @@ RUN  pip3 install \
       inflection \
       pyyaml \
       'kubernetes>=10.0.0,<11.0.0' \
-      'jupyterhubutils>=0.22.0,<1.0.0' \
+      'jupyterhubutils>=0.22.1,<1.0.0' \
       'wfdispatcher>=0.2.2,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.

@@ -22,6 +22,8 @@ RUN  cd /tmp && \
 RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
        > /etc/yum.repos.d/yarn.repo
 RUN  yum clean all
+RUN  yum install -y centos-release-scl-2-3.el7.centos.noarch \
+      centos-release-scl-rh-2-3.el7.centos.noarch
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 # FIXME when we have a stable upstream
 ARG  epel_release="epel-release"

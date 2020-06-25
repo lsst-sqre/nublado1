@@ -35,10 +35,10 @@ RUN  pip uninstall pycurl && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-# ARG  BUILDTRIGGER="Tue Jun 16 17:20:21 MST 2020"
-# ARG  TKT="tickets/DM-25442"
-# RUN  pip3 install --upgrade \
-#       git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
+ARG  BUILDTRIGGER="Tue Jun 16 17:20:21 MST 2020"
+ARG  TKT="tickets/DM-25655"
+RUN  pip3 install --upgrade \
+      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -57,5 +57,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.22.1"
+       version="exp_0.23.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

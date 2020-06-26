@@ -55,7 +55,7 @@ pyarrow==0.17.0
 pypandoc==1.5
 pyshp==2.1.0
 python-snappy==0.5.4
-pyvo==1.0
+pyvo==1.1
 requests==2.23.0
 sidecar==0.3.0
 socketIO-client==0.7.2

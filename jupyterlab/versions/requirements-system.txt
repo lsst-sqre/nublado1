@@ -121,12 +121,12 @@ jupyter-telemetry==0.1.0
 jupyterhub==1.1.0
 jupyterhub-jwtauthenticator==0.1
 jupyterhub-kubespawner==0.11.1
-jupyterhubutils==0.23.0
+jupyterhubutils==0.23.1
 jupyterlab==1.2.14
 jupyterlab-iframe==0.2.2
 jupyterlab-lsstextensions==0.0.4
 jupyterlab-server==1.1.1
-jupyterlabutils==0.9.0
+jupyterlabutils==0.9.1
 keyring==21.2.1
 kiwisolver==1.2.0
 kubernetes==11.0.0

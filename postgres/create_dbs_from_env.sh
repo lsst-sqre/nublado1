@@ -12,7 +12,7 @@
 #  roles and schemas as needed, and be ready for use before the timer
 #  expires and the files are removed.
 
-mkdir -p /var/lib/postgresql/data
+mkdir -p ${PGDATA}
 
 # Set admin user to "postgres" if unset.
 if [ -z "$POSTGRES_USER" ]; then
@@ -109,6 +109,5 @@ done
 
 psql -v ON_ERROR_STOP=0 --username "${POSTGRES_USER}" \
      --dbname "${POSTGRES_DB}" < ${OUTPUT_FILE}
-
 rm -rf ${tdir}
 

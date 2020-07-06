@@ -33,7 +33,7 @@ ipywidgets==7.5.1
 jupyter-firefly-extensions==0.2.6
 jupyter-server-proxy==1.3.2
 jupyterhub==1.1.0
-jupyterhubutils==0.23.2
+jupyterhubutils==0.23.5
 jupyterlab==1.2.14
 jupyterlab-iframe==0.2.2
 jupyterlab-lsstextensions==0.0.4

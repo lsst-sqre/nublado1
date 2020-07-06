@@ -13,7 +13,7 @@ RUN  pip3 install \
       inflection \
       pyyaml \
       'kubernetes>=10.0.0,<11.0.0' \
-      'jupyterhubutils>=0.23.2,<1.0.0' \
+      'jupyterhubutils>=0.23.4,<1.0.0' \
       'wfdispatcher>=0.2.2,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
@@ -38,5 +38,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.2.2.3"
+       version="0.2.2.5"
 CMD [ "/usr/local/bin/start-wf-api" ]

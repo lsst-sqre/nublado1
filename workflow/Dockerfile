@@ -20,11 +20,11 @@ RUN  pip3 install \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-# ARG  TKT="tickets/DM-25330"
-# ARG  BUILDTRIGGER="Tue Jun 16 11:31:02 MST 2020"
-# RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT} \
-#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
+ARG  TKT="tickets/DM-25827"
+ARG  BUILDTRIGGER="Tue Jun 16 11:31:02 MST 2020"
+RUN  pip3 install --upgrade \
+     git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT} \
+     git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 ARG  wf=/opt/lsst/software/workflow
 ARG  verdir=${wf}/versions
 RUN  mkdir -p ${verdir}
@@ -38,5 +38,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.2.2.6"
+       version="exp_0.3.0.0"
 CMD [ "/usr/local/bin/start-wf-api" ]

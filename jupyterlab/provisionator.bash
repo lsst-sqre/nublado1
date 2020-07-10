@@ -8,19 +8,19 @@ function setup_user() {
     local write_user_sudoer=""
     id -u ${U_NAME} 2> /dev/null 1>&2
     if [ $? -ne 0 ]; then
-	user_provisioning="${sudo} ${PROVDIR}/addlabuser.bash -n ${U_NAME}"
-	if [ -n "${EXTERNAL_UID}" ]; then
-	    user_provisioning="${user_provisioning} -u ${EXTERNAL_UID}"
-	fi
-	if [ -n "${EXTERNAL_GROUPS}" ]; then
-	    user_provisioning="${user_provisioning} -g ${EXTERNAL_GROUPS}"
-	fi
-	change_staging_id="${sudo} ${PROVDIR}/changestagingid.bash ${U_NAME}"
-	write_user_sudoer="${sudo} ${PROVDIR}/writeusersudoer.bash ${U_NAME}"
-	${user_provisioning} || debug_pause
-	${change_staging_id} || debug_pause
-	${write_user_sudoer} || debug_pause
+        user_provisioning="${sudo} ${PROVDIR}/addlabuser.bash -n ${U_NAME}"
+        if [ -n "${EXTERNAL_UID}" ]; then
+            user_provisioning="${user_provisioning} -u ${EXTERNAL_UID}"
+        fi
+        if [ -n "${EXTERNAL_GROUPS}" ]; then
+            user_provisioning="${user_provisioning} -g ${EXTERNAL_GROUPS}"
+        fi
+        ${user_provisioning} || debug_pause
     fi
+    change_staging_id="${sudo} ${PROVDIR}/changestagingid.bash ${U_NAME}"
+    write_user_sudoer="${sudo} ${PROVDIR}/writeusersudoer.bash ${U_NAME}"
+    ${write_user_sudoer} || debug_pause
+    ${change_staging_id} || debug_pause
 }
 
 function forget_extraneous_vars() {
@@ -81,12 +81,15 @@ if [ $(id -u) -eq 0 ]; then
 	     /opt/lsst/software/jupyterlab/provisionator.bash
     fi
 fi
-if [ -z "${U_NAME}" ]; then
-    echo 1>&2 "Warning: no target user name."
-fi
-if [ -n "${U_NAME}" ]; then
-    setup_user
+if [ -z "${NO_SUDO}" ]; then
+    if [ -z "${U_NAME}" ]; then
+	echo 1>&2 "Fatal: no target user name and NO_SUDO not set."
+	debug_pause
+	exit 2
+    fi
+    setup_user 
     user_sudo="/bin/sudo -E -u ${U_NAME} "
 fi
+
 forget_extraneous_vars
 exec ${user_sudo} ${JLDIR}/runlab.sh

@@ -20,6 +20,7 @@ Defaults env_keep += "AUTO_REPO_URLS EXTERNAL_FIREFLY_URL"
 Defaults env_keep += "NODE_OPTIONS"
 Defaults env_keep += "ACCESS_TOKEN"
 Defaults env_keep += "LSST_DDS_DOMAIN"
+Defaults env_keep += "NO_SUDO"
 
 
 

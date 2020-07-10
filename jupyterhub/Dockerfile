@@ -35,7 +35,7 @@ RUN  pip uninstall pycurl && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-ARG  BUILDTRIGGER="Mon Jul  6 15:14:28 MST 2020"
+ARG  BUILDTRIGGER="Thu Jul  9 16:59:19 MST 2020"
 ARG  TKT="tickets/DM-25827"
 RUN  pip3 install --upgrade \
       git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}

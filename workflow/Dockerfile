@@ -11,20 +11,20 @@ RUN  pip3 install \
       falcon \
       mock \
       inflection \
-      pyyaml \
-      'kubernetes>=10.0.0,<11.0.0' \
-      'jupyterhubutils>=0.23.5,<1.0.0' \
-      'wfdispatcher>=0.2.2,<1.0.0'
+      kubernetes \
+      'jupyterhubutils>=0.24.1,<1.0.0' \
+      'wfdispatcher>=0.3.0,<1.0.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-ARG  TKT="tickets/DM-25827"
-ARG  BUILDTRIGGER="Tue Jun 16 11:31:02 MST 2020"
-RUN  pip3 install --upgrade \
-     git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT} \
-     git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
+# ARG  TKT="tickets/DM-25827"
+# ARG  BUILDTRIGGER="Tue Jul 14 15:34:31 MST 2020"
+# RUN  pip3 install --upgrade \
+#       git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
+#RUN  pip3 install --upgrade \
+#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 ARG  wf=/opt/lsst/software/workflow
 ARG  verdir=${wf}/versions
 RUN  mkdir -p ${verdir}

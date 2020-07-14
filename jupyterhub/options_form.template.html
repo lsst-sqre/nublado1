@@ -1,5 +1,5 @@
 <style>
-    td#clear_dotlocal {
+    td#checkboxes {
         border: 1px solid black;
         padding: 2%;
     }
@@ -40,10 +40,13 @@
                    value="{{item["name"]}}">{{item["desc"]}}<br />
 {% endfor %}
        </td></tr>
-       <tr><td id="clear_dotlocal">
+       <tr><td id="checkboxes">
             <input type="checkbox" name="clear_dotlocal"
                    value="true">
             Clear <tt>.local</tt> directory (caution!)<br />
+            <input type="checkbox" name="enable_debug"
+                   value="true">
+            Enable debugging logs in Lab<br />
        </td></tr>
 </table>
 <hr />

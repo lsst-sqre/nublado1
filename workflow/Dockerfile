@@ -38,5 +38,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="exp_0.3.0.0"
+       version="0.3.0.0"
 CMD [ "/usr/local/bin/start-wf-api" ]

@@ -455,8 +455,10 @@ RUN  sed -i -e \
      if [ -d /home/lsst ]; then \
          mv /home/lsst /home/lsst_lcl ; \
      fi
+RUN  echo "OK" > ${jl}/no_sudo_ok
 RUN  groupadd -g 769 provisionator
 RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
+RUN  rm -f /etc/passwd- /etc/shadow- /etc/group- /etc/gshadow-
 COPY  noninteractive /opt/lsst/software/jupyterlab/noninteractive/
 # Mount configmap at ^^ command/command.json
 WORKDIR /tmp

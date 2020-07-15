@@ -19,10 +19,13 @@ function setup_git() {
 function manage_access_token() {
     local tokfile="${HOME}/.access_token"
     # Clear it out each new interactive lab start.
-    #  Will need to revisit if we have multiple simultaneous lab
-    #  environments...maybe.
     rm -f "${tokfile}"
-    if [ -n "${ACCESS_TOKEN}" ]; then
+    # Try the configmap first, and if that fails, use the environment
+    #  variable (which eventually will go away)
+    local instance_tok="/opt/lsst/software/jupyterhub/tokens/${FQDN}-token"
+    if [ -e  "${instance_tok}" ]; then
+	ln -s "${instance_tok}" "${tokfile}"
+    elif [ -n "${ACCESS_TOKEN}" ]; then
 	echo "${ACCESS_TOKEN}" > "${tokfile}"
     fi
 }
@@ -33,13 +36,32 @@ function copy_lsst_dask() {
 }
 
 function create_dask_yml() {
+    # Try the configmap first.  As with access_token, there's one per
+    #  instance.
+    local fname="${FQDN}-dask_worker.example.yml"
+    local dtl="/opt/lsst/software/jupyterhub/dask_yaml/${fname}"
+    local dh="${HOME}/dask"
+    mkdir -p "${dh}"
+    local dw="${dh}/dask_worker.yml"
+    if [ -e "${dtl}" ]; then
+	rm -f "${dw}"
+	rm -f "${dh}/${fname}"
+	cp "${dtl}" "${dw}"
+	ln -s "${dtl}" "${dh}/${fname}"
+    else
+	template_dask_file
+    fi
+}
+
+function template_dask_file() {
+    # Do it the hard way (will be removed eventually)
     # Overwrite any existing template.
+    local dw="${HOME}/dask/dask_worker.yml"
     mkdir -p "${HOME}/dask"
     local debug="\'\'"
     if [ -n "${DEBUG}" ]; then
         debug=${DEBUG}
     fi
-    dw="${HOME}/dask/dask_worker.yml"
     # Work around MEM_GUARANTEE bug
     local mb_guarantee=${MEM_GUARANTEE}
     local lastchar="$(echo ${mb_guarantee} | tail -c 1)"
@@ -66,10 +88,11 @@ function create_dask_yml() {
     if [ -n "${RESTRICT_DASK_NODES}" ]; then
         mv ${dw} ${dw}.unrestricted
         sed -e "s/# nodeSelector:/nodeSelector:/" \
-            -e "s/#   dask: ok/  dask: ok/" \
-            ${dw}.unrestricted > ${dw} && \
-        rm ${dw}.unrestricted
+	    -e "s/#   dask: ok/  dask: ok/" \
+	    ${dw}.unrestricted > ${dw} && \
+	    rm ${dw}.unrestricted
     fi
+    cp "${dw}"
 }
 
 function clear_dotlocal() {
@@ -185,7 +208,7 @@ elif [ -n "${NONINTERACTIVE}" ]; then
     start_noninteractive
     exit 0 # Not reached
 else
-    # Create dask yml if we are a Lab and not a worker
+    # Create dask yml if we are an interactive Lab and not a worker
     copy_lsst_dask
     create_dask_yml
     # Manage access token (again, only if we are a Lab)

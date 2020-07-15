@@ -7,20 +7,32 @@ function setup_user() {
     local change_staging_id=""
     local write_user_sudoer=""
     id -u ${U_NAME} 2> /dev/null 1>&2
-    if [ $? -ne 0 ]; then
-	user_provisioning="${sudo} ${PROVDIR}/addlabuser.bash -n ${U_NAME}"
-	if [ -n "${EXTERNAL_UID}" ]; then
-	    user_provisioning="${user_provisioning} -u ${EXTERNAL_UID}"
+    rc=$?
+    if [ ${rc} -eq 0 ]; then
+	u_uid=$(id -u ${U_NAME})
+	c_id=$(id -u)
+	if [ ${c_id} -eq ${u_uid} ]; then
+	    echo 1>&2 "Already running as uid ${c_uid}; no sudo required."
+	    return
 	fi
-	if [ -n "${EXTERNAL_GROUPS}" ]; then
-	    user_provisioning="${user_provisioning} -g ${EXTERNAL_GROUPS}"
-	fi
-	change_staging_id="${sudo} ${PROVDIR}/changestagingid.bash ${U_NAME}"
-	write_user_sudoer="${sudo} ${PROVDIR}/writeusersudoer.bash ${U_NAME}"
-	${user_provisioning} || debug_pause
-	${change_staging_id} || debug_pause
-	${write_user_sudoer} || debug_pause
     fi
+    if [ ${rc} -ne 0 ]; then
+	# We don't have the target user yet: create
+        user_provisioning="${sudo} ${PROVDIR}/addlabuser.bash -n ${U_NAME}"
+        if [ -n "${EXTERNAL_UID}" ]; then
+            user_provisioning="${user_provisioning} -u ${EXTERNAL_UID}"
+        fi
+        if [ -n "${EXTERNAL_GROUPS}" ]; then
+            user_provisioning="${user_provisioning} -g ${EXTERNAL_GROUPS}"
+        fi
+        ${user_provisioning} || debug_pause
+    fi
+    # We are running as the provisioning user, so write the
+    #  sudoers files and change the permissions on staging dir.
+    change_staging_id="${sudo} ${PROVDIR}/changestagingid.bash ${U_NAME}"
+    write_user_sudoer="${sudo} ${PROVDIR}/writeusersudoer.bash ${U_NAME}"
+    ${write_user_sudoer} || debug_pause
+    ${change_staging_id} || debug_pause
 }
 
 function forget_extraneous_vars() {
@@ -78,15 +90,24 @@ if [ $(id -u) -eq 0 ]; then
     if [ "${rc}" -eq 0 ]; then
 	echo 1>&2 "Attempting restart as provisioning user."
 	exec /bin/sudo -u ${PUSER} -E \
-	     /opt/lsst/software/jupyterlab/provisionator.bash
+	     ${JLDIR}/provisionator.bash
     fi
 fi
-if [ -z "${U_NAME}" ]; then
-    echo 1>&2 "Warning: no target user name."
+if [ ! -e ${JLDIR}/no_sudo_ok ]; then
+    if [ -n "{$NO_SUDO}" ]; then
+	echo 1>&2 "No-sudo requested, but this image doesn't support it."
+	unset NO_SUDO
+    fi
 fi
-if [ -n "${U_NAME}" ]; then
-    setup_user
+if [ -z "${NO_SUDO}" ]; then
+    if [ -z "${U_NAME}" ]; then
+	echo 1>&2 "Fatal: no target user name and NO_SUDO not set."
+	debug_pause
+	exit 2
+    fi
+    setup_user 
     user_sudo="/bin/sudo -E -u ${U_NAME} "
 fi
+
 forget_extraneous_vars
 exec ${user_sudo} ${JLDIR}/runlab.sh

@@ -24,8 +24,7 @@ RUN  pip3 install \
       oauthenticator \
       jupyterhub \
       pyyaml \
-      'jupyterhubutils>=0.23.5,<1.0.0' \
-      git+https://github.com/mogthesprog/jwtauthenticator.git
+      'jupyterhubutils>=0.24.1,<1.0.0'
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir \
@@ -35,10 +34,10 @@ RUN  pip uninstall pycurl && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-# ARG  BUILDTRIGGER="Mon Jul  6 15:14:28 MST 2020"
-# ARG  TKT="tickets/DM-25797"
+# ARG  BUILDTRIGGER="Tue Jul 14 14:43:00 MST 2020"
+# ARG  TKT="tickets/DM-25827"
 # RUN  pip3 install --upgrade \
-#       git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
+#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions

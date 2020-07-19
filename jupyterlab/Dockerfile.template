@@ -222,6 +222,11 @@ RUN  pip3 install --upgrade \
        git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
+# This is only in the LSST stack. Do it before we clutter up the environment
+#  with pip.
+# That turns out not to matter.  The environment is not consistent.
+# RUN  source ${LOADSTACK} && \
+#       conda install -y -c conda-forge geoviews
 # Work around the vaex-astro problem mentioned above, in the LSST stack env.
 RUN  source ${LOADSTACK} && \
       cd ${srcdir}/thirdparty && \
@@ -301,9 +306,6 @@ RUN  source ${LOADSTACK} && \
        "python-socketio[client]" \
        socketIO-client \
        git+https://github.com/ericmandel/pyjs9
-# This is only in the LSST stack.
-RUN  source ${LOADSTACK} && \
-      conda install -y -c conda-forge geoviews
 # Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \

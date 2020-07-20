@@ -58,3 +58,6 @@ c.JupyterHub.hub_connect_url = lc.hub_connect_url
 # External proxy
 c.ConfigurableHTTPProxy.should_start = False
 c.ConfigurableHTTPProxy.api_url = lc.proxy_api_url
+
+# We want the Lab to be the default interface
+c.Spawner.default_url = '/lab'

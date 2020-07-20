@@ -1,11 +1,12 @@
 '''Runtime configuration for JupyterHub in the LSST environment.
 '''
 
-import jupyterhubutils
 import logging
 from eliot.stdlib import EliotHandler
 from jupyterhubutils import LSSTConfig
+from jupyterhubutils.authenticator import LSSTJWTAuthenticator
 from jupyterhubutils.scanrepo import prime_repo_cache
+from jupyterhubutils.spawner import LSSTSpawner
 from jupyterhubutils.utils import make_logger
 
 # get_config() only works in the Hub configuration environment
@@ -13,28 +14,25 @@ c = get_config()
 
 lc = LSSTConfig()
 
-# Set logging
-c.Application.log_format = lc.log_format
-c.Application.log_datefmt = lc.log_datefmt
-c.Application.log_level = lc.log_level
-c.Application.log = make_logger(name='JupyterHub')
-c.Application.log.handlers = [EliotHandler()]
-
-jupyterhubutils.configure_auth_and_spawner(lc)
+# Set up logging
 jhu_logger = make_logger(name='jupyterhubutils')
 if lc.debug:
     jhu_logger.setLevel(logging.DEBUG)
     jhu_logger.debug("Enabling 'jupyterhubutils' debug-level logging.")
     jhu_logger.warning("If there is no prior debug log something is wrong.")
 
+c.Application.log_format = lc.log_format
+c.Application.log_datefmt = lc.log_datefmt
+c.Application.log_level = lc.log_level
+c.Application.log = make_logger(name='JupyterHub')
+c.Application.log.handlers = [EliotHandler()]
+
+# Set authenticator and spawner classes
+c.JupyterHub.spawner_class = LSSTSpawner
+c.JupyterHub.authenticator_class = LSSTJWTAuthenticator
+
 # Prime the repo cache
 prime_repo_cache(lc)
-
-# Set up the spawner
-c.JupyterHub.spawner_class = lc.spawner_class
-
-# Set up the authenticator
-c.JupyterHub.authenticator_class = lc.authenticator_class
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
@@ -60,3 +58,6 @@ c.JupyterHub.hub_connect_url = lc.hub_connect_url
 # External proxy
 c.ConfigurableHTTPProxy.should_start = False
 c.ConfigurableHTTPProxy.api_url = lc.proxy_api_url
+
+# We want the Lab to be the default interface
+c.Spawner.default_url = '/lab'

@@ -145,7 +145,7 @@ RUN  pip3 install numpy cython && \
       pip3 install kapteyn/
 RUN  pip3 install --upgrade \
        tornado \
-       'jupyterlab<2.0.0' \
+       jupyterlab \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
@@ -237,7 +237,7 @@ RUN  source ${LOADSTACK} && \
        setuptools \
        wheel \
        tornado \
-       'jupyterlab<2.0.0' \
+       jupyterlab \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
@@ -337,15 +337,12 @@ ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
           nbdime jupyterlab_iframe"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/toc \
-          @jupyterlab/hdf5 \
           bqplot \
           ipyevents \
           ipyvolume \
           jupyter-threejs \
           nbdime-jupyterlab \
           dask-labextension \
-          @lsst-sqre/jupyterlab-savequit \
-	  @lsst-sqre/jupyterlab-lsstextensions \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
           jupyter_firefly_extensions \
@@ -353,6 +350,11 @@ ENV LBXT="@jupyterlab/toc \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
           @bokeh/jupyter_bokeh"
+# Don't work:
+#          @lsst-sqre/jupyterlab-savequit \
+#          @lsst-sqre/jupyterlab-lsstextensions \
+#          @jupyterlab/hdf5 \
+
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}

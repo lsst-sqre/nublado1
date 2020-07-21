@@ -219,14 +219,28 @@ else
     ( source /opt/lsst/software/stack/loadLSST.bash && \
 	  eups admin clearCache )
 fi
-cmd="jupyter-labhub \
-     --ip='*' --port=8888 \
-     --hub-api-url=${JUPYTERHUB_API_URL} \
+eurl="${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVICE_PREFIX}"
+# FIXME: We have to find a way to set the token.
+cmd="jupyter lab \
+     --ip='*' \
+     --port=8888 \
+     --no-browser \
+     --LabApp.base_url=${JUPYTERHUB_SERVICE_PREFIX} \
+     --LabApp.custom_display_url=${eurl} \
+     --LabApp.trust_xheaders=True \
+     --LabApp.token='' \
+     --LabApp.shutdown_no_activity_timeout=43200 \
+     --MappingKernelManager.cull_idle_timeout=43200 \
+     --MappingKernelManager.cull_connected=True \
+     --FileContentsManager.hide_globs=[] \
      --notebook-dir=${HOME}"
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"
 fi
-echo "JupyterLab command: '${cmd}'"
+# echo "----JupyterLab env----"
+# env | sort
+# echo "----------------------"
+# echo "JupyterLab command: '${cmd}'"
 # Run idle culler.
 if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
    [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then

@@ -1,16 +1,10 @@
 {
-  "NotebookApp": {
+  "LabApp": {
     "terminado_settings": {
       "shell_command": [ "/bin/bash", "-i" ]
     },
     "nbserver_extensions": {
       "js9server.js9ext": true
     }
-  },
-  "MappingKernelManager": {
-    "cull_connected": true
-  },
-  "ContentsManager": {
-    "hide_globs": []
   }
 }

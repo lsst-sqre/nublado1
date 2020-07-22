@@ -103,22 +103,21 @@ RUN  cd /tmp && \
       FN="install-tl-unx.tar.gz" && \
       wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
       tar xvpfz ${FN} && \
-      ./install-tl-*/install-tl -no-verify-downloads --repository \
-        http://ctan.math.illinois.edu/systems/texlive/tlnet \
+      ./install-tl-*/install-tl --repository \
+      http://ctan.math.illinois.edu/systems/texlive/tlnet \
         --profile /tmp/texlive.profile && \
       rm -rf /tmp/${FN} /tmp/install-tl*
 # More TeX stuff we need for PDF export
-RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
-     tlmgr --verify-repo=none install \
-     caption lm adjustbox xkeyval collectbox xcolor \
+RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
+     tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
      upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
      mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx \
-     latexmk dvipng beamer
+     latexmk dvipng beamer parskip fontspec titling tools
 # This, bizarrely, has to be installed on its own to get the binaries.
-RUN  PATH=/usr/local/texlive/2019/bin/x86_64-linux:${PATH} && \
-     tlmgr --verify-repo=none install xetex && \
-     ln -s /usr/local/texlive/2019/bin/x86_64-linux/xelatex \
-           /usr/local/texlive/2019/bin/x86_64-linux/bibtex \
+RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
+     tlmgr install xetex && \
+     ln -s /usr/local/texlive/2020/bin/x86_64-linux/xelatex \
+           /usr/local/texlive/2020/bin/x86_64-linux/bibtex \
            /usr/bin
 COPY versions/requirements-system.txt ${verdir}/requirements-system.txt
 # Get newer pip/setuptools/wheel before Python packages

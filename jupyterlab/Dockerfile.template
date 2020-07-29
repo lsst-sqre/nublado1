@@ -143,13 +143,14 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
+ARG  TKT="tickets/DM-26017"
+ARG  BUILDTRIGGER="Tue Jul 28 10:56:15 MST 2020"
 RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
-       jupyterlabutils \
        virtualenv \
        virtualenvwrapper \
        pyshp \
@@ -201,7 +202,6 @@ RUN  pip3 install --upgrade \
        intake \
        intake-parquet \
        jupyter-server-proxy \
-       jupyterlab_lsstextensions \
        toolz \
        partd \
        nbdime \
@@ -219,7 +219,9 @@ RUN  pip3 install --upgrade \
        sidecar \
        "python-socketio[client]" \
        socketIO-client \
-       git+https://github.com/ericmandel/pyjs9
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/lsst-sqre/jupyterlab-lsst-extensions@${TKT} \
+       git+https://github.com/lsst-sqre/jupyterlabutils@${TKT}
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # This is only in the LSST stack. Do it before we clutter up the environment
@@ -241,7 +243,6 @@ RUN  source ${LOADSTACK} && \
        jupyterlab_server \
        jupyterhub \
        jupyter-server-proxy \
-       jupyterlabutils \
        virtualenv \
        virtualenvwrapper \
        pyshp \
@@ -287,7 +288,6 @@ RUN  source ${LOADSTACK} && \
        intake \
        intake-parquet \
        jupyter-server-proxy \
-       jupyterlab_lsstextensions \
        toolz \
        partd \
        nbdime \
@@ -305,7 +305,9 @@ RUN  source ${LOADSTACK} && \
        sidecar \
        "python-socketio[client]" \
        socketIO-client \
-       git+https://github.com/ericmandel/pyjs9
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/lsst-sqre/jupyterlab-lsst-extensions@${TKT} \
+       git+https://github.com/lsst-sqre/jupyterlabutils@${TKT}
 # Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \
@@ -317,8 +319,8 @@ RUN  cd ${srcdir}/thirdparty && \
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
-#  Dockerfile && dedangle && ./bld
-#ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
+#  Dockerfile.template && dedangle && ./bld w_2020_30
+#ARG  BUILDTRIGGER="Tue Jul 28 10:56:15 MST 2020"
 #ARG  TKT="tickets/DM-23780"
 #RUN  pip3 install --upgrade \
 #      git+https://github.com/lsst-sqre/jupyterlabutils.git@${TKT}
@@ -331,8 +333,6 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
-ARG  TKT="tickets/DM-23686"
 ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
           nbdime jupyterlab_iframe"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
@@ -354,7 +354,7 @@ ENV LBXT="@jupyterlab/toc \
 #          @lsst-sqre/jupyterlab-savequit \
 #          @lsst-sqre/jupyterlab-lsstextensions \
 #          @jupyterlab/hdf5 \
-
+#
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
@@ -371,6 +371,30 @@ RUN  set -e && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
+# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
+#  Dockerfile && dedangle && ./bld
+#ARG  BUILDTRIGGER="Tue Jul 28 10:56:15 MST 2020"
+# This is gross.
+COPY extension.py /usr/local/lib/python3.6/site-packages/jupyterlab
+RUN  mkdir -p ${srcdir}/lbext && \
+      cd ${srcdir}/lbext && \
+      set -e && \
+      for i in savequit lsst-extensions ; do \
+          git clone -b ${TKT} https://github.com/lsst-sqre/jupyterlab-${i} ; \
+      done
+RUN  set -e && \
+      for i in savequit lsst-extensions ; do \
+          jupyter labextension install ${srcdir}/lbext/jupyterlab-${i} --no-build; \
+	  echo "${i} installed" ; \
+      done
+# HDF5 viewer gonna take some work.
+# RUN  cd ${srcdir}/lbext/jupyterlab-hdf5 && \
+#       pip install . && \
+#       source ${LOADSTACK} && \
+#       pip install .
+# RUN cd ${srcdir}/lbext/jupyterlab-hdf5 && \
+#      jlpm install && \
+#      jupyter labextension install ${srcdir}/lbext/jupyterlab-hdf5 --no-build
 # Create package version docs.
 RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-system.txt && \
@@ -382,6 +406,8 @@ RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \
       done
+RUN  jupyter labextension enable @lsst-sqre/jupyterlab-lsstextensions && \
+      jupyter labextension enable @lsst-sqre/jupyterlab-savequit
 RUN  jupyter labextension disable \
       "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \

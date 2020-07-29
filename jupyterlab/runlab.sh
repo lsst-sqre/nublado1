@@ -219,21 +219,19 @@ else
     ( source /opt/lsst/software/stack/loadLSST.bash && \
 	  eups admin clearCache )
 fi
-eurl="${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVICE_PREFIX}"
-# FIXME: We have to find a way to set the token.
-cmd="jupyter lab \
+# The Rubin Lap App plus our environment should get the right hub settings
+cmd="jupyter-rubinlab \
      --ip='*' \
      --port=8888 \
      --no-browser \
-     --LabApp.base_url=${JUPYTERHUB_SERVICE_PREFIX} \
-     --LabApp.custom_display_url=${eurl} \
-     --LabApp.trust_xheaders=True \
-     --LabApp.token='' \
+     --notebook-dir=${HOME} \
      --LabApp.shutdown_no_activity_timeout=43200 \
      --MappingKernelManager.cull_idle_timeout=43200 \
      --MappingKernelManager.cull_connected=True \
-     --FileContentsManager.hide_globs=[] \
-     --notebook-dir=${HOME}"
+     --FileContentsManager.hide_globs=[]"
+#     --SingleUserNotebookApp.hub_api_url=${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVER_PREFIX}
+#     --SingleUserNotebookApp.hub_prefix=${JUPYTERHUB_SERVICE_PREFIX}
+#     --SingleUserNotebookApp.hub_host=${EXTERNAL_INSTANCE_URL}
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"
 fi

@@ -143,7 +143,7 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-ARG  TKT="tickets/DM-26017"
+ARG  TKT="tickets/DM-26151"
 ARG  BUILDTRIGGER="Tue Jul 28 10:56:15 MST 2020"
 RUN  pip3 install --upgrade \
        tornado \

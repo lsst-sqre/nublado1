@@ -56,5 +56,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="exp_0.25.0"
+       version="0.25.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

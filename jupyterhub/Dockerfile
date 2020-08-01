@@ -19,7 +19,7 @@ RUN  pip3 install \
       jupyterhub-kubespawner \
       'kubernetes>=10.0.0' \
       'requests>=2.0.0,<3.0.0' \
-      'jupyterlab<2.0.0' \
+      jupyterlab \
       semver \
       oauthenticator \
       jupyterhub \
@@ -56,5 +56,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.24.1"
+       version="0.25.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

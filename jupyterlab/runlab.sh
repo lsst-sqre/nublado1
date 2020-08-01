@@ -219,14 +219,26 @@ else
     ( source /opt/lsst/software/stack/loadLSST.bash && \
 	  eups admin clearCache )
 fi
-cmd="jupyter-labhub \
-     --ip='*' --port=8888 \
-     --hub-api-url=${JUPYTERHUB_API_URL} \
-     --notebook-dir=${HOME}"
+# The Rubin Lap App plus our environment should get the right hub settings
+cmd="jupyter-rubinlab \
+     --ip='*' \
+     --port=8888 \
+     --no-browser \
+     --notebook-dir=${HOME} \
+     --LabApp.shutdown_no_activity_timeout=43200 \
+     --MappingKernelManager.cull_idle_timeout=43200 \
+     --MappingKernelManager.cull_connected=True \
+     --FileContentsManager.hide_globs=[]"
+#     --SingleUserNotebookApp.hub_api_url=${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVER_PREFIX}
+#     --SingleUserNotebookApp.hub_prefix=${JUPYTERHUB_SERVICE_PREFIX}
+#     --SingleUserNotebookApp.hub_host=${EXTERNAL_INSTANCE_URL}
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"
 fi
-echo "JupyterLab command: '${cmd}'"
+# echo "----JupyterLab env----"
+# env | sort
+# echo "----------------------"
+# echo "JupyterLab command: '${cmd}'"
 # Run idle culler.
 if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
    [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then

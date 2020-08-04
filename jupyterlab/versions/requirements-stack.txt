@@ -33,7 +33,7 @@ ipywidgets==7.5.1
 jupyter-firefly-extensions==0.2.6
 jupyter-server-proxy==1.3.2
 jupyterhub==1.1.0
-jupyterhubutils==0.24.1
+jupyterhubutils==0.25.0
 jupyterlab==1.2.14
 jupyterlab-iframe==0.2.2
 jupyterlab-lsstextensions==0.0.4
@@ -74,4 +74,4 @@ vaex-viz==0.3.8
 virtualenv==20.0.18
 virtualenvwrapper==4.8.4
 websocket-client==0.57.0
-wfdispatcher==0.3.0.0
+wfdispatcher==0.3.1.0

@@ -40,7 +40,7 @@ RUN  S="script.rpm.sh" && \
       git lfs install
 # Install newer nodejs for system; needed for JupyterLab build
 RUN  cd /tmp && \
-      curl -sL https://rpm.nodesource.com/setup_13.x -o node_repo.sh && \
+      curl -sL https://rpm.nodesource.com/setup_14.x -o node_repo.sh && \
       chmod 0755 node_repo.sh && \
       ./node_repo.sh && \
       rm ./node_repo.sh && \
@@ -143,13 +143,6 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-#Uncomment this and add a git+https URL on a pip install below it when doing
-# rapid test iteration.  Substitute date before rebuild.
-# Something like:
-# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
-#  Dockerfile.template && dedangle && ./bld w_2020_3
-# ARG  TKT="tickets/DM-26151"
-ARG  BUILDTRIGGER="Fri Jul 31 20:27:51 MST 2020"
 RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
@@ -201,7 +194,6 @@ RUN  pip3 install --upgrade \
        vaex-jupyter \
        vaex-arrow \
        firefly_client \
-       jupyter-firefly-extensions \
        mysqlclient \
        hvplot \
        intake \
@@ -226,7 +218,7 @@ RUN  pip3 install --upgrade \
        socketIO-client \
        jupyterlab_lsstextensions \
        jupyterlab_rubinhub \
-       jupyterlabutils \
+       git+https://github.com/rubin-jupyter-lab \
        git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -288,7 +280,6 @@ RUN  source ${LOADSTACK} && \
        python-snappy cython \
        graphviz \
        firefly_client \
-       jupyter-firefly-extensions \
        mysqlclient \
        hvplot \
        intake \
@@ -313,12 +304,27 @@ RUN  source ${LOADSTACK} && \
        socketIO-client \
        jupyterlab_lsstextensions \
        jupyterlab_rubinhub \
-       jupyterlabutils \
+       git+https://github.com/rubin-jupyter-lab \
        git+https://github.com/ericmandel/pyjs9
 # Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \
       cd jjs9 && \
+      pip3 install -e . && \
+      source ${LOADSTACK} && \
+      pip install -e .
+#Uncomment this and add a git+https URL on a pip install below it when doing
+# rapid test iteration.  Substitute date before rebuild.
+# Something like:
+# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
+#  Dockerfile.template && dedangle && ./bld w_2020_3
+ARG  TKT="tickets/DM-26242"
+ARG  BUILDTRIGGER="Mon Aug 10 23:11:56 MST 2020"
+# Install jupyter-firefly-extension
+RUN  cd ${srcdir}/thirdparty && \
+      git clone -b ${TKT} \
+       https://github.com/lsst-sqre/jupyter_firefly_extensions.git && \
+      cd jupyter_firefly_extensions && \
       pip3 install -e . && \
       source ${LOADSTACK} && \
       pip install -e .
@@ -332,7 +338,8 @@ ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
-          nbdime jupyterlab_iframe jupyterlab_rubinhub"
+          nbdime jupyterlab_iframe jupyterlab_rubinhub \
+          rubin_jupyter_utils.lab.settings"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/toc \
           bqplot \
@@ -343,7 +350,6 @@ ENV LBXT="@jupyterlab/toc \
           dask-labextension \
           @jupyter-widgets/jupyterlab-manager \
           jupyter-matplotlib \
-          jupyter_firefly_extensions \
           @pyviz/jupyterlab_pyviz \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
@@ -352,6 +358,7 @@ ENV LBXT="@jupyterlab/toc \
           @lsst-sqre/jupyterlab-rubinhub"
 # Don't work:
 #          @jupyterlab/hdf5 \
+#
 #
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
@@ -370,6 +377,10 @@ RUN  set -e && \
           jupyter labextension install ${l} --no-build ; \
       done
 # HDF5 viewer gonna take some work.
+# Firefly Extension:
+# Install jjs9
+RUN  cd ${srcdir}/thirdparty/jupyter_firefly_extensions && \
+      jupyter labextension install . --no-build
 # Create package version docs.
 RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-system.txt && \
@@ -381,13 +392,12 @@ RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \
       done
-RUN  jupyter labextension enable @lsst-sqre/jupyterlab-lsstextensions && \
-      jupyter labextension enable @lsst-sqre/jupyterlab-rubinhub
+RUN  jupyter labextension enable jupyter_firefly_extensions
 RUN  jupyter labextension disable \
       "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \
       jupyter lab clean && \
-      jupyter lab build
+      jupyter lab build --dev-build=False --minimize=False
 RUN  jupyter labextension list 2>&1 | \
       grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
       awk '{print $1,$2}' | tr ' ' '@' > ${verdir}/labext.txt

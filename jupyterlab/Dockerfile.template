@@ -358,7 +358,6 @@ ENV LBXT="@jupyterlab/toc \
           @lsst-sqre/rubin-labextension-savequit"
 # Broken:
 #          @jupyterlab/hdf5 \
-RUN  
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}

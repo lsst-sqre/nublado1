@@ -19,7 +19,7 @@ RUN  yum -y install \
       ack screen tmux tree vim-enhanced emacs-nox jq \
       graphviz geos-devel hdf5-devel \
       sqlite-devel \
-     mariadb mysql mysql-devel \
+      mariadb mysql mysql-devel \
       unzip nano file ed \
       gcc gcc-c++ \
       ncurses ncurses-devel wget
@@ -143,7 +143,6 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
-ARG BUILDTRIGGER="Tue Aug 18 17:19:51 MST 2020"
 RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
@@ -217,10 +216,8 @@ RUN  pip3 install --upgrade \
        sidecar \
        "python-socketio[client]" \
        socketIO-client \
-       # jupyterlab_lsstextensions \
-       # jupyterlab_rubinhub \
-       git+https://github.com/ericmandel/pyjs9 \
-       git+https://github.com/lsst-sqre/rubin-jupyter-lab
+       rubin_jupyter_utils.lab \
+       git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # This is only in the LSST stack. Do it before we clutter up the environment
@@ -303,10 +300,8 @@ RUN  source ${LOADSTACK} && \
        sidecar \
        "python-socketio[client]" \
        socketIO-client \
-       jupyterlab_lsstextensions \
-       jupyterlab_rubinhub \
-       git+https://github.com/ericmandel/pyjs9 \
-       git+https://github.com/lsst-sqre/rubin-jupyter-lab
+       rubin_jupyter_utils.lab \
+       git+https://github.com/ericmandel/pyjs9
 # Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \
@@ -318,26 +313,22 @@ RUN  cd ${srcdir}/thirdparty && \
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
-#  Dockerfile.template && dedangle && ./bld w_2020_3
-ARG  TKT="tickets/DM-26242"
-ARG  BUILDTRIGGER="Tue Aug 18 17:19:51 MST 2020"
-# Install jupyter-firefly-extension
+#  Dockerfile.template && dedangle && ./bld w_2020_33
+# ARG  TKT="tickets/DM-26242"
+# ARG  BUILDTRIGGER="Wed Aug 19 09:36:10 MST 2020"
+# Install jupyter-firefly-extensions (not yet working)
 RUN  cd ${srcdir}/thirdparty && \
-      git clone -b ${TKT} \
+      git clone \
        https://github.com/lsst-sqre/jupyter_firefly_extensions.git && \
       cd jupyter_firefly_extensions && \
       pip3 install -e . && \
       source ${LOADSTACK} && \
-      pip install -e .
-# Rubin Jupyter Extensions:
-RUN cd ${srcdir} && \
-     git clone https://github.com/lsst-sqre/rubin-jupyter-labextensions && \
-     cd rubin-jupyter-labextensions && \
-     npm install -g lerna && \
-     lerna bootstrap
+      pip install -e . && \
+      npm install && \
+      npm run build
 # Add stack kernel
 RUN source ${LOADSTACK} && \
-     python3 -m ipykernel install --name 'Rubin'
+     python3 -m ipykernel install --name 'LSST'
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
@@ -362,14 +353,11 @@ ENV LBXT="@jupyterlab/toc \
           @pyviz/jupyterlab_pyviz \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
-          @bokeh/jupyter_bokeh"
-# Install from git for now.
-#          @lsst-sqre/jupyterlab-lsstextensions \
-#          @lsst-sqre/jupyterlab-rubinhub \
+          @bokeh/jupyter_bokeh \
+          @lsst-sqre/rubin-labextension-query \
+          @lsst-sqre/rubin-labextension-savequit"
 # Broken:
 #          @jupyterlab/hdf5 \
-#
-#
 RUN  
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
@@ -403,15 +391,6 @@ RUN  set -e && \
           jupyter labextension enable ${l} ; \
       done
 RUN  jupyter labextension enable jupyter_firefly_extensions
-# Add Rubin labextensions
-RUN set -e && \
-     cd ${srcdir}/rubin-jupyter-labextensions && \
-     for i in query savequit ; do \
-         cd packages/${i} ; \
-	 npm run build ; \
-         jupyter labextension install . --no-build ; \
-	 cd ../.. ; \
-     done
 RUN  jupyter labextension disable \
       "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \

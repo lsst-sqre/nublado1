@@ -143,6 +143,7 @@ RUN  pip3 install numpy cython && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
       pip3 install kapteyn/
+ARG BUILDTRIGGER="Tue Aug 18 17:19:51 MST 2020"
 RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
@@ -216,10 +217,10 @@ RUN  pip3 install --upgrade \
        sidecar \
        "python-socketio[client]" \
        socketIO-client \
-       jupyterlab_lsstextensions \
-       jupyterlab_rubinhub \
-       git+https://github.com/rubin-jupyter-lab \
-       git+https://github.com/ericmandel/pyjs9
+       # jupyterlab_lsstextensions \
+       # jupyterlab_rubinhub \
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/lsst-sqre/rubin-jupyter-lab
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # This is only in the LSST stack. Do it before we clutter up the environment
@@ -304,8 +305,8 @@ RUN  source ${LOADSTACK} && \
        socketIO-client \
        jupyterlab_lsstextensions \
        jupyterlab_rubinhub \
-       git+https://github.com/rubin-jupyter-lab \
-       git+https://github.com/ericmandel/pyjs9
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/lsst-sqre/rubin-jupyter-lab
 # Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \
@@ -319,7 +320,7 @@ RUN  cd ${srcdir}/thirdparty && \
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile.template && dedangle && ./bld w_2020_3
 ARG  TKT="tickets/DM-26242"
-ARG  BUILDTRIGGER="Mon Aug 10 23:11:56 MST 2020"
+ARG  BUILDTRIGGER="Tue Aug 18 17:19:51 MST 2020"
 # Install jupyter-firefly-extension
 RUN  cd ${srcdir}/thirdparty && \
       git clone -b ${TKT} \
@@ -328,18 +329,26 @@ RUN  cd ${srcdir}/thirdparty && \
       pip3 install -e . && \
       source ${LOADSTACK} && \
       pip install -e .
+# Rubin Jupyter Extensions:
+RUN cd ${srcdir} && \
+     git clone https://github.com/lsst-sqre/rubin-jupyter-labextensions && \
+     cd rubin-jupyter-labextensions && \
+     npm install -g lerna && \
+     lerna bootstrap
 # Add stack kernel
 RUN source ${LOADSTACK} && \
-     python3 -m ipykernel install --name 'LSST'
+     python3 -m ipykernel install --name 'Rubin'
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV SVXT="jupyterlab jupyter_firefly_extensions jupyterlab_lsstextensions \
-          nbdime jupyterlab_iframe jupyterlab_rubinhub \
-          rubin_jupyter_utils.lab.settings"
+ENV SVXT="jupyterlab jupyter_firefly_extensions \
+          nbdime jupyterlab_iframe \
+	  rubin_jupyter_utils.lab.serverextensions.hub_comm \
+          rubin_jupyter_utils.lab.serverextensions.settings \
+          rubin_jupyter_utils.lab.serverextensions.query"
 ENV NBXT="widgetsnbextension ipyevents nbdime"
 ENV LBXT="@jupyterlab/toc \
           bqplot \
@@ -353,13 +362,15 @@ ENV LBXT="@jupyterlab/toc \
           @pyviz/jupyterlab_pyviz \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
-          @bokeh/jupyter_bokeh \
-          @lsst-sqre/jupyterlab-lsstextensions \
-          @lsst-sqre/jupyterlab-rubinhub"
-# Don't work:
+          @bokeh/jupyter_bokeh"
+# Install from git for now.
+#          @lsst-sqre/jupyterlab-lsstextensions \
+#          @lsst-sqre/jupyterlab-rubinhub \
+# Broken:
 #          @jupyterlab/hdf5 \
 #
 #
+RUN  
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
@@ -378,7 +389,6 @@ RUN  set -e && \
       done
 # HDF5 viewer gonna take some work.
 # Firefly Extension:
-# Install jjs9
 RUN  cd ${srcdir}/thirdparty/jupyter_firefly_extensions && \
       jupyter labextension install . --no-build
 # Create package version docs.
@@ -393,6 +403,15 @@ RUN  set -e && \
           jupyter labextension enable ${l} ; \
       done
 RUN  jupyter labextension enable jupyter_firefly_extensions
+# Add Rubin labextensions
+RUN set -e && \
+     cd ${srcdir}/rubin-jupyter-labextensions && \
+     for i in query savequit ; do \
+         cd packages/${i} ; \
+	 npm run build ; \
+         jupyter labextension install . --no-build ; \
+	 cd ../.. ; \
+     done
 RUN  jupyter labextension disable \
       "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \

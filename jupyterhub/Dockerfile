@@ -34,8 +34,8 @@ RUN  pip uninstall pycurl && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-# ARG  BUILDTRIGGER="Tue Jul 14 14:43:00 MST 2020"
-# ARG  TKT="tickets/DM-25827"
+# ARG  BUILDTRIGGER="Mon Aug  3 17:47:14 MST 2020"
+# ARG  TKT="tickets/DM-26118"
 # RUN  pip3 install --upgrade \
 #      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 RUN  jupyter serverextension enable --py jupyterlab --sys-prefix

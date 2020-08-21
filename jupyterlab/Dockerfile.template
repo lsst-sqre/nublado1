@@ -302,6 +302,9 @@ RUN  source ${LOADSTACK} && \
        socketIO-client \
        rubin_jupyter_utils.lab \
        git+https://github.com/ericmandel/pyjs9
+# Add stack kernel
+RUN source ${LOADSTACK} && \
+     python3 -m ipykernel install --name 'LSST'
 # Install jjs9
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/mgckind/jjs9.git && \
@@ -314,21 +317,18 @@ RUN  cd ${srcdir}/thirdparty && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile.template && dedangle && ./bld w_2020_33
-# ARG  TKT="tickets/DM-26242"
-# ARG  BUILDTRIGGER="Wed Aug 19 09:36:10 MST 2020"
-# Install jupyter-firefly-extensions (not yet working)
+ARG  TKT="firefly-641-jl-2"
+ARG  BUILDTRIGGER="Thu Aug 20 22:14:58 MST 2020"
+# Install jupyter-firefly-extensions
 RUN  cd ${srcdir}/thirdparty && \
-      git clone \
-       https://github.com/lsst-sqre/jupyter_firefly_extensions.git && \
+      git clone -b ${TKT} \
+       https://github.com/Caltech-IPAC/jupyter_firefly_extensions.git && \
       cd jupyter_firefly_extensions && \
       pip3 install -e . && \
       source ${LOADSTACK} && \
       pip install -e . && \
       npm install && \
       npm run build
-# Add stack kernel
-RUN source ${LOADSTACK} && \
-     python3 -m ipykernel install --name 'LSST'
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.

@@ -302,9 +302,11 @@ COPY versions/labext.txt ${verdir}/labext.txt
 RUN  set -e && \
       LBXT=$(cat ${verdir}/labext.txt) && \
       for l in ${LBXT}; do \
-          echo "install: ${l}" ; \
           jupyter labextension install ${l} --no-build ; \
       done
+# Firefly Extension:
+RUN  cd ${srcdir}/thirdparty/jupyter_firefly_extensions && \
+      jupyter labextension install . --no-build
 # Create package version docs.
 ARG  instverdir="${jl}/versions.installed"
 RUN  mkdir -p ${instverdir} && \
@@ -316,9 +318,9 @@ RUN  mkdir -p ${instverdir} && \
 RUN  LBXT=$(cat ${verdir}/labext.txt) && \
       set -e && \
       for l in ${LBXT} ; do \
-          echo "enable: ${l}" ; \
           jupyter labextension enable ${l} ; \
       done
+RUN  jupyter labextension enable jupyter_firefly_extensions
 RUN  jupyter labextension disable \
       "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \

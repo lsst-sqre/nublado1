@@ -1,6 +1,6 @@
 pip==20.2.2
 wheel==0.35.1
-setuptools 49.6.0
+setuptools==49.6.0
 aioinflux==0.9.0
 astroquery==0.4.1
 astrowidgets==0.1.1

@@ -1,7 +1,7 @@
 {
   "NotebookApp": {
     "terminado_settings": {
-      "shell_command": [ "/bin/bash", "-i" ]
+      "shell_command": [ "/bin/bash", "-il" ]
     },
     "nbserver_extensions": {
       "js9server.js9ext": true

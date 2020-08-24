@@ -1,7 +1,7 @@
 {
   "LabApp": {
     "terminado_settings": {
-      "shell_command": [ "/bin/bash", "-il" ]
+      "shell_command": [ "/bin/bash", "-i" ]
     },
     "nbserver_extensions": {
       "js9server.js9ext": true

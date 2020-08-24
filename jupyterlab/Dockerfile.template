@@ -246,6 +246,16 @@ RUN  cd ${srcdir}/thirdparty && \
       pip3 install -e . && \
       source ${LOADSTACK} && \
       pip install -e .
+# Install jupyter-firefly-extensions
+RUN  cd ${srcdir}/thirdparty && \
+      git clone -b ${TKT} \
+       https://github.com/Caltech-IPAC/jupyter_firefly_extensions.git && \
+      cd jupyter_firefly_extensions && \
+      pip3 install -e . && \
+      source ${LOADSTACK} && \
+      pip install -e . && \
+      npm install && \
+      npm run build
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:

@@ -37,7 +37,6 @@ jupyterlab==2.2.5
 jupyterlab-iframe==0.2.2
 jupyterlab-server==1.2.0
 lsst-efd-client==0.5.0
-matplotlib==3.3.1
 mysqlclient==2.0.1
 nbdime==2.0.0
 nbval==0.9.6

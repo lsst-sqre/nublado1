@@ -217,6 +217,7 @@ RUN  pip3 install --upgrade \
        "python-socketio[client]" \
        socketIO-client \
        rubin_jupyter_utils.lab \
+       pywwt \
        git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -301,6 +302,7 @@ RUN  source ${LOADSTACK} && \
        "python-socketio[client]" \
        socketIO-client \
        rubin_jupyter_utils.lab \
+       pywwt \
        git+https://github.com/ericmandel/pyjs9
 # Add stack kernel
 RUN source ${LOADSTACK} && \
@@ -354,6 +356,7 @@ ENV LBXT="@jupyterlab/toc \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
           @bokeh/jupyter_bokeh \
+          pywwt \
           @lsst-sqre/rubin-labextension-query \
           @lsst-sqre/rubin-labextension-savequit"
 # Broken:

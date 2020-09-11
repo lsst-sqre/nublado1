@@ -218,6 +218,7 @@ RUN  pip3 install --upgrade \
        socketIO-client \
        rubin_jupyter_utils.lab \
        pywwt \
+       jupyter-firefly-extensions \
        git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -303,6 +304,7 @@ RUN  source ${LOADSTACK} && \
        socketIO-client \
        rubin_jupyter_utils.lab \
        pywwt \
+       jupyter-firefly-extensions \
        git+https://github.com/ericmandel/pyjs9
 # Add stack kernel
 RUN source ${LOADSTACK} && \

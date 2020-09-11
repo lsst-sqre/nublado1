@@ -218,6 +218,7 @@ RUN  pip3 install --upgrade \
        socketIO-client \
        rubin_jupyter_utils.lab \
        pywwt \
+       jupyter_firefly_extensions \
        git+https://github.com/ericmandel/pyjs9
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -303,6 +304,7 @@ RUN  source ${LOADSTACK} && \
        socketIO-client \
        rubin_jupyter_utils.lab \
        pywwt \
+       jupyter_firefly_extensions \
        git+https://github.com/ericmandel/pyjs9
 # Add stack kernel
 RUN source ${LOADSTACK} && \
@@ -314,23 +316,13 @@ RUN  cd ${srcdir}/thirdparty && \
       pip3 install -e . && \
       source ${LOADSTACK} && \
       pip install -e .
-#Uncomment this and add a git+https URL on a pip install below it when doing
-# rapid test iteration.  Substitute date before rebuild.
+#Uncomment this when doing pip/npm github rapid test iteration.
+# Substitute date before rebuild. 
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile.template && dedangle && ./bld w_2020_33
-ARG  TKT="firefly-641-jl-2"
-ARG  BUILDTRIGGER="Thu Aug 20 22:14:58 MST 2020"
-# Install jupyter-firefly-extensions
-RUN  cd ${srcdir}/thirdparty && \
-      git clone -b ${TKT} \
-       https://github.com/Caltech-IPAC/jupyter_firefly_extensions.git && \
-      cd jupyter_firefly_extensions && \
-      pip3 install -e . && \
-      source ${LOADSTACK} && \
-      pip install -e . && \
-      npm install && \
-      npm run build
+# ARG  TKT="firefly-641-jl-2"
+# ARG  BUILDTRIGGER="Thu Aug 20 22:14:58 MST 2020"
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
@@ -357,6 +349,7 @@ ENV LBXT="@jupyterlab/toc \
           @jupyter-widgets/jupyterlab-sidecar \
           @bokeh/jupyter_bokeh \
           pywwt \
+          jupyter_firefly_extensions \
           @lsst-sqre/rubin-labextension-query \
           @lsst-sqre/rubin-labextension-savequit"
 # Broken:

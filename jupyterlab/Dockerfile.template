@@ -371,9 +371,6 @@ RUN  set -e && \
           jupyter labextension install ${l} --no-build ; \
       done
 # HDF5 viewer gonna take some work.
-# Firefly Extension:
-RUN  cd ${srcdir}/thirdparty/jupyter_firefly_extensions && \
-      jupyter labextension install . --no-build
 # Create package version docs.
 RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-system.txt && \
@@ -385,7 +382,6 @@ RUN  set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \
       done
-RUN  jupyter labextension enable jupyter_firefly_extensions
 RUN  jupyter labextension disable \
       "@jupyterlab/filebrowser-extension:share-file"
 RUN  npm cache clean --force && \

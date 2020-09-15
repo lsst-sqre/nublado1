@@ -53,7 +53,7 @@ ARG  srcdir=/opt/lsst/src
 RUN  mkdir -p ${srcdir}/thirdparty
 # Install Hub
 RUN  cd /tmp && \
-     V="2.14.1" && \
+     V="2.14.2" && \
      FN="hub-linux-amd64-${V}" && \
      F="${FN}.tgz" && \
      URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
@@ -65,7 +65,7 @@ RUN  cd /tmp && \
 # Install Snappy
 # First we need a newer cmake
 RUN  cd /tmp && \
-      V="3.17.2" && \
+      V="3.17.5" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
@@ -88,7 +88,7 @@ RUN  cd ${srcdir}/thirdparty && \
       make install
 # Install Pandoc
 RUN  cd /tmp && \
-      V="2.9.2" && \
+      V="2.10.1" && \
       FN="pandoc-${V}-linux-amd64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \

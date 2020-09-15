@@ -219,7 +219,8 @@ RUN  pip3 install --upgrade \
        rubin_jupyter_utils.lab \
        pywwt \
        jupyter_firefly_extensions \
-       git+https://github.com/ericmandel/pyjs9
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/mgckind/jjs9.git
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # This is only in the LSST stack. Do it before we clutter up the environment
@@ -305,17 +306,11 @@ RUN  source ${LOADSTACK} && \
        rubin_jupyter_utils.lab \
        pywwt \
        jupyter_firefly_extensions \
-       git+https://github.com/ericmandel/pyjs9
+       git+https://github.com/ericmandel/pyjs9 \
+       git+https://github.com/mgckind/jjs9.git
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
-# Install jjs9
-RUN  cd ${srcdir}/thirdparty && \
-      git clone https://github.com/mgckind/jjs9.git && \
-      cd jjs9 && \
-      pip3 install -e . && \
-      source ${LOADSTACK} && \
-      pip install -e .
 #Uncomment this when doing pip/npm github rapid test iteration.
 # Substitute date before rebuild. 
 # Something like:
@@ -354,6 +349,7 @@ ENV LBXT="@jupyterlab/toc \
           @lsst-sqre/rubin-labextension-savequit"
 # Broken:
 #          @jupyterlab/hdf5 \
+#          js9ext
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}

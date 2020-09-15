@@ -217,6 +217,7 @@ RUN  pip3 install --upgrade \
        "python-socketio[client]" \
        socketIO-client \
        rubin_jupyter_utils.lab \
+       jupyterlab_hdf \
        pywwt \
        jupyter_firefly_extensions \
        git+https://github.com/ericmandel/pyjs9 \
@@ -304,6 +305,7 @@ RUN  source ${LOADSTACK} && \
        "python-socketio[client]" \
        socketIO-client \
        rubin_jupyter_utils.lab \
+       jupyterlab_hdf \
        pywwt \
        jupyter_firefly_extensions \
        git+https://github.com/ericmandel/pyjs9 \
@@ -345,10 +347,10 @@ ENV LBXT="@jupyterlab/toc \
           @bokeh/jupyter_bokeh \
           pywwt \
           jupyter_firefly_extensions \
+          @jupyterlab/hdf5 \
           @lsst-sqre/rubin-labextension-query \
           @lsst-sqre/rubin-labextension-savequit"
 # Broken:
-#          @jupyterlab/hdf5 \
 #          js9ext
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"

@@ -404,22 +404,17 @@ RUN  groupadd -g 768 jovyan && \
 RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
       yum clean all
 # Custom local files
-COPY local01-nbstripjq.sh local02-hub.sh local03-showmotd.sh  \
+COPY local01-nbstripjq.sh local02-hub.sh local03-showrspnotice.sh  \
      local04-pythonrc.sh local05-path.sh local06-term.sh \
      local07-virtualenvwrapper.sh local08-namespaceenv.sh \
      /etc/profile.d/
-RUN  cd /etc/profile.d && \
-      set -e && \
-      for i in local*; do \
-          ln ${i} $(basename ${i} .sh).csh ; \
-      done
 RUN  set -e && \
      for i in notebooks WORK DATA idleculler ; do \
         mkdir -p /etc/skel/${i} ; \
      done
 COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst/kernel.json
-COPY motd /etc/motd
+COPY rsp_notice /usr/local/etc
 COPY 20_jupytervars 30_provisionator /etc/sudoers.d/
 COPY pythonrc /etc/skel/.pythonrc
 COPY gitconfig /etc/skel/.gitconfig

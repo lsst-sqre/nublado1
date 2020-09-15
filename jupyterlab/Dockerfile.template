@@ -374,7 +374,7 @@ RUN  mkdir -p ${verdir} && \
       pip3 freeze > ${verdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
-      conda list --export > ${verdir}/conda-stack.txt && \
+      conda env export > ${verdir}/conda-stack.yml && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
 RUN  set -e && \
       for l in ${LBXT} ; do \

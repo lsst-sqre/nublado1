@@ -1,10 +1,10 @@
-Welcome to the LSST Science Platform Notebook Aspect.
+Welcome to the Rubin Observatory Science Platform Notebook Aspect.
 
 Find useful documentation for the software and Notebook Aspect at:
         https://pipelines.lsst.io
         https://nb.lsst.io
 
-The LSST Science Pipelines environment is in:
+The Rubin Observatory Science Pipelines environment is in:
 
         /opt/lsst/software/stack
 
@@ -15,7 +15,8 @@ LSST iPython kernel, create a sourceable shell fragment in:
 
 and it will be sourced during kernel startup.
 
-To create an LSST environment in a terminal session and set up the full set of packages:
+To create a Rubin Observatory environment in a terminal session and set up
+the full set of packages:
 
         source /opt/lsst/software/stack/loadLSST.bash
         setup lsst_distrib

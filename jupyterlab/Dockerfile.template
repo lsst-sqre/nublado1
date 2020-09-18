@@ -221,7 +221,7 @@ RUN  pip3 install --upgrade \
        pywwt \
        jupyter_firefly_extensions \
        git+https://github.com/ericmandel/pyjs9 \
-       git+https://github.com/mgckind/jjs9.git
+       git+https://github.com/lsst-sqre/terminado.git
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # This is only in the LSST stack. Do it before we clutter up the environment
@@ -309,7 +309,7 @@ RUN  source ${LOADSTACK} && \
        pywwt \
        jupyter_firefly_extensions \
        git+https://github.com/ericmandel/pyjs9 \
-       git+https://github.com/mgckind/jjs9.git
+       git+https://github.com/lsst-sqre/terminado.git
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'

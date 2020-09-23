@@ -203,7 +203,8 @@ RUN  mkdir -p ${instverdir} && \
       pip3 freeze > ${instverdir}/requirements-stack.txt && \
       conda list --export > ${verdir}/conda-stack.txt && \
       (rpm -qa | sort) > ${instverdir}/rpmlist.txt && \
-      (conda env export > ${instverdir}/conda-stack.yml || /bin/true)
+      (conda env export > ${instverdir}/conda-stack.yml || \
+       (echo "Failed to export conda env" > ${instverdir}/conda-stack.yml))
 RUN  set -e && \
       LBXT=$(cat ${verdir}/labext.txt) && \
       for l in ${LBXT} ; do \

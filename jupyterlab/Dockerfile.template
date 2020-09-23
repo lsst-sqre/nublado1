@@ -138,10 +138,10 @@ COPY versions/conda-stack.yml ${verdir}/conda-stack.yml
 #
 # What happens when we don't mess with conda?
 #
-#RUN  source ${LOADSTACK} && \
-#      ce=$(conda env list | grep '\*' | awk '{print $1}') && \
-#      conda env update -n ${ce} --file ${verdir}/conda-stack.yml && \
-#      conda clean -a -y
+# RUN  source ${LOADSTACK} && \
+#       ce=$(conda env list | grep '\*' | awk '{print $1}') && \
+#       conda env update -n ${ce} --file ${verdir}/conda-stack.yml && \
+#       conda clean -a -y
 # Inject Python via pip into Stack environment
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
@@ -201,8 +201,9 @@ RUN  mkdir -p ${instverdir} && \
       pip3 freeze > ${instverdir}/requirements-system.txt && \
       source ${LOADSTACK} && \
       pip3 freeze > ${instverdir}/requirements-stack.txt && \
-      conda env export > ${instverdir}/conda-stack.yml && \
-      rpm -qa | sort > ${instverdir}/rpmlist.txt
+      conda list --export > ${verdir}/conda-stack.txt && \
+      (rpm -qa | sort) > ${instverdir}/rpmlist.txt && \
+      (conda env export > ${instverdir}/conda-stack.yml || /bin/true)
 RUN  set -e && \
       LBXT=$(cat ${verdir}/labext.txt) && \
       for l in ${LBXT} ; do \

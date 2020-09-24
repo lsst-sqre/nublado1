@@ -11,4 +11,4 @@ ENTRYPOINT ["custom-entrypoint.sh"]
 CMD ["postgres"]
 LABEL description="Science Platform Notebook Aspect: postgres" \
        name="lsstsqre/lsp-postgres" \
-       version="0.0.4"
+       version="0.0.5"

@@ -18,7 +18,7 @@ and it will be sourced during kernel startup.
 To create a Rubin Observatory environment in a terminal session and set up
 the full set of packages:
 
-        source /opt/lsst/software/stack/loadLSST.bash
+        source ${LOADSTACK}
         setup lsst_distrib
 
 

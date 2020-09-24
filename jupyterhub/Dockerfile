@@ -6,25 +6,21 @@ RUN  yum -y upgrade
 RUN  yum install -y nodejs libcurl-devel mysql-devel gcc net-tools sudo \
       patch git python-alembic mariadb mysql python3 python3-devel postgresql
 RUN  python3 -m ensurepip
-RUN  pip3 install --upgrade setuptools pip
+RUN  pip3 install --upgrade setuptools pip wheel
 ENV  PYCURL_SSL_LIBRARY=openssl
 RUN  pip3 install \
       tornado \
       ipykernel \
-      python-oauth2 \
-      wheel \
       cryptography \
       mysqlclient \
       psycopg2-binary \
       jupyterhub-kubespawner \
       'kubernetes>=11' \
       'requests>=2,<3' \
-      jupyterlab \
       semver \
-      oauthenticator \
       jupyterhub \
       pyyaml \
-      'rubin_jupyter_utils.hub>=0.30.2,<1'
+      'rubin_jupyter_utils.hub>=0.32.0,<1'
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir \
@@ -38,7 +34,6 @@ RUN  pip uninstall pycurl && \
 # ARG  TKT="tickets/DM-26118"
 # RUN  pip3 install --upgrade \
 #      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
-RUN  jupyter serverextension enable --py jupyterlab --sys-prefix
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
 RUN  mkdir -p ${verdir}
@@ -56,5 +51,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.30.2"
+       version="0.32.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

@@ -14,14 +14,13 @@ RUN  pip3 install \
       cryptography \
       mysqlclient \
       psycopg2-binary \
-      'jupyterhub-kubespawner<0.13' \
+      jupyterhub-kubespawner \
       'kubernetes>=11' \
       'requests>=2,<3' \
       semver \
-      oauthenticator \
       jupyterhub \
       pyyaml \
-      'rubin_jupyter_utils.hub>=0.31.0,<1'
+      'rubin_jupyter_utils.hub>=0.32.0,<1'
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir \
@@ -52,5 +51,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.31.0"
+       version="0.32.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

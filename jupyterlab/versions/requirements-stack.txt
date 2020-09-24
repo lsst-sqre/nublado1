@@ -30,7 +30,7 @@ ipympl==0.5.7
 ipython==7.17.0
 ipyvolume==0.5.2
 ipywidgets==7.5.1
--e git+https://github.com/Caltech-IPAC/jupyter_firefly_extensions.git@027abf11495ea1dc17a237914dd696f3e5c01be0#egg=jupyter_firefly_extensions
+jupyter-firefly-extensions==2.0.1
 jupyter-server-proxy==1.5.0
 jupyterhub==1.1.0
 jupyterlab==2.2.5
@@ -48,6 +48,7 @@ paramnb==2.0.4
 partd==1.1.0
 pipenv==2020.8.13
 pyarrow==1.0.1
+pyjs9 @
 pypandoc==1.5
 pyshp==2.1.0
 python-snappy==0.5.4

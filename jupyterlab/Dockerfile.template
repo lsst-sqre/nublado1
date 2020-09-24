@@ -136,10 +136,6 @@ ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt
 # Should be a no-op
 # Really really isn't.  Conda solve is awful.
-# RUN  source ${LOADSTACK} && conda install proj4 cartopy
-#
-# What happens when we don't mess with conda?
-#
 #RUN  source ${LOADSTACK} && \
 #      ce=$(conda env list | grep '\*' | awk '{print $1}') && \
 #      conda env update -n ${ce} --file ${verdir}/conda.yml && \
@@ -147,89 +143,8 @@ COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt
 # PyYAML must not be present in requirements-stack
 RUN  source ${LOADSTACK} && \
       pip install --upgrade -r ${verdir}/requirements-stack.txt
-
 RUN  source ${LOADSTACK} && \
       pip3 install https://www.astro.rug.nl/software/kapteyn/kapteyn-3.0.tar.gz
-
-#RUN  source ${LOADSTACK} && \
-#      cd ${srcdir}/thirdparty && \
-#      pip install kapteyn/
-#RUN  source ${LOADSTACK} && \
-#      pip install --upgrade \
-#       pip \
-#       setuptools \
-#       wheel \
-#       tornado \
-#       'jupyterlab<2.0.0' \
-#       jupyterlab_server \
-#       jupyterhub \
-#       jupyter-server-proxy \
-#       jupyterlabutils \
-#       virtualenv \
-#       virtualenvwrapper \
-#       pyshp \
-#       ipykernel \
-#       pipenv \
-#       nbval \
-#       pypandoc \
-#       astroquery \
-#       ipywidgets \
-#       ipyevents \
-#       bokeh \
-#       pyarrow \
-#       cloudpickle \
-#       ipympl \
-#       fastparquet \
-#       paramnb \
-#       ginga \
-#       bqplot \
-#       ipyvolume \
-#       tables \
-#       papermill \
-#       dask \
-#       gcsfs \
-#       distributed \
-#       dask-kubernetes \
-#       "holoviews[recommended]" \
-#       datashader \
-#       vaex-core \
-#       vaex-viz \
-#       vaex-server \
-#       vaex-hdf5 \
-#       vaex-astro \
-#       vaex-distributed \
-#       vaex-jupyter \
-#       vaex-arrow \
-#       nclib \
-#       python-snappy cython \
-#       graphviz \
-#       firefly_client \
-#       jupyter-firefly-extensions \
-#       mysqlclient \
-#       hvplot \
-#       intake \
-#       intake-parquet \
-#       jupyter-server-proxy \
-#       jupyterlab_lsstextensions \
-#       toolz \
-#       partd \
-#       nbdime \
-#       dask_labextension \
-#       numba \
-#       awkward \
-#       awkward-numba \
-#       aioinflux \
-#       swifter \
-#       pyvo \
-#       lsst-efd-client \
-#       wfdispatcher \
-#       jupyterlab_iframe \
-#       astrowidgets \
-#       sidecar \
-#       "python-socketio[client]" \
-#       socketIO-client \
-#       git+https://github.com/ericmandel/pyjs9
-
 # Install conda versions before pip?  Shouldn't help.
 COPY versions/conda.yml ${verdir}/conda.yml
 # Install pyjs9 (not packaged)
@@ -237,36 +152,6 @@ ARG  js9_ver="c79d428db29d23bb4c243f71590ae16d723c4404"
 RUN  pip3 install git+https://github.com/ericmandel/pyjs9.git@${js9_ver} && \
       source ${LOADSTACK} && \
       pip install git+https://github.com/ericmandel/pyjs9.git@${js9_ver}
-# Install jjs9
-ARG  jjs9_ver="171b27610a2db28477b7b24e58cc25fe2ce13ab9"
-RUN  cd ${srcdir}/thirdparty && \
-      git clone https://github.com/mgckind/jjs9.git && \
-      cd jjs9 && \
-      git checkout ${jjs9_ver} && \
-      pip3 install -e . && \
-      source ${LOADSTACK} && \
-      pip install -e .
-# Install jupyter-firefly-extensions
-ARG  TKT="firefly-641-jl-2"
-RUN  cd ${srcdir}/thirdparty && \
-      git clone -b ${TKT} \
-       https://github.com/Caltech-IPAC/jupyter_firefly_extensions.git && \
-      cd jupyter_firefly_extensions && \
-      pip3 install -e . && \
-      source ${LOADSTACK} && \
-      pip install -e . && \
-      npm install && \
-      npm run build
-#Uncomment this and add a git+https URL on a pip install below it when doing
-# rapid test iteration.  Substitute date before rebuild.
-# Something like:
-# sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
-#  Dockerfile && dedangle && ./bld
-#  Dockerfile && dedangle && ./bld
-#ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
-#ARG  TKT="tickets/DM-23686"
-#RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/jupyterhubutils.git@${TKT}
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
@@ -276,8 +161,6 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ARG  BUILDTRIGGER="Fri Feb 14 11:49:46 MST 2020"
-ARG  TKT="tickets/DM-23686"
 ENV SVXT="jupyterlab jupyter_firefly_extensions \
           nbdime jupyterlab_iframe \
           rubin_jupyter_utils.lab.serverextensions.hub_comm \

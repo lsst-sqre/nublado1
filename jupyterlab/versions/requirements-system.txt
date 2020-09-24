@@ -110,7 +110,6 @@ jedi==0.17.2
 jeepney==0.4.3
 Jinja2==2.11.2
 jinja2-time==0.2.0
--e git+https://github.com/mgckind/jjs9.git@171b27610a2db28477b7b24e58cc25fe2ce13ab9#egg=jjs9
 jmespath==0.10.0
 json5==0.9.5
 jsonschema==3.2.0
@@ -118,7 +117,7 @@ jupyter==1.0.0
 jupyter-client==6.1.6
 jupyter-console==6.1.0
 jupyter-core==4.6.3
--e git+https://github.com/Caltech-IPAC/jupyter_firefly_extensions.git@027abf11495ea1dc17a237914dd696f3e5c01be0#egg=jupyter_firefly_extensions
+jupyter-firefly-extensions==2.0.1
 jupyter-server-proxy==1.5.0
 jupyter-telemetry==0.1.0
 jupyterhub==1.1.0
@@ -194,7 +193,6 @@ pyasn1-modules==0.2.8
 pycparser==2.20
 pyct==0.4.6
 Pygments==2.6.1
-pyjs9 @ git+https://github.com/ericmandel/pyjs9@79e5da894650f16191970bc2ca47fa9456f6f1d3
 pyOpenSSL==19.1.0
 pypandoc==1.5
 pyparsing==2.4.7

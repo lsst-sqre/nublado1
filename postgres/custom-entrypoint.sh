@@ -13,9 +13,11 @@ docker_create_db_directories() {
             if [ ! -d "${PGDATA}" ]; then
                 su-exec postgres mkdir -p "${PGDATA}"
 	    else
-		chown postgres "${PGDATA}" # This might fail under root_squash
+		chown postgres "${PGDATA}" || :
+		# This might fail under root_squash.
 		# But in that case we'd hope that the top dir was already
-		#  owned by postgres.
+		#  owned by postgres.  So we suppress failure to trick
+		#  the set -e .
             fi
             su-exec postgres chmod 700 "${PGDATA}"
         fi

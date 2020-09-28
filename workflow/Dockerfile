@@ -4,8 +4,7 @@ RUN  yum install -y epel-release
 RUN  yum -y upgrade
 RUN  yum install -y python3 python3-devel jq git
 RUN  python3 -m ensurepip
-RUN  pip3 install --upgrade pip setuptools
-#ENV  PYCURL_SSL_LIBRARY=openssl
+RUN  pip3 install --upgrade pip setuptools wheel
 RUN  pip3 install \
       wsgiserver \
       falcon \
@@ -37,5 +36,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.4.0.2"
+       version="0.4.1"
 CMD [ "/usr/local/bin/start-wf-api" ]

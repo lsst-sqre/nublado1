@@ -7,8 +7,8 @@ RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools wheel
 RUN  pip3 install \
       wsgiserver \
-      falcon \
       mock \
+      falcon \
       inflection \
       kubernetes \
       "wfdispatcher>=0.4,<1.0"
@@ -36,5 +36,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.4.1"
+       version="0.4.1.1"
 CMD [ "/usr/local/bin/start-wf-api" ]

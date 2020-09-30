@@ -22,8 +22,7 @@ RUN  yum -y install \
       mariadb mysql mysql-devel \
       unzip nano file ed \
       gcc gcc-c++ \
-      ncurses ncurses-devel wget \
-      chromium-headless
+      ncurses ncurses-devel wget
 # Make EPEL Python 3.6 system Python 3 and install pip3
 RUN  python3 -m ensurepip
 # Tkinter and git: install from SCL
@@ -221,7 +220,6 @@ RUN  pip3 install --upgrade \
        jupyterlab_hdf \
        pywwt \
        jupyter_firefly_extensions \
-       nbconvert[webpdf] \
        git+https://github.com/ericmandel/pyjs9 \
        "terminado>=0.9.0"
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack

@@ -58,7 +58,7 @@ python-socketio==4.6.0
 pyvo==1.1
 rubin-jupyter-utils.config==0.30.2
 rubin-jupyter-utils.helpers==0.30.1
-rubin-jupyter-utils.hub==0.30.3
+rubin-jupyter-utils.hub==0.32.2
 rubin-jupyter-utils.lab==0.10.2
 sidecar==0.4.0
 socketIO-client==0.7.2
@@ -77,4 +77,4 @@ vaex-viz==0.4.0
 virtualenv==20.0.31
 virtualenvwrapper==4.8.4
 websocket-client==0.57.0
-wfdispatcher==0.4.0
+wfdispatcher==0.4.1

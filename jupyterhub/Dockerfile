@@ -14,7 +14,7 @@ RUN  pip3 install \
       cryptography \
       mysqlclient \
       psycopg2-binary \
-      jupyterhub-kubespawner \
+      'jupyterhub-kubespawner==0.13' \
       'kubernetes>=11' \
       'requests>=2,<3' \
       semver \

@@ -11,7 +11,7 @@ RUN  pip3 install \
       falcon \
       inflection \
       kubernetes \
-      "wfdispatcher>=0.4,<1.0"
+      "wfdispatcher>=0.4.1,<1.0"
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
@@ -36,5 +36,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.4.1.1"
+       version="0.4.1.3"
 CMD [ "/usr/local/bin/start-wf-api" ]

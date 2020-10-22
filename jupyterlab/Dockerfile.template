@@ -8,8 +8,8 @@ ENV  LC_ALL=en_US.UTF-8
 RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
 RUN  yum clean all
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
-RUN  yum install  -y epel-release man man-pages
-RUN  yum  repolist
+RUN  yum install -y epel-release man man-pages
+RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install \
       git sudo \

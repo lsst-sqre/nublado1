@@ -138,12 +138,13 @@ RUN  pip3 install --upgrade pip setuptools wheel
 #  following workaround does the trick:
 #  https://github.com/SheffieldML/GPy/issues/649
 #  ...but you need numpy and cython first.
-RUN  pip3 install numpy cython && \
+RUN  pip3 install --use-feature=2020-resolver --upgrade numpy cython && \
       cd ${srcdir}/thirdparty && \
       git clone https://github.com/kapteyn-astro/kapteyn && \
       find kapteyn -name '*.pyx' -exec cython {} \; && \
-      pip3 install kapteyn/
+      pip3 install --use-feature=2020-resolver kapteyn/
 RUN  pip3 install --upgrade \
+       --use-feature=2020-resolver \
        tornado \
        jupyterlab \
        jupyterlab_server \
@@ -235,6 +236,7 @@ RUN  source ${LOADSTACK} && \
       pip install kapteyn/
 RUN  source ${LOADSTACK} && \
       pip install --upgrade \
+       --use-feature=2020-resolver \
        pip \
        setuptools \
        wheel \

@@ -134,15 +134,6 @@ RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
            /usr/bin
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools wheel
-# Vaex-astro depends on kapteyn which is not Python 3.7 compatible...but the
-#  following workaround does the trick:
-#  https://github.com/SheffieldML/GPy/issues/649
-#  ...but you need numpy and cython first.
-RUN  pip3 install --use-feature=2020-resolver --upgrade numpy cython && \
-      cd ${srcdir}/thirdparty && \
-      git clone https://github.com/kapteyn-astro/kapteyn && \
-      find kapteyn -name '*.pyx' -exec cython {} \; && \
-      pip3 install --use-feature=2020-resolver kapteyn/
 RUN  pip3 install --upgrade \
        --use-feature=2020-resolver \
        tornado \
@@ -186,14 +177,6 @@ RUN  pip3 install --upgrade \
        nclib \
        python-snappy \
        graphviz \
-       vaex-core \
-       vaex-viz \
-       vaex-server \
-       vaex-hdf5 \
-       vaex-astro \
-       vaex-distributed \
-       vaex-jupyter \
-       vaex-arrow \
        firefly_client \
        mysqlclient \
        hvplot \
@@ -230,10 +213,6 @@ ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # That turns out not to matter.  The environment is not consistent.
 # RUN  source ${LOADSTACK} && \
 #       conda install -y -c conda-forge geoviews
-# Work around the vaex-astro problem mentioned above, in the LSST stack env.
-RUN  source ${LOADSTACK} && \
-      cd ${srcdir}/thirdparty && \
-      pip install kapteyn/
 RUN  source ${LOADSTACK} && \
       pip install --upgrade \
        --use-feature=2020-resolver \
@@ -272,14 +251,6 @@ RUN  source ${LOADSTACK} && \
        dask-kubernetes \
        "holoviews[recommended]" \
        datashader \
-       vaex-core \
-       vaex-viz \
-       vaex-server \
-       vaex-hdf5 \
-       vaex-astro \
-       vaex-distributed \
-       vaex-jupyter \
-       vaex-arrow \
        nclib \
        python-snappy cython \
        graphviz \

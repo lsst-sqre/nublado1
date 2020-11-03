@@ -21,6 +21,7 @@ RUN  cd /tmp && \
       rm ./node_repo.sh
 RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
        > /etc/yum.repos.d/yarn.repo
+RUN  yum install -y centos-release-scl
 RUN  yum clean all
 RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 ARG  jl=/opt/lsst/software/jupyterlab
@@ -47,7 +48,7 @@ RUN  cd /tmp && \
 # Install Snappy
 # First we need a newer cmake
 RUN  cd /tmp && \
-      V="3.17.5" && \
+      V="3.18.4" && \
       FN="cmake-${V}-Linux-x86_64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
@@ -70,7 +71,7 @@ RUN  cd ${srcdir}/thirdparty && \
       make install
 # Install Pandoc
 RUN  cd /tmp && \
-      V="2.10.1" && \
+      V="2.11.0.4" && \
       FN="pandoc-${V}-linux-amd64" && \
       F="${FN}.tar.gz" && \
       URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
@@ -81,7 +82,7 @@ RUN  cd /tmp && \
 # This is for Fritz, and my nefarious plan to make the "te" in "Jupyter"
 #  TECO
 # We're not doing the "Make" alias--too likely to confuse
-ARG  teco_commit="6c80f92eb4b197509e37cc4b3e549437cde23fc2"
+ARG  teco_commit="79fcb6cfd6c5f9759f6ec46aeaf86d5806b13a0b"
 RUN  cd ${srcdir}/thirdparty && \
       git clone https://github.com/blakemcbride/TECOC.git && \
       cd TECOC/src && \
@@ -234,6 +235,7 @@ RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
 COPY local01-nbstripjq.sh local02-hub.sh local03-showrspnotice.sh  \
      local04-pythonrc.sh local05-path.sh local06-term.sh \
      local07-virtualenvwrapper.sh local08-namespaceenv.sh \
+     local09-scl.sh \
      /etc/profile.d/
 RUN  set -e && \
      for i in notebooks WORK DATA idleculler ; do \

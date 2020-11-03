@@ -129,8 +129,6 @@ RUN  pipver=$(grep ^pip\= ${verdir}/requirements-system.txt \
 # Install pinned python versions
 RUN  pip3 install --upgrade --use-feature=2020-resolver \
       -r ${verdir}/requirements-system.txt
-RUN  pip3 install --upgrade --use-feature=2020-resolver \
-      https://www.astro.rug.nl/software/kapteyn/kapteyn-3.0.tar.gz
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt
 COPY versions/conda-stack.yml ${verdir}/conda-stack.yml
@@ -149,9 +147,6 @@ ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
       pip install --upgrade --use-feature=2020-resolver \
        -r ${verdir}/requirements-stack.txt
-RUN  source ${LOADSTACK} && \
-      pip3 install --upgrade --use-feature=2020-resolver \
-       https://www.astro.rug.nl/software/kapteyn/kapteyn-3.0.tar.gz
 # Install pyjs9 (not packaged on PyPi)
 ARG  js9_ver="v3.1"
 RUN  pip3 install --use-feature=2020-resolver \
@@ -175,9 +170,9 @@ ENV  SVXT="jupyterlab jupyter_firefly_extensions \
           rubin_jupyter_utils.lab.serverextensions.query"
 ENV  NBXT="widgetsnbextension ipyevents nbdime"
 # nbdime is special and already installed its extensions
-RUN  nbdime extensions --disable --sys-prefix && \
+RUN  nbdime extensions --disable && \
      source ${LOADSTACK} && \
-     nbdime extensions --disable --sys-prefix
+     nbdime extensions --disable
 ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
 RUN  set -e && \

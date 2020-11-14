@@ -1,4 +1,4 @@
-@bokeh/jupyter_bokeh@v2.0.3
+@bokeh/jupyter_bokeh@v2.0.4
 @jupyter-widgets/jupyterlab-manager@v2.0.0
 @jupyter-widgets/jupyterlab-sidecar@v0.5.0
 @jupyterlab/hdf5@v0.4.1
@@ -6,7 +6,7 @@
 @lsst-sqre/rubin-labextension-query@v0.0.1
 @lsst-sqre/rubin-labextension-savequit@v0.0.1
 @pyviz/jupyterlab_pyviz@v1.0.4
-bqplot@v0.5.18
+bqplot@v0.5.19
 dask-labextension@v3.0.0
 ipyevents@v1.8.1
 ipyvolume@v0.6.0-alpha.5

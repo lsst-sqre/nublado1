@@ -135,7 +135,6 @@ RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools wheel
 RUN  pip3 install --upgrade \
-       --use-feature=2020-resolver \
        tornado \
        jupyterlab \
        jupyterlab_server \
@@ -178,7 +177,7 @@ RUN  pip3 install --upgrade \
        python-snappy \
        graphviz \
        firefly_client \
-       mysqlclient \
+       'mysqlclient!=2.0.2' \
        hvplot \
        intake \
        intake-parquet \
@@ -217,7 +216,6 @@ ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 #       conda install -y -c conda-forge geoviews
 RUN  source ${LOADSTACK} && \
       pip install --upgrade \
-       --use-feature=2020-resolver \
        pip \
        setuptools \
        wheel \
@@ -257,7 +255,7 @@ RUN  source ${LOADSTACK} && \
        python-snappy cython \
        graphviz \
        firefly_client \
-       mysqlclient \
+       'mysqlclient!=2.0.2' \
        hvplot \
        intake \
        intake-parquet \

@@ -134,6 +134,9 @@ RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
            /usr/bin
 # Get newer setuptools before Python packages
 RUN  pip3 install --upgrade pip setuptools wheel
+# Otherwise the dependency solver gets upset
+RUN  pip3 install --upgrade numpy scipy
+# Now do the rest
 RUN  pip3 install --upgrade \
        tornado \
        jupyterlab \
@@ -146,8 +149,6 @@ RUN  pip3 install --upgrade \
        ipykernel \
        pipenv \
        nbval \
-       numpy \
-       scipy \
        pandas \
        astropy \
        pypandoc \

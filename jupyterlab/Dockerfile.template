@@ -299,7 +299,7 @@ RUN source ${LOADSTACK} && \
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
-ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
+ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
 ENV SVXT="jupyterlab jupyter_firefly_extensions \

@@ -12,7 +12,7 @@ RUN  pip3 install --upgrade pip setuptools wheel
 #      git+https://github.com/lsst-sqre/rubin-jupyter-helpers.git@${TKT} \
 #      git+https://github.com/lsst-sqre/rubin-jupyter-hub.git@${TKT}
 RUN  pip3 install \
-      'rubin_jupyter_utils.hub>=0.32.5,<1.0'
+      'rubin_jupyter_utils.hub>=0.32.6,<1.0'
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jovyan
 RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
@@ -21,4 +21,4 @@ USER 768:768
 CMD [ "/usr/local/bin/prepuller" ]
 LABEL      description="nublado: image prepuller" \
              name="lsstsqre/prepuller" \
-             version="0.8.7"
+             version="0.8.8"

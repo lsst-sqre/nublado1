@@ -38,8 +38,8 @@ function flatten {
     docker build -t ${flat_tag} .
     docker tag ${flat_tag} ${TAG}
     docker rmi ${ttag} ${ltag}
-    docker image prune -f
-    docker builder prune -f
+    docker image prune -f || true
+    docker builder prune -f || true
     cd ${owd}
 }
 

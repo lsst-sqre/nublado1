@@ -2,28 +2,65 @@
 set -e
 
 function usage() {
-    echo 1>&2 "Usage: $0 [-d] [-e] [-x] [-s additional] [-b BASE_IMAGE] \\"
-    echo 1>&2 "           [-n IMAGE_NAME ] [-t TAG_PREFIX ] TAG"
+    echo 1>&2 "Usage: $0 [-d] [-e] [-x] [-f] [-s additional] \\"
+    echo 1>&2 "           [-b BASE_IMAGE] [-n IMAGE_NAME ] [-t TAG_PREFIX ] \\"
+    echo 1>&2 "           TAG"
     echo 1>&2 "  -d enables dry run (no Docker build or push)"
     echo 1>&2 "  -e is experimental (exp_ before tag), no 'latest' tag."
     echo 1>&2 "  -s additional adds '_additional' to end of exp. build."
     echo 1>&2 "  -x is 'do not push' (but does build)."
+    echo 1>&2 "  -f is flatten (collapse to single layer)."
     echo 1>&2 "  default BASE_IMAGE='lsstsqre/centos'"
     echo 1>&2 "  default IMAGE_NAME='lsstsqre/sciplat-lab'"
     echo 1>&2 "  default TAG_PREFIX='7-stack-lsst_distrib-'"
-    echo 1>&2 "  typical TAG='w_2017_35'"
+    echo 1>&2 "  typical TAG='w_2021_03'"
     exit 2
 }
 
+function flatten {
+    TAG=$1
+    owd=$(pwd)
+    WORKDIR=$(mktemp -d)
+    cp Dockerfile ${WORKDIR}/Df.in
+    cd ${WORKDIR}
+    dtag=$(echo ${TAG} | rev | cut -d ':' -f 1 | rev)
+    ttag="${TAG}_temp"
+    ctag="${dtag}_ctr"
+    ltag="${TAG}_layered"
+    echo "FROM ${ttag}" > Dockerfile
+    grep '^USER\|^ENV\|^WORKDIR\|^CMD\|^ENTRYPOINT\|^ONBUILD\|^EXPOSE\|^VOLUME' Df.in >> Dockerfile
+    docker rm ${ctag} || true
+    docker tag ${TAG} ${ltag}
+    docker run --name ${ctag} ${TAG} /bin/true
+    docker export ${ctag} | docker import - ${ttag}
+    docker rm ${ctag}
+    flat_tag="${TAG}_flattened"
+    docker build -t ${flat_tag} .
+    docker tag ${flat_tag} ${TAG}
+    docker rmi ${ttag} ${ltag}
+    docker image prune -f
+    docker builder prune -f
+    cd ${owd}
+}
+
+function cleanup {
+    if [ -n "${WORKDIR}" ]; then
+        rm -rf ${WORKDIR}
+    fi
+}
+
+trap cleanup EXIT
+WORKDIR=""
 OPTIND=1
 DRY_RUN=0
 EXPERIMENTAL=0
 SPECIAL=0
 NOPUSH=0
+FLATTEN=0
 BASE_IMAGE="lsstsqre/centos"
 IMAGE_NAME="lsstsqre/sciplat-lab"
 TAG_PREFIX="7-stack-lsst_distrib-"
-while getopts ':hdexs:p:n:b:t:' opt; do
+while getopts ':hdexfs:p:n:b:t:' opt; do
     case $opt in
     h)
         usage
@@ -55,6 +92,9 @@ while getopts ':hdexs:p:n:b:t:' opt; do
     t)
         TAG_PREFIX=${OPTARG}
         ;;
+    f)
+	FLATTEN=1
+	;;
     \?)
         usage
         ;;
@@ -75,6 +115,12 @@ fi
 if [ "${NOPUSH}" -eq 1 ]; then
     VERSION="nopush_${VERSION}"
 fi
+if [ "${FLATTEN}" -eq 1 ]; then
+    # We are going to cheat, build a nopush version, then reverse the tagging
+    #  and push the flattened one.
+    orig_ver=${VERSION}
+    VERSION="nopush_${VERSION}"
+fi
 sed -e "s|{{BASE_IMAGE}}|${BASE_IMAGE}|g" \
     -e "s|{{IMAGE_NAME}}|${IMAGE_NAME}|g" \
     -e "s|{{TAG_PREFIX}}|${TAG_PREFIX}|g" \
@@ -86,3 +132,43 @@ if [ "${DRY_RUN}" -ne 0 ]; then
     exit 0
 fi
 ./bld_1
+if [ "${FLATTEN}" -eq 1 ]; then
+    np_ver="${IMAGE_NAME}:${VERSION}"
+    VERSION=${orig_ver}
+    img_str="${IMAGE_NAME}:${VERSION}"
+    docker tag ${np_ver} ${img_str}
+    docker rmi ${np_ver}
+    flatten ${img_str}
+    if [ "${NOPUSH}" -eq 0 ]; then
+	# This is all duplicated from ./bld_1 ; yuck, but here we are
+	EXPERIMENTAL=0
+	etag=$(echo "${VERSION}" | cut -d '_' -f 1)
+	if [ "${etag}" = "exp" ]; then
+	    EXPERIMENTAL=1
+	fi
+	docker push ${img_str}
+	if [ "${EXPERIMENTAL}" -ne 1 ]; then
+	    ichar=$(echo "${VERSION}" | cut -c 1)
+	    itype=""
+	    case $ichar in
+		"r")
+		    itype="release"
+		    ;;
+		"w")
+		    itype="weekly"
+		    ;;
+		"d")
+		    itype="daily"
+		    ;;
+		*)
+		    ;;
+	    esac
+	    if [ -n "$itype" ]; then
+		docker tag ${IMAGE}:${img_str} ${IMAGE}:latest_${itype}
+		docker push ${IMAGE}:latest_${itype}
+	    fi
+	    docker tag ${img_str} ${IMAGE}:latest
+	    docker push ${IMAGE}:latest
+	fi
+    fi
+fi

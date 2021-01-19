@@ -18,6 +18,7 @@ function usage() {
 }
 
 function flatten {
+    TAG=$1
     owd=$(pwd)
     WORKDIR=$(mktemp -d)
     cp Dockerfile ${WORKDIR}/Df.in
@@ -114,6 +115,12 @@ fi
 if [ "${NOPUSH}" -eq 1 ]; then
     VERSION="nopush_${VERSION}"
 fi
+if [ "${FLATTEN}" -eq 1 ]; then
+    # We are going to cheat, build a nopush version, then reverse the tagging
+    #  and push the flattened one.
+    orig_ver=${VERSION}
+    VERSION="nopush_${VERSION}"
+fi
 sed -e "s|{{BASE_IMAGE}}|${BASE_IMAGE}|g" \
     -e "s|{{IMAGE_NAME}}|${IMAGE_NAME}|g" \
     -e "s|{{TAG_PREFIX}}|${TAG_PREFIX}|g" \
@@ -124,13 +131,6 @@ if [ "${DRY_RUN}" -ne 0 ]; then
     echo 1>&2 "Dry run: Dockerfile written, stopping before build/push."
     exit 0
 fi
-if [ "${FLATTEN}" -eq 1 ]; then
-    # We are going to cheat, build a nopush version, then reverse the tagging
-    #  and push the flattened one.
-    orig_ver=${VERSION}
-    VERSION="nopush_${VERSION}"
-    orig_nopush=${NOPUSH}
-fi
 ./bld_1
 if [ "${FLATTEN}" -eq 1 ]; then
     np_ver="${IMAGE_NAME}:${VERSION}"
@@ -139,7 +139,6 @@ if [ "${FLATTEN}" -eq 1 ]; then
     docker tag ${np_ver} ${img_str}
     docker rmi ${np_ver}
     flatten ${img_str}
-    NOPUSH="${orig_nopush}"
     if [ "${NOPUSH}" -eq 0 ]; then
 	# This is all duplicated from ./bld_1 ; yuck, but here we are
 	EXPERIMENTAL=0

@@ -2,14 +2,15 @@
 set -e
 
 function usage() {
-    echo 1>&2 "Usage: $0 [-d] [-e] [-x] [-f] [-s additional] \\"
+    echo 1>&2 "Usage: $0 [-v] [-d] [-e] [-x] [-f] [-s additional] \\"
     echo 1>&2 "           [-b BASE_IMAGE] [-n IMAGE_NAME ] [-t TAG_PREFIX ] \\"
     echo 1>&2 "           TAG"
+    echo 1>&2 "  -v is verbose."
     echo 1>&2 "  -d enables dry run (no Docker build or push)"
     echo 1>&2 "  -e is experimental (exp_ before tag), no 'latest' tag."
-    echo 1>&2 "  -s additional adds '_additional' to end of exp. build."
     echo 1>&2 "  -x is 'do not push' (but does build)."
     echo 1>&2 "  -f is flatten (collapse to single layer)."
+    echo 1>&2 "  -s additional adds '_additional' to end of exp. build."
     echo 1>&2 "  default BASE_IMAGE='lsstsqre/centos'"
     echo 1>&2 "  default IMAGE_NAME='lsstsqre/sciplat-lab'"
     echo 1>&2 "  default TAG_PREFIX='7-stack-lsst_distrib-'"
@@ -21,6 +22,9 @@ function flatten {
     TAG=$1
     owd=$(pwd)
     WORKDIR=$(mktemp -d)
+    if [ "${VERBOSE}" -ne 0 ]; then
+	echo 1>&2 "Flatten working dir: ${WORKDIR}"
+    fi
     cp Dockerfile ${WORKDIR}/Df.in
     cd ${WORKDIR}
     dtag=$(echo ${TAG} | rev | cut -d ':' -f 1 | rev)
@@ -29,6 +33,12 @@ function flatten {
     ltag="${TAG}_layered"
     echo "FROM ${ttag}" > Dockerfile
     grep '^USER\|^ENV\|^WORKDIR\|^CMD\|^ENTRYPOINT\|^ONBUILD\|^EXPOSE\|^VOLUME' Df.in >> Dockerfile
+    if [ "${VERBOSE}" -ne 0 ]; then
+	echo 1>&2 "Dockerfile for flattened image:"
+	echo 1>&2 " "
+	cat 1>&2 Dockerfile
+	echo 1>&2 " "
+    fi
     docker rm ${ctag} || true
     docker tag ${TAG} ${ltag}
     docker run --name ${ctag} ${TAG} /bin/true
@@ -57,28 +67,36 @@ EXPERIMENTAL=0
 SPECIAL=0
 NOPUSH=0
 FLATTEN=0
+VERBOSE=0
 BASE_IMAGE="lsstsqre/centos"
 IMAGE_NAME="lsstsqre/sciplat-lab"
 TAG_PREFIX="7-stack-lsst_distrib-"
-while getopts ':hdexfs:p:n:b:t:' opt; do
+while getopts ':hvdexfs:p:n:b:t:' opt; do
     case $opt in
     h)
         usage
         ;;
+    v)
+	VERBOSE=1
+	set -x
+	;;
     d)
         DRY_RUN=1
         ;;
     e)
         EXPERIMENTAL=1
         ;;
+    x)
+        NOPUSH=1
+        ;;
+    f)
+	FLATTEN=1
+	;;
     s)
 	SPECIAL=1
 	EXPERIMENTAL=1
 	addltag=${OPTARG}
 	;;
-    x)
-        NOPUSH=1
-        ;;
     p)
         _junk=${OPTARG}
         echo 1>&2 "-p PYVER is no longer supported.  Ignoring."
@@ -92,9 +110,6 @@ while getopts ':hdexfs:p:n:b:t:' opt; do
     t)
         TAG_PREFIX=${OPTARG}
         ;;
-    f)
-	FLATTEN=1
-	;;
     \?)
         usage
         ;;
@@ -127,6 +142,12 @@ sed -e "s|{{BASE_IMAGE}}|${BASE_IMAGE}|g" \
     -e "s|{{VERSION}}|${VERSION}|g" \
     -e "s|{{TAG}}|${TAG}|g" \
     < Dockerfile.template > Dockerfile
+if [ "${VERBOSE}" -ne 0 ]; then
+    echo 1>&2 "Dockerfile:"
+    echo 1>&2 " "
+    cat 1>&2 Dockerfile
+    echo 1>&2 " "
+fi
 if [ "${DRY_RUN}" -ne 0 ]; then
     echo 1>&2 "Dry run: Dockerfile written, stopping before build/push."
     exit 0

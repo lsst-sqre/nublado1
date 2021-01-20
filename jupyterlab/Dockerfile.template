@@ -161,15 +161,15 @@ RUN source ${LOADSTACK} && \
 # Install our extensions
 # First inject jupyter_notebook_config with terminado settings, *then*
 #  edit it by adding jupyter server extensions.
-ENV  NODE_OPTIONS="--max-old-space-size=6144 --max-http-header-size=16384"
+ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ENV  SVXT="jupyterlab jupyter_firefly_extensions \
+ARG  SVXT="jupyterlab jupyter_firefly_extensions \
           nbdime jupyterlab_iframe \
 	  rubin_jupyter_utils.lab.serverextensions.hub_comm \
           rubin_jupyter_utils.lab.serverextensions.settings \
           rubin_jupyter_utils.lab.serverextensions.query"
-ENV  NBXT="widgetsnbextension ipyevents nbdime"
+ARG  NBXT="widgetsnbextension ipyevents nbdime"
 # nbdime is special and already installed its extensions
 RUN  nbdime extensions --disable && \
      source ${LOADSTACK} && \
@@ -278,6 +278,9 @@ RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
 RUN  rm -f /etc/passwd- /etc/shadow- /etc/group- /etc/gshadow-
 COPY  noninteractive /opt/lsst/software/jupyterlab/noninteractive/
 # Mount configmap at ^^ command/command.json
+# Overwrite Stack Container definitions with more-accurate-for-us ones
+ENV  DESCRIPTION="Rubin Science Platform Notebook Aspect"
+ENV  SUMMARY="Rubin Science Platform Notebook Aspect"
 WORKDIR /tmp
 # This needs to be numeric for k8s non-root contexts
 USER 769:769

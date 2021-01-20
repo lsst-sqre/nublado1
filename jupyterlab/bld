@@ -185,7 +185,7 @@ if [ "${FLATTEN}" -eq 1 ]; then
 		    ;;
 	    esac
 	    if [ -n "$itype" ]; then
-		docker tag ${IMAGE_NAME}:${img_str} ${IMAGE_NAME}:latest_${itype}
+		docker tag ${img_str} ${IMAGE_NAME}:latest_${itype}
 		docker push ${IMAGE_NAME}:latest_${itype}
 	    fi
 	    docker tag ${img_str} ${IMAGE_NAME}:latest

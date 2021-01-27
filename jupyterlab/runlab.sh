@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function setup_git() {
     # If we have a token, remove old token and update with new one.
@@ -158,7 +158,7 @@ if [ ${rc} -ne 0 ]; then
     git lfs install
 fi
 # Bump up node max storage to allow rebuild
-NODE_OPTIONS=${NODE_OPTIONS:-"--max-old-space-size=6144"}
+NODE_OPTIONS=${NODE_OPTIONS:-"--max-old-space-size=7168"}
 export NODE_OPTIONS
 sync
 cd ${HOME}
@@ -228,7 +228,8 @@ cmd="jupyter-rubinlab \
      --LabApp.shutdown_no_activity_timeout=43200 \
      --MappingKernelManager.cull_idle_timeout=43200 \
      --MappingKernelManager.cull_connected=True \
-     --FileContentsManager.hide_globs=[]"
+     --FileContentsManager.hide_globs=[] \
+     --KernelSpecManager.ensure_native_kernel=False"
 #     --SingleUserNotebookApp.hub_api_url=${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVER_PREFIX}
 #     --SingleUserNotebookApp.hub_prefix=${JUPYTERHUB_SERVICE_PREFIX}
 #     --SingleUserNotebookApp.hub_host=${EXTERNAL_INSTANCE_URL}
@@ -257,4 +258,5 @@ if [ -n "${DEBUG}" ]; then
     exit 0 # Not reached
 fi
 # Start Lab
+source ${LOADRSPSTACK}
 exec ${cmd}

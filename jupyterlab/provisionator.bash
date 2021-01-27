@@ -28,11 +28,9 @@ function setup_user() {
         ${user_provisioning} || debug_pause
     fi
     # We are running as the provisioning user, so write the
-    #  sudoers files and change the permissions on staging dir.
-    change_staging_id="${sudo} ${PROVDIR}/changestagingid.bash ${U_NAME}"
+    #  sudoers files
     write_user_sudoer="${sudo} ${PROVDIR}/writeusersudoer.bash ${U_NAME}"
     ${write_user_sudoer} || debug_pause
-    ${change_staging_id} || debug_pause
 }
 
 function forget_extraneous_vars() {

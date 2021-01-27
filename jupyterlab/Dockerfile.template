@@ -1,166 +1,40 @@
 FROM {{BASE_IMAGE}}:{{TAG_PREFIX}}{{TAG}}
 USER root
 SHELL ["/bin/bash", "-lc"]
-# If we don't have locales set correctly, the pip install pieces can fail.
 ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
-# This will be an interactive system, so we do want man pages after all
-RUN  sed -i -e '/tsflags\=nodocs/d' /etc/yum.conf
-# PROD branch only: Pin versions
-# Install all the repos
-RUN  S="script.rpm.sh" && \
-      curl -s \
-       https://packagecloud.io/install/repositories/github/git-lfs/${S} \
-       -o /tmp/script.rpm.sh && \
-      bash /tmp/script.rpm.sh && \
-      rm /tmp/script.rpm.sh
-RUN  cd /tmp && \
-      curl -sL https://rpm.nodesource.com/setup_14.x -o node_repo.sh && \
-      chmod 0755 node_repo.sh && \
-      ./node_repo.sh && \
-      rm ./node_repo.sh
-RUN  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo \
-       > /etc/yum.repos.d/yarn.repo
-RUN  yum install -y centos-release-scl
-RUN  yum clean all
-RUN  rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir=${jl}/versions.input
 COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
-RUN  yum install -y epel-release
-RUN  yum repolist
-RUN  yum -y install $(cat ${verdir}/rpmlist.txt | xargs)
-# Install pip3
-RUN  python3 -m ensurepip
 ARG  srcdir=/opt/lsst/src
-RUN  mkdir -p ${srcdir}/thirdparty
-# Install Hub
-RUN  cd /tmp && \
-     V="2.14.2" && \
-     FN="hub-linux-amd64-${V}" && \
-     F="${FN}.tgz" && \
-     URL="https://github.com/github/hub/releases/download/v${V}/${F}" && \
-     cmd="curl -L ${URL} -o ${F}" && \
-     ${cmd} && \
-     tar xpfz ${F} && \
-     install -m 0755 ${FN}/bin/hub /usr/bin && \
-     rm -rf ${F} ${FN}
-# Install Snappy
-# First we need a newer cmake
-RUN  cd /tmp && \
-      V="3.18.4" && \
-      FN="cmake-${V}-Linux-x86_64" && \
-      F="${FN}.tar.gz" && \
-      URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
-      cmd="curl -L ${URL} -o ${F}" && \
-      ${cmd} && \
-      cd /usr/local && \
-      tar xvz --strip-components=1 -f /tmp/${F} && \
-      cd /tmp && \
-      rm -rf ${F} ${FN}
-# Now we can build Snappy
-RUN  cd ${srcdir}/thirdparty && \
-      V="1.1.8" && \
-      git clone -b ${V} https://github.com/google/snappy && \
-      cd snappy && \
-      git checkout -b ${V} && \
-      mkdir build && \
-      cd build && \
-      /usr/local/bin/cmake -DBUILD_SHARED_LIBS=1 ../ && \
-      make && \
-      make install
-# Install Pandoc
-RUN  cd /tmp && \
-      V="2.11.0.4" && \
-      FN="pandoc-${V}-linux-amd64" && \
-      F="${FN}.tar.gz" && \
-      URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
-      cmd="curl -L ${URL} -o ${F}" && \
-      ${cmd} && \
-      tar xvfz ${F} -C /usr --strip-components=1 && \
-      rm -rf ${F}
-# This is for Fritz, and my nefarious plan to make the "te" in "Jupyter"
-#  TECO
-# We're not doing the "Make" alias--too likely to confuse
-ARG  teco_commit="79fcb6cfd6c5f9759f6ec46aeaf86d5806b13a0b"
-RUN  cd ${srcdir}/thirdparty && \
-      git clone https://github.com/blakemcbride/TECOC.git && \
-      cd TECOC/src && \
-      git checkout ${teco_commit} && \
-      make -f makefile.linux && \
-      install -m 0755 tecoc /usr/local/bin && \
-      mkdir -p /usr/local/share/doc/tecoc && \
-      cp ../doc/* /usr/local/share/doc/tecoc && \
-      cd /usr/local/bin && \
-      for i in teco inspect mung; do \
-          ln -s tecoc ${i} ; \
-      done
-# Install minimal LaTeX from TexLive
-COPY texlive.profile /tmp
-RUN  cd /tmp && \
-      FN="install-tl-unx.tar.gz" && \
-      wget http://mirror.ctan.org/systems/texlive/tlnet/${FN} && \
-      tar xvpfz ${FN} && \
-      ./install-tl-*/install-tl --repository \
-      http://ctan.math.illinois.edu/systems/texlive/tlnet \
-        --profile /tmp/texlive.profile && \
-      rm -rf /tmp/${FN} /tmp/install-tl*
-# More TeX stuff we need for PDF export
-RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
-     tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
-     upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
-     mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx \
-     latexmk dvipng beamer parskip fontspec titling tools
-# This, bizarrely, has to be installed on its own to get the binaries.
-RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
-     tlmgr install xetex && \
-     ln -s /usr/local/texlive/2020/bin/x86_64-linux/xelatex \
-           /usr/local/texlive/2020/bin/x86_64-linux/bibtex \
-           /usr/bin
-# Get newer pip/setuptools/wheel before Python packages
-COPY versions/requirements-system.txt ${verdir}/requirements-system.txt
-RUN  pipver=$(grep ^pip\= ${verdir}/requirements-system.txt \
-      | cut -d '=' -f 3) && \
-      setupver=$(grep ^setuptools ${verdir}/requirements-system.txt \
-      | cut -d '=' -f 3) && \
-      wheelver=$(grep ^wheel ${verdir}/requirements-system.txt \
-      | cut -d '=' -f 3) && \
-      pip3 install --upgrade pip==${pipver} setuptools==${setupver} \
-       wheel==${wheelver}
-# Install pinned python versions
-RUN  pip3 install --upgrade --use-feature=2020-resolver \
-      -r ${verdir}/requirements-system.txt
+ARG  BLD=${srcdir}/build
+RUN  mkdir -p ${BLD}
+COPY stage1-rpm.sh ${BLD}
+RUN  ${BLD}/stage1-rpm.sh
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
+ARG  jl=/opt/lsst/software/jupyterlab
+ARG  verdir=${jl}/versions.input
+COPY versions/rpmlist.txt ${verdir}/rpmlist.txt
+ARG  srcdir=/opt/lsst/src
+ARG  BLD=${srcdir}/build
+COPY stage1-rpm.sh ${BLD}
+RUN  ${BLD}/stage1-rpm.sh
+RUN  mkdir -p /tmp/tex
+COPY texlive.profile /tmp/tex
+ARG  teco_commit="79fcb6cfd6c5f9759f6ec46aeaf86d5806b13a0b"
+COPY stage2-os.sh ${BLD}
+RUN  ${BLD}/stage2-os.sh
+ARG  js9_ver="v3.1"
 COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt
 COPY versions/conda-stack.yml ${verdir}/conda-stack.yml
-# Should be a no-op
-# Really really isn't.  Conda solve is awful.
-# RUN  source ${LOADSTACK} && conda install proj4 cartopy
-#
-# What happens when we don't mess with conda?
-#
-# RUN  source ${LOADSTACK} && \
-#       ce=$(conda env list | grep '\*' | awk '{print $1}') && \
-#       conda env update -n ${ce} --file ${verdir}/conda-stack.yml && \
-#       conda clean -a -y
-# Inject Python via pip into Stack environment
-ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
-RUN  source ${LOADSTACK} && \
-      pip install --upgrade --use-feature=2020-resolver \
-       -r ${verdir}/requirements-stack.txt
-# Install pyjs9 (not packaged on PyPi)
-ARG  js9_ver="v3.1"
-RUN  pip3 install --use-feature=2020-resolver \
-       git+https://github.com/ericmandel/pyjs9.git@${js9_ver} && \
-      source ${LOADSTACK} && \
-      pip install --use-feature=2020-resolver \
-       git+https://github.com/ericmandel/pyjs9.git@${js9_ver}
-# Add stack kernel
-RUN source ${LOADSTACK} && \
-     python3 -m ipykernel install --name 'LSST'
-# Install our extensions
-# First inject jupyter_notebook_config with terminado settings, *then*
-#  edit it by adding jupyter server extensions.
+ENV  LOADRSPSTACK=/opt/lsst/software/rspstack/loadrspstack.bash
+RUN  mkdir -p /opt/lsst/software/rspstack
+#For a two-environment version, copy RSPLOADSTACK; for a one-env version,
+# link it
+#COPY loadrspstack.bash ${LOADRSPSTACK}
+RUN  ln -s ${LOADSTACK} ${LOADRSPSTACK}
+COPY stage3-py.sh ${BLD}
+RUN  ${BLD}/stage3-py.sh
 ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
@@ -170,77 +44,15 @@ ARG  SVXT="jupyterlab jupyter_firefly_extensions \
           rubin_jupyter_utils.lab.serverextensions.settings \
           rubin_jupyter_utils.lab.serverextensions.query"
 ARG  NBXT="widgetsnbextension ipyevents nbdime"
-# nbdime is special and already installed its extensions
-RUN  nbdime extensions --disable && \
-     source ${LOADSTACK} && \
-     nbdime extensions --disable
-ARG  verdir="${jl}/versions.installed"
-RUN  mkdir -p ${jl}
-RUN  set -e && \
-      for s in $SVXT; do \
-          jupyter serverextension enable ${s} --py --sys-prefix ; \
-      done
-RUN  set -e && \
-      for n in $NBXT; do \
-          jupyter nbextension install ${n} --py --sys-prefix && \
-          jupyter nbextension enable ${n} --py  --sys-prefix ; \
-      done
 COPY versions/labext.txt ${verdir}/labext.txt
-RUN  set -e && \
-      LBXT=$(cat ${verdir}/labext.txt) && \
-      for l in ${LBXT}; do \
-          jupyter labextension install ${l} --no-build ; \
-      done
 ARG  instverdir="${jl}/versions.installed"
-# Create package version docs.
-RUN  mkdir -p ${instverdir} && \
-      pip3 freeze > ${instverdir}/requirements-system.txt && \
-      source ${LOADSTACK} && \
-      pip3 freeze > ${instverdir}/requirements-stack.txt && \
-      conda list --export > ${verdir}/conda-stack.txt && \
-      (rpm -qa | sort) > ${instverdir}/rpmlist.txt && \
-      (conda env export > ${instverdir}/conda-stack.yml || \
-       (echo "Failed to export conda env" > ${instverdir}/conda-stack.yml))
-RUN  set -e && \
-      LBXT=$(cat ${verdir}/labext.txt) && \
-      for l in ${LBXT} ; do \
-          jupyter labextension enable ${l} ; \
-      done
-RUN  jupyter labextension disable \
-      "@jupyterlab/filebrowser-extension:share-file"
-RUN  npm cache clean --force && \
-      jupyter lab clean && \
-      jupyter lab build --dev-build=False --minimize=False
-RUN  jupyter labextension list 2>&1 | \
-      grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
-      awk '{print $1,$2}' | tr ' ' '@' > ${instverdir}/labext.txt
-# Lab extensions require write permissions by running user.
-# If we recursively chown all of the lab directory, it gets rid of permission
-# errors on startup....but also radically slows down startup, by about
-# three minutes.
-RUN  groupadd -g 768 jovyan && \
-     uls="/usr/local/share" && \
-     jlb="jupyter/lab" && \
-     u="${uls}/${jlb}" && \
-     mkdir -p ${u}/staging ${u}/schemas ${u}/themes && \
-     set -e && \
-     for i in ${srcdir} ${u}/staging; do \
-         chgrp -R jovyan ${i} && \
-         chmod -R g+w ${i} ; \
-     done
-# Clear caches
-RUN  rm -rf /tmp/* /tmp/.[0-z]* /root/.cache/pip && \
-      yum clean all
+COPY stage4-jup.sh ${BLD}
+RUN  ${BLD}/stage4-jup.sh
 # Custom local files
 COPY local01-nbstripjq.sh local02-hub.sh local03-showrspnotice.sh  \
      local04-pythonrc.sh local05-path.sh local06-term.sh \
-     local07-virtualenvwrapper.sh local08-namespaceenv.sh \
-     local09-scl.sh \
+     local07-namespaceenv.sh \
      /etc/profile.d/
-RUN  set -e && \
-     for i in notebooks WORK DATA idleculler ; do \
-        mkdir -p /etc/skel/${i} ; \
-     done
 COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst/kernel.json
 COPY rsp_notice /usr/local/etc
@@ -255,28 +67,11 @@ COPY lsst_kernel.json selfculler.py \
       lsstwrapdask.bash dask_worker.template.yml \
       lsst_dask.yml \
       ${jl}/
-RUN  mkdir ${jl}/prov
-COPY prov/addlabuser.bash prov/changestagingid.bash \
-     prov/writeusersudoer.bash \
-     ${jl}/prov/
-# Copy the static templates where Jupyter can find them.
-RUN  c="/usr/local/share/jupyter/lab" && \
-     cp -rp "${c}/staging/templates" "${c}/static"
-# "lsst" is a real GitHub organization.
-RUN  sed -i -e \
-      's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \
-      /etc/passwd && \
-     sed -i -e 's/^lsst:x:1000/lsst_lcl:x:1000/' /etc/group && \
-     pwconv && \
-     grpconv && \
-     if [ -d /home/lsst ]; then \
-         mv /home/lsst /home/lsst_lcl ; \
-     fi
-RUN  echo "OK" > ${jl}/no_sudo_ok
-RUN  groupadd -g 769 provisionator
-RUN  useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
-RUN  rm -f /etc/passwd- /etc/shadow- /etc/group- /etc/gshadow-
+RUN  mkdir -p ${jl}/prov
+COPY prov/addlabuser.bash prov/writeusersudoer.bash ${jl}/prov/
 COPY  noninteractive /opt/lsst/software/jupyterlab/noninteractive/
+COPY  stage5-ro.sh ${BLD}
+RUN   ${BLD}/stage5-ro.sh
 # Mount configmap at ^^ command/command.json
 # Overwrite Stack Container definitions with more-accurate-for-us ones
 ENV  DESCRIPTION="Rubin Science Platform Notebook Aspect"

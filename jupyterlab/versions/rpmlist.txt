@@ -356,7 +356,7 @@ shadow-utils-4.6-5.el7.x86_64
 shared-mime-info-1.8-5.el7.x86_64
 sqlite-3.7.17-8.el7_7.1.x86_64
 sqlite-devel-3.7.17-8.el7_7.1.x86_64
-sudo-1.8.23-10.el7.x86_64
+sudo-1.8.23-10.el7_9.1.x86_64
 systemd-219-78.el7.x86_64
 systemd-libs-219-78.el7.x86_64
 systemtap-sdt-devel-4.0-13.el7.x86_64

@@ -1,6 +1,6 @@
-pip==20.2.4
-wheel==0.35.1
-setuptools==50.3.2
+pip==21.0.1
+wheel==0.36.2
+setuptools==53.0.0
 aioinflux==0.9.0
 astroquery==0.4.1
 astrowidgets==0.1.1

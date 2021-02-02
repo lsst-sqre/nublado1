@@ -128,8 +128,7 @@ RUN  pipver=$(grep ^pip\= ${verdir}/requirements-system.txt \
       pip3 install --upgrade pip==${pipver} setuptools==${setupver} \
        wheel==${wheelver}
 # Install pinned python versions
-RUN  pip3 install --upgrade --use-feature=2020-resolver \
-      -r ${verdir}/requirements-system.txt
+RUN  pip3 install --upgrade -r ${verdir}/requirements-system.txt
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 COPY versions/requirements-stack.txt ${verdir}/requirements-stack.txt
 COPY versions/conda-stack.yml ${verdir}/conda-stack.yml
@@ -146,11 +145,10 @@ COPY versions/conda-stack.yml ${verdir}/conda-stack.yml
 # Inject Python via pip into Stack environment
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 RUN  source ${LOADSTACK} && \
-      pip install --upgrade --use-feature=2020-resolver \
-       -r ${verdir}/requirements-stack.txt
+      pip install --upgrade -r ${verdir}/requirements-stack.txt
 # Install pyjs9 (not packaged on PyPi)
 ARG  js9_ver="v3.1"
-RUN  pip3 install --use-feature=2020-resolver \
+RUN  pip3 install \
        git+https://github.com/ericmandel/pyjs9.git@${js9_ver} && \
       source ${LOADSTACK} && \
       pip install --use-feature=2020-resolver \

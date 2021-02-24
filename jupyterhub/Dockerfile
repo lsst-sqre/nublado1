@@ -20,7 +20,7 @@ RUN  pip3 install \
       semver \
       jupyterhub \
       pyyaml \
-      'rubin_jupyter_utils.hub>=0.33.0,<1'
+      'rubin_jupyter_utils.hub>=0.34.1,<1'
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir \
@@ -51,5 +51,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.33.0"
+       version="0.34.1"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

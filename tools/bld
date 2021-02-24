@@ -28,7 +28,8 @@ fi
 
 # You probably want to set DOCKER_BUILDKIT in your environment if your
 #  Docker supports it.
-docker build --progress=plain ${squash} -t ${IMAGE}:${VERSION} .
+docker build --platform=amd64 --progress=plain \
+       ${squash} -t ${IMAGE}:${VERSION} .
 rc=$?
 if [ "${rc}" -ne 0 ]; then
     echo 1>&2 "Docker build failed."

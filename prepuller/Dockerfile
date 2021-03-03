@@ -6,14 +6,14 @@ RUN  yum -y upgrade
 RUN  yum install -y python3 git
 RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools wheel
-ARG  TKT="tickets/DM-28302"
-ARG  BUILDTRIGGER="Sun Nov  1 18:58:39 MST 2020"
-RUN  pip3 install --upgrade \
-      git+https://github.com/lsst-sqre/rubin-jupyter-helpers.git@${TKT} \
-      git+https://github.com/lsst-sqre/rubin-jupyter-hub.git@${TKT} \
-      git+https://github.com/lsst-sqre/rubin-jupyter-config.git@${TKT}
-#RUN  pip3 install \
-#      'rubin_jupyter_utils.hub>=0.34.1,<1.0'
+#ARG  TKT="tickets/DM-28302"
+#ARG  BUILDTRIGGER="Sun Nov  1 18:58:39 MST 2020"
+#RUN  pip3 install --upgrade \
+#      git+https://github.com/lsst-sqre/rubin-jupyter-helpers.git@${TKT} \
+#      git+https://github.com/lsst-sqre/rubin-jupyter-hub.git@${TKT} \
+#      git+https://github.com/lsst-sqre/rubin-jupyter-config.git@${TKT}
+RUN  pip3 install \
+      'rubin_jupyter_utils.hub>=0.35.0,<1.0'
 ENV  LANG=C.UTF-8
 RUN  groupadd -g 768 jovyan
 RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
@@ -22,4 +22,4 @@ USER 768:768
 CMD [ "/usr/local/bin/prepuller" ]
 LABEL      description="nublado: image prepuller" \
              name="lsstsqre/prepuller" \
-             version="exp_0.9.0-pre0"
+             version="0.9.0"

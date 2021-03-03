@@ -9,18 +9,21 @@ RUN  pip3 install \
       wsgiserver \
       mock \
       falcon \
-      inflection \
       kubernetes \
+      inflection \
       "wfdispatcher>=0.4.2,<1.0"
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-#ARG  TKT="tickets/DM-26311"
-#ARG  BUILDTRIGGER="Thu Aug 20 15:35:51 MST 2020"
+#ARG  TKT="tickets/DM-28302"
+#ARG  BUILDTRIGGER="Tue Mar  2 09:49:12 MST 2021"
 #RUN  pip3 install --upgrade \
-#      git+https://github.com/lsst-sqre/wfdispatcher.git@${TKT}
+#      git+https://github.com/lsst-sqre/rubin-jupyter-hub.git@${TKT} \
+#      git+https://github.com/lsst-sqre/rubin-jupyter-helpers.git@${TKT} \
+#      git+https://github.com/lsst-sqre/rubin-jupyter-config.git@${TKT} \
+#      git+https://github.com/lsst-sqre/wfdispatcher.git # No branch
 ARG  wf=/opt/lsst/software/workflow
 ARG  verdir=${wf}/versions
 RUN  mkdir -p ${verdir}
@@ -34,5 +37,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: workflow dispatcher" \
        name="lsstsqre/wfdispatcher" \
-       version="0.4.3-pre1"
+       version="0.4.4-pre1"
 CMD [ "/usr/local/bin/start-wf-api" ]

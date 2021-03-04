@@ -7,7 +7,7 @@ RUN  yum install -y python3 git
 RUN  python3 -m ensurepip
 RUN  pip3 install --upgrade pip setuptools wheel
 RUN  pip3 install \
-      'rubin_jupyter_utils.hub>=0.35.3,<1.0'
+      'rubin_jupyter_utils.hub>=0.35.4,<1.0'
 #Uncomment this and add a git+https URL on a pip install below it when doing
 # rapid test iteration.  Substitute date before rebuild.
 # Something like:
@@ -27,4 +27,4 @@ USER 768:768
 CMD [ "/usr/local/bin/prepuller" ]
 LABEL      description="nublado: image prepuller" \
              name="lsstsqre/prepuller" \
-             version="0.9.3"
+             version="0.9.4"

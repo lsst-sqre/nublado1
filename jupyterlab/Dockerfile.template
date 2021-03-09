@@ -190,7 +190,6 @@ RUN  pip3 install --upgrade \
        awkward \
        awkward-numba \
        aioinflux \
-       swifter \
        pyvo \
        lsst-efd-client \
        wfdispatcher \

@@ -72,7 +72,7 @@ COPY lsst_kernel.json \
        /usr/local/share/jupyter/kernels/lsst/kernel.json
 COPY rsp_notice /usr/local/etc
 COPY 20_jupytervars 30_provisionator /etc/sudoers.d/
-COPY pythonrc gitconfig /etc/skel/.pythonrc
+COPY pythonrc /etc/skel/.pythonrc
 COPY gitconfig /etc/skel/.gitconfig
 COPY git-credentials /etc/skel/.git-credentials
 COPY user_setups /etc/skel/notebooks/.user_setups

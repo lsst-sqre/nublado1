@@ -34,16 +34,16 @@ mamba install -y \
       bqplot \
       ipyvolume \
       papermill \
-      'dask=2020.12' \
+      dask \
       gcsfs \
       snappy \
-      'distributed=2020.12' \
+      distributed \
       dask-kubernetes \
       "holoviews[recommended]" \
       datashader \
       python-snappy \
       graphviz \
-      'mysqlclient!=2.0.2' \
+      mysqlclient \
       hvplot \
       intake \
       intake-parquet \

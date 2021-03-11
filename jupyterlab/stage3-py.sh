@@ -38,7 +38,7 @@ mamba install -y \
       gcsfs \
       snappy \
       'distributed=2020.12' \
-      dask-kubernetes \
+      'dask-kubernetes=0.11.0' \
       "holoviews[recommended]" \
       datashader \
       python-snappy \

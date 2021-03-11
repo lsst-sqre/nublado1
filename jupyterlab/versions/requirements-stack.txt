@@ -57,3 +57,5 @@ socketIO-client==0.7.2
 virtualenv==20.4.2
 virtualenvwrapper==4.8.4
 wfdispatcher==0.4.2
+xarray==0.16.2
+

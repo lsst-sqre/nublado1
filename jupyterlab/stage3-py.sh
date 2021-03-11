@@ -55,7 +55,6 @@ mamba install -y \
       numba \
       awkward \
       awkward-numba \
-      swifter \
       pyvo \
       'jupyterlab_iframe<0.3' \
       astrowidgets \
@@ -66,7 +65,8 @@ mamba install -y \
       terminado \
       nodejs \
       yarn \
-      "jedi<0.18.0"
+      jedi \
+      xarray
 # These are the things that are not in conda.
 pip install --upgrade \
        lsst-efd-client \

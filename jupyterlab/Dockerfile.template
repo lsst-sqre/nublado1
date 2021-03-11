@@ -205,7 +205,8 @@ RUN  pip3 install --upgrade \
        freetype-py \
        nodejs \
        jedi \
-       terminado
+       terminado \
+       xarray
 RUN pip3 install --upgrade rubin_jupyter_utils.lab
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
@@ -284,8 +285,9 @@ RUN  source ${LOADSTACK} && \
        git+https://github.com/ericmandel/pyjs9 \
        freetype-py \
        nodejs \
-       "jedi<0.18.0" \
-       "terminado>=0.9.0"
+       xarray \
+       jedi \
+       terminado
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'

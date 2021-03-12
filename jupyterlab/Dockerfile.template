@@ -31,8 +31,8 @@ RUN  ${BLD}/stage3-py.sh
 # This should be exposed at runtime for JupyterLab, hence ENV
 
 ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
-RUN  mkdir -p /usr/etc/jupyter
-COPY jupyter_notebook_config.json /usr/etc/jupyter
+RUN  mkdir -p /usr/local/etc/jupyter
+COPY jupyter_notebook_config.json /usr/local/etc/jupyter
 # Server, notebook, and lab extensions
 ARG SVXT="jupyterlab jupyter_firefly_extensions \
           nbdime jupyterlab_iframe \

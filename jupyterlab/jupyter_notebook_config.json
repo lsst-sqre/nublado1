@@ -6,8 +6,5 @@
     "nbserver_extensions": {
       "js9server.js9ext": true
     }
-  },
-  "KernelSpecManager": {
-    "whitelist": set("lsst")
   }
 }

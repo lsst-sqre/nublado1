@@ -11,7 +11,7 @@ set -e
 #
 source ${LOADRSPSTACK}
 conda install -y mamba # not strictly necessary, but better error reporting
-mamba install -y \
+mamba install --no-banner -y \
       'jupyterlab=2' \
       jupyterhub \
       jupyter-server-proxy \

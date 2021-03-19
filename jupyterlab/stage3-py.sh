@@ -71,7 +71,6 @@ mamba install --no-banner -y \
 pip install --upgrade \
        lsst-efd-client \
        wfdispatcher \
-       firefly-client \
        socketIO-client \
        rubin_jupyter_utils.lab \
        jupyterlab_hdf \

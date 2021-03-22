@@ -12,7 +12,7 @@ set -e
 source ${LOADRSPSTACK}
 conda install -y mamba # not strictly necessary, but better error reporting
 mamba install --no-banner -y \
-      'jupyterlab=2' \
+      'jupyterlab>=2.0.0,<2.3.0' \
       jupyterhub \
       jupyter-server-proxy \
       jupyter-packaging \

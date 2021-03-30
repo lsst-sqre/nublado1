@@ -38,7 +38,8 @@ ARG SVXT="jupyterlab jupyter_firefly_extensions \
           nbdime jupyterlab_iframe \
           rubin_jupyter_utils.lab.serverextensions.hub_comm \
           rubin_jupyter_utils.lab.serverextensions.settings \
-          rubin_jupyter_utils.lab.serverextensions.query"
+          rubin_jupyter_utils.lab.serverextensions.query \
+          rubin_jupyter_utils.lab.serverextensions.display_version"
 ARG NBXT="widgetsnbextension ipyevents nbdime"
 ARG LBXT="@jupyterlab/toc \
           bqplot \
@@ -57,7 +58,8 @@ ARG LBXT="@jupyterlab/toc \
           jupyter_firefly_extensions \
           @jupyterlab/hdf5 \
           @lsst-sqre/rubin-labextension-query \
-          @lsst-sqre/rubin-labextension-savequit"
+          @lsst-sqre/rubin-labextension-savequit \
+          @lsst-sqre/rubin-labextension-displayversion"
 # Broken:
 #          js9ext
 ARG  jl=/opt/lsst/software/jupyterlab

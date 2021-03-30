@@ -72,7 +72,7 @@ pip install --upgrade \
        lsst-efd-client \
        wfdispatcher \
        socketIO-client \
-       rubin_jupyter_utils.lab \
+       git+https://github.com/lsst-sqre/rubin_jupyter_utils.lab@tickets/DM-29371 \
        jupyterlab_hdf \
        jupyter_firefly_extensions \
        nbconvert[webpdf] \

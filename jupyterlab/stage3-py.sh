@@ -72,11 +72,11 @@ pip install --upgrade \
        lsst-efd-client \
        wfdispatcher \
        socketIO-client \
-       git+https://github.com/lsst-sqre/rubin_jupyter_utils.lab@tickets/DM-29371 \
        jupyterlab_hdf \
        jupyter_firefly_extensions \
        nbconvert[webpdf] \
        nclib \
+       rubin_jupyter_utils.lab \
        git+https://github.com/ericmandel/pyjs9
 
 # Add stack kernel

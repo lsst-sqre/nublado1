@@ -24,9 +24,9 @@ function manage_access_token() {
     #  variable (which eventually will go away)
     local instance_tok="/opt/lsst/software/jupyterhub/tokens/${FQDN}-token"
     if [ -e  "${instance_tok}" ]; then
-	ln -s "${instance_tok}" "${tokfile}"
+        ln -s "${instance_tok}" "${tokfile}"
     elif [ -n "${ACCESS_TOKEN}" ]; then
-	echo "${ACCESS_TOKEN}" > "${tokfile}"
+        echo "${ACCESS_TOKEN}" > "${tokfile}"
     fi
 }
 
@@ -44,12 +44,12 @@ function create_dask_yml() {
     mkdir -p "${dh}"
     local dw="${dh}/dask_worker.yml"
     if [ -e "${dtl}" ]; then
-	rm -f "${dw}"
-	rm -f "${dh}/${fname}"
-	cp "${dtl}" "${dw}"
-	ln -s "${dtl}" "${dh}/${fname}"
+        rm -f "${dw}"
+        rm -f "${dh}/${fname}"
+        cp "${dtl}" "${dw}"
+        ln -s "${dtl}" "${dh}/${fname}"
     else
-	template_dask_file
+        template_dask_file
     fi
 }
 
@@ -66,10 +66,10 @@ function template_dask_file() {
     local mb_guarantee=${MEM_GUARANTEE}
     local lastchar="$(echo ${mb_guarantee} | tail -c 1)"
     case lastchar in
-	[0-9]) mb_guarantee="${mb_guarantee}M"
-	       ;;
-	*)
-	       ;;
+        [0-9]) mb_guarantee="${mb_guarantee}M"
+               ;;
+        *)
+               ;;
     esac
     sed -e "s|{{JUPYTER_IMAGE_SPEC}}|${JUPYTER_IMAGE_SPEC}|" \
         -e "s/{{EXTERNAL_GROUPS}}/${EXTERNAL_GROUPS}/" \
@@ -88,9 +88,9 @@ function template_dask_file() {
     if [ -n "${RESTRICT_DASK_NODES}" ]; then
         mv ${dw} ${dw}.unrestricted
         sed -e "s/# nodeSelector:/nodeSelector:/" \
-	    -e "s/#   dask: ok/  dask: ok/" \
-	    ${dw}.unrestricted > ${dw} && \
-	    rm ${dw}.unrestricted
+            -e "s/#   dask: ok/  dask: ok/" \
+            ${dw}.unrestricted > ${dw} && \
+            rm ${dw}.unrestricted
     fi
     cp "${dw}"
 }
@@ -127,6 +127,7 @@ function start_dask_worker() {
 function start_noninteractive() {
     cmd='/opt/lsst/software/jupyterlab/noninteractive/noninteractive'
     echo "Starting noninteractive container: ${cmd}"
+    source ${LOADRSPSTACK}
     exec ${cmd}
     exit 0 # Not reached
 }
@@ -217,7 +218,7 @@ else
     . /opt/lsst/software/jupyterlab/refreshnb.sh
     # Clear eups cache.  Use a subshell.
     ( source /opt/lsst/software/stack/loadLSST.bash && \
-	  eups admin clearCache )
+          eups admin clearCache )
 fi
 # The Rubin Lap App plus our environment should get the right hub settings
 cmd="jupyter-rubinlab \
@@ -250,6 +251,7 @@ fi
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
     while : ; do
+        source ${LOADRSPSTACK}
         ${cmd}
         d=$(date)
         echo "${d}: sleeping."

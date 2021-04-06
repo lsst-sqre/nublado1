@@ -49,7 +49,7 @@ ARG LBXT="@jupyterlab/toc \
           nbdime-jupyterlab \
           dask-labextension \
           @jupyter-widgets/jupyterlab-manager \
-          jupyter-matplotlib@^0.7.4 \
+          jupyter-matplotlib@^0.9.0 \
           @pyviz/jupyterlab_pyviz \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \

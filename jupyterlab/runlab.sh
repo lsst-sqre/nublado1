@@ -205,6 +205,7 @@ if [ -n "${DASK_WORKER}" ]; then
     start_dask_worker
     exit 0 # Not reached
 elif [ -n "${NONINTERACTIVE}" ]; then
+    source ${LOADRSPSTACK}
     start_noninteractive
     exit 0 # Not reached
 else
@@ -250,6 +251,7 @@ fi
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
     while : ; do
+	source ${LOADRSPSTACK}
         ${cmd}
         d=$(date)
         echo "${d}: sleeping."

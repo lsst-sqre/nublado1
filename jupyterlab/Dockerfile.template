@@ -42,7 +42,7 @@ ARG SVXT="jupyterlab jupyter_firefly_extensions \
           rubin_jupyter_utils.lab.serverextensions.display_version"
 ARG NBXT="widgetsnbextension ipyevents nbdime"
 ARG LBXT="@jupyterlab/toc \
-          bqplot \
+          bqplot@0.5.23 \
           ipyevents \
           ipyvolume \
           jupyter-threejs \

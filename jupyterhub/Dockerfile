@@ -19,6 +19,7 @@ RUN  pip3 install \
       semver \
       jupyterhub \
       pyyaml \
+      'sqlalchemy<1.4' \
       'rubin_jupyter_utils.hub>=0.37.2,<1'
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \

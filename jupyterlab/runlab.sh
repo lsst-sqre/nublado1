@@ -229,6 +229,7 @@ cmd="jupyter-rubinlab \
      --LabApp.shutdown_no_activity_timeout=43200 \
      --MappingKernelManager.cull_idle_timeout=43200 \
      --MappingKernelManager.cull_connected=True \
+     --MappingKernelManager.default_kernel_name=lsst \
      --FileContentsManager.hide_globs=[] \
      --KernelSpecManager.ensure_native_kernel=False"
 #     --SingleUserNotebookApp.hub_api_url=${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVER_PREFIX}

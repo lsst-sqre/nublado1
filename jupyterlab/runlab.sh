@@ -16,6 +16,31 @@ function setup_git() {
     fi
 }
 
+function copy_butler_credentials() {
+    # Copy the credentials from the root-owned mounted secret to our homedir,
+    # set the permissions accordingly, and repoint the environment variables.
+    creddir="${HOME}/.lsst"
+    mkdir -p "${creddir}"
+    if [ -n "${AWS_SHARED_CREDENTIALS_FILE}" ]; then
+        awsname="$(basename ${AWS_SHARED_CREDENTIALS_FILE})"
+        newcreds="${creddir}/${awsname}"
+        chmod 0600 "${newcreds}"
+        cp "${AWS_SHARED_CREDENTIALS_FILE}" "${newcreds}"
+        ORIG_AWS_SHARED_CREDENTIALS_FILE="${AWS_SHARED_CREDENTIALS_FILE}"
+        AWS_SHARED_CREDENTIALS_FILE="${newcreds}"
+        export ORIG_AWS_SHARED_CREDENTIALS_FILE AWS_SHARED_CREDENTIALS_FILE
+    fi
+    if [ -n "${PGPASSFILE}" ]; then
+        pgname="$(basename ${PGPASSFILE})"
+        newpg="${creddir}/${pgname}"
+        cp "${PGPASSFILE}" "${newpg}"
+        chmod 0600 "${newpg}"
+        ORIG_PGPASSFILE="${PGPASSFILE}"
+        PGPASSFILE="${newpg}"
+        export ORIG_PGPASSFILE PGPASSFILE
+    fi
+}
+
 function manage_access_token() {
     local tokfile="${HOME}/.access_token"
     # Clear it out each new interactive lab start.
@@ -158,6 +183,8 @@ rc=$?
 if [ ${rc} -ne 0 ]; then
     git lfs install
 fi
+# Copy butler credentials to ${HOME}/.lsst
+copy_butler_credentials
 # Bump up node max storage to allow rebuild
 NODE_OPTIONS=${NODE_OPTIONS:-"--max-old-space-size=7168"}
 export NODE_OPTIONS

@@ -20,7 +20,7 @@ RUN  pip3 install \
       jupyterhub \
       pyyaml \
       'sqlalchemy<1.4' \
-      'rubin_jupyter_utils.hub>=0.37.2,<1'
+      'rubin_jupyter_utils.hub>=0.38.0,<1'
 RUN  pip uninstall pycurl && \
       export PYCURL_SSL_LIBRARY=nss && \
       pip install --compile --install-option="--with-nss" --no-cache-dir \
@@ -30,11 +30,11 @@ RUN  pip uninstall pycurl && \
 # Something like:
 # sed -i .bak -e "s/BUILDTRIGGER=\".*\"/BUILDTRIGGER=\"$(date)\"/" \
 #  Dockerfile && dedangle && ./bld
-# ARG  BUILDTRIGGER="Thu Mar 11 17:39:50 MST 2021"
-# ARG  TKT="tickets/DM-29052"
+# ARG  BUILDTRIGGER="Tue May  4 18:44:15 MST 2021"
+# ARG  TKT="tickets/DM-30026"
 # RUN  pip3 install --upgrade \
+#      git+https://github.com/lsst-sqre/rubin-jupyter-hub.git@${TKT} \
 #      git+https://github.com/lsst-sqre/rubin-jupyter-helpers.git@${TKT} \
-#      git+https://github.com/lsst-sqre/rubin-jupyter-hub.git@${TKT}
 #      git+https://github.com/lsst-sqre/rubin-jupyter-config.git@${TKT}
 ENV  jh=/opt/lsst/software/jupyterhub
 ENV  verdir=${jh}/versions
@@ -53,5 +53,5 @@ RUN  useradd -m -g jovyan -u 768 -c "JupyterHub User" jovyan
 USER 768:768
 LABEL description="Science Platform Notebook Aspect: jupyterhub" \
        name="lsstsqre/sciplat-hub" \
-       version="0.37.2"
+       version="0.38.0"
 CMD [ "/opt/lsst/software/jupyterhub/hublauncher.sh" ]

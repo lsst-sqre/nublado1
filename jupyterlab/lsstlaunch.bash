@@ -1,5 +1,7 @@
 #!/bin/bash
 CONFIG_FILE=$1
+# set non-bash standard, but still widely expected env var(s)
+export USER=${JUPYTERHUB_USER}
 # /opt/lsst/sal only exists in SAL builds of the stack
 if [ -d /opt/lsst/sal ]; then
     source /opt/lsst/sal/salbldsteps.bash 2>&1 > /dev/null

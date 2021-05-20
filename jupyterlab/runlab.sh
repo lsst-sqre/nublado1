@@ -157,9 +157,16 @@ function start_noninteractive() {
     exit 0 # Not reached
 }
 
+# Start of mainline code
+
 # Set DEBUG to a non-empty value to turn on debugging
 if [ -n "${DEBUG}" ]; then
     set -x
+fi
+# Set USER if it isn't already
+if [ -z "${USER}" ]; then
+    USER="$(id -u -n)"
+    export USER
 fi
 # Clear $HOME/.local if requested
 if [ -n "${CLEAR_DOTLOCAL}" ]; then

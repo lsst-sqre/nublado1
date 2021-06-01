@@ -93,9 +93,13 @@ ENV  DESCRIPTION="Rubin Science Platform Notebook Aspect"
 ENV  SUMMARY="Rubin Science Platform Notebook Aspect"
 # Mount configmap at ^^ command/command.json
 WORKDIR /tmp
-# This needs to be numeric for k8s non-root contexts
-USER 769:769
-CMD [ "/opt/lsst/software/jupyterlab/provisionator.bash" ]
+# This needs to be numeric for k8s non-root contexts.  We will
+#  replace it with the actual UID in the JupyterHub spawner, but 1000:1000
+#  is the container underlying lsst user, here lsst_local (as explained in
+#  stage5-ro.sh).  So just in case it's spawned by someone outside a JL
+#  context, and they manage to get all the setup env right, still not root.
+USER 1000:1000
+CMD [ "/opt/lsst/software/jupyterlab/runlab.sh" ]
 LABEL description="Rubin Science Platform Notebook Aspect: {{IMAGE_NAME}}" \
        name="{{IMAGE_NAME}}" \
        version="{{VERSION}}"

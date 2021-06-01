@@ -1,21 +1,5 @@
 #!/bin/bash
 
-function setup_git() {
-    # If we have a token, remove old token and update with new one.
-    # That way if we change permissions on our scope, the old (possibly
-    # more permissive) one doesn't hang around.
-    if [ -n "${GITHUB_ACCESS_TOKEN}" ]; then
-        local file="${HOME}/.git-credentials"
-        local gitname=${GITHUB_LOGIN:-$USER}
-        local regex="|^https://${gitname}.*@github.com\$|d"
-        sed -i '' -e ${regex} ${file}
-        local entry="https://${gitname}:${GITHUB_ACCESS_TOKEN}@github.com"
-        echo "${entry}" >> ${file}
-        chmod 0600 ${file}
-        unset GITHUB_ACCESS_TOKEN
-    fi
-}
-
 function copy_butler_credentials() {
     # Copy the credentials from the root-owned mounted secret to our homedir,
     # set the permissions accordingly, and repoint the environment variables.
@@ -47,7 +31,10 @@ function manage_access_token() {
     rm -f "${tokfile}"
     # Try the configmap first, and if that fails, use the environment
     #  variable (which eventually will go away)
-    local instance_tok="/opt/lsst/software/jupyterhub/tokens/${FQDN}-token"
+    #
+    # We need to put the configmap back in nublado2
+    #
+    local instance_tok="/opt/lsst/software/jupyterhub/tokens/access_token"
     if [ -e  "${instance_tok}" ]; then
         ln -s "${instance_tok}" "${tokfile}"
     elif [ -n "${ACCESS_TOKEN}" ]; then
@@ -58,66 +45,6 @@ function manage_access_token() {
 function copy_lsst_dask() {
     mkdir -p "${HOME}/.config/dask"
     cp "/opt/lsst/software/jupyterlab/lsst_dask.yml" "${HOME}/.config/dask/"
-}
-
-function create_dask_yml() {
-    # Try the configmap first.  As with access_token, there's one per
-    #  instance.
-    local fname="${FQDN}-dask_worker.example.yml"
-    local dtl="/opt/lsst/software/jupyterhub/dask_yaml/${fname}"
-    local dh="${HOME}/dask"
-    mkdir -p "${dh}"
-    local dw="${dh}/dask_worker.yml"
-    if [ -e "${dtl}" ]; then
-        rm -f "${dw}"
-        rm -f "${dh}/${fname}"
-        cp "${dtl}" "${dw}"
-        ln -s "${dtl}" "${dh}/${fname}"
-    else
-        template_dask_file
-    fi
-}
-
-function template_dask_file() {
-    # Do it the hard way (will be removed eventually)
-    # Overwrite any existing template.
-    local dw="${HOME}/dask/dask_worker.yml"
-    mkdir -p "${HOME}/dask"
-    local debug="\'\'"
-    if [ -n "${DEBUG}" ]; then
-        debug=${DEBUG}
-    fi
-    # Work around MEM_GUARANTEE bug
-    local mb_guarantee=${MEM_GUARANTEE}
-    local lastchar="$(echo ${mb_guarantee} | tail -c 1)"
-    case lastchar in
-        [0-9]) mb_guarantee="${mb_guarantee}M"
-               ;;
-        *)
-               ;;
-    esac
-    sed -e "s|{{JUPYTER_IMAGE_SPEC}}|${JUPYTER_IMAGE_SPEC}|" \
-        -e "s/{{EXTERNAL_GROUPS}}/${EXTERNAL_GROUPS}/" \
-        -e "s/{{EXTERNAL_UID}}/${EXTERNAL_UID}/" \
-        -e "s/{{JUPYTERHUB_USER}}/${JUPYTERHUB_USER}/" \
-        -e "s/{{CPU_LIMIT}}/${CPU_LIMIT}/" \
-        -e "s/{{MEM_LIMIT}}/${MEM_LIMIT}/" \
-        -e "s/{{CPU_GUARANTEE}}/${CPU_GUARANTEE}/" \
-        -e "s/{{MEM_GUARANTEE}}/${mb_guarantee}/" \
-        -e "s/{{DEBUG}}/${debug}/" \
-        /opt/lsst/software/jupyterlab/dask_worker.template.yml \
-        > "${dw}"
-    # Add mounts
-    echo -n "${DASK_VOLUME_B64}" | base64 -d >> "${dw}"
-    # Add restriction
-    if [ -n "${RESTRICT_DASK_NODES}" ]; then
-        mv ${dw} ${dw}.unrestricted
-        sed -e "s/# nodeSelector:/nodeSelector:/" \
-            -e "s/#   dask: ok/  dask: ok/" \
-            ${dw}.unrestricted > ${dw} && \
-            rm ${dw}.unrestricted
-    fi
-    cp "${dw}"
 }
 
 function clear_dotlocal() {
@@ -245,7 +172,6 @@ elif [ -n "${NONINTERACTIVE}" ]; then
 else
     # Create dask yml if we are an interactive Lab and not a worker
     copy_lsst_dask
-    create_dask_yml
     # Manage access token (again, only if we are a Lab)
     manage_access_token
     # Fetch/update magic notebook.
@@ -255,6 +181,7 @@ else
           eups admin clearCache )
 fi
 # The Rubin Lap App plus our environment should get the right hub settings
+# This will need to change for JL 3
 cmd="jupyter-rubinlab \
      --ip='*' \
      --port=8888 \
@@ -285,6 +212,9 @@ if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
 fi
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
+    # It is possible we want to do this all the time, to let us kill and
+    # restart the Lab without losing the container.  We should discuss
+    # how useful that would be.
     while : ; do
         source ${LOADRSPSTACK}
         ${cmd}

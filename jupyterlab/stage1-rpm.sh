@@ -12,7 +12,7 @@ rpm -qa --qf "%{NAME}\n" | xargs yum -y reinstall
 #  jq ... file are generally useful utilities
 #  ...and finally enough editors to cover most people's habits
 yum -y install \
-    gettext fontconfig perl-MD5-Digest \
+    gettext fontconfig perl-Digest-MD5 \
     jq unzip ack screen tmux tree file \
     nano vim-enhanced emacs-nox ed
 # Clear build cache

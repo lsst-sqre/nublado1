@@ -1,6 +1,0 @@
-# Allow provisioner to run certain scripts with privilege
-Cmnd_Alias PROV_CMD = /opt/lsst/software/jupyterlab/prov/addlabuser.bash,\
-                      /opt/lsst/software/jupyterlab/prov/changestagingid.bash,\
-                      /opt/lsst/software/jupyterlab/prov/writeusersudoer.bash
-
-provisionator ALL = (root) NOPASSWD: PROV_CMD

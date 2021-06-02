@@ -2,4 +2,4 @@ distributed:
   dashboard:
     link: "{EXTERNAL_INSTANCE_URL}{JUPYTERHUB_SERVICE_PREFIX}proxy/{port}/status"
 kubernetes:
-  worker-template-path: "{HOME}/dask/dask-worker.yml"
+  worker-template-path: "/etc/dask/dask-worker.yml"

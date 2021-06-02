@@ -19,9 +19,5 @@ fi
 # Flag to signal that we can work without sudo enabled
 echo "OK" > ${jl}/no_sudo_ok
 
-# Add the provisioning user; we will soon be able to drop this
-groupadd -g 769 provisionator
-useradd -m -g provisionator -u 769 -c "Provisioning User" provisionator
-
 # Remove backup passwd/group/shadow files out of paranoia
 rm -f /etc/passwd- /etc/shadow- /etc/group- /etc/gshadow-

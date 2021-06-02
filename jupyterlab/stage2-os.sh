@@ -43,15 +43,15 @@ tar xvpfz ${FN}
     --profile /tmp/tex/texlive.profile
 rm -rf /tmp/tex/${FN} /tmp/tex/install-tl*
 # More TeX stuff we need for PDF export
-PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH}
+PATH=/usr/local/texlive/2021/bin/x86_64-linux:${PATH}
 tlmgr install caption lm adjustbox xkeyval collectbox xcolor \
     upquote eurosym ucs fancyvrb zapfding booktabs enumitem ulem palatino \
     mathpazo tcolorbox pgf environ trimspaces etoolbox float rsfs jknapltx \
     latexmk dvipng beamer parskip fontspec titling tools
 # xetex, bizarrely, has to be installed on its own to get the binaries.
 tlmgr install xetex
-ln -s /usr/local/texlive/2020/bin/x86_64-linux/xelatex \
-      /usr/local/texlive/2020/bin/x86_64-linux/bibtex \
+ln -s /usr/local/texlive/2021/bin/x86_64-linux/xelatex \
+      /usr/local/texlive/2021/bin/x86_64-linux/bibtex \
       /usr/bin
 
 # Clear our caches

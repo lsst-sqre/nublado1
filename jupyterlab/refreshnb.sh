@@ -3,7 +3,7 @@ origdir=$(pwd)
 urls=${AUTO_REPO_URLS:="https://github.com/lsst-sqre/notebook-demo"}
 urllist=$(echo ${urls} | tr ',' ' ')
 reponame="notebook-demo"
-branch="prod"
+branch=${AUTO_REPO_BRANCH:="prod"}
 for url in ${urllist}; do
     reponame=$(basename ${url} .git)
     dirname="${HOME}/notebooks/${reponame}"
@@ -43,4 +43,4 @@ for url in ${urllist}; do
 	fi
     fi
 done
-cd "${origdir}"
+cd "${origdir}" # In case we were sourced and not in a subshell

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 function copy_butler_credentials() {
     # Copy the credentials from the root-owned mounted secret to our homedir,
@@ -93,8 +93,17 @@ fi
 # Set USER if it isn't already
 if [ -z "${USER}" ]; then
     USER="$(id -u -n)"
-    export USER
 fi
+export USER
+# LOADRSPSTACK should be set, but if not...
+if [ -z "${LOADRSPSTACK}" ]; then
+    if [ -e "/opt/lsst/software/rspstack/loadrspstack.bash" ]; then
+	LOADRSPSTACK="/opt/lsst/software/rspstack/loadrspstack.bash"
+    else
+	LOADRSPSTACK="/opt/lsst/software/stack/loadLSST.bash"
+    fi
+fi
+export LOADRSPSTACK
 # Clear $HOME/.local if requested
 if [ -n "${CLEAR_DOTLOCAL}" ]; then
     clear_dotlocal
@@ -104,7 +113,6 @@ unset SUDO_USER SUDO_UID SUDO_GID SUDO_COMMAND
 # Add paths
 source /etc/profile.d/local05-path.sh
 # Set GitHub configuration
-setup_git
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"
 fi
@@ -115,7 +123,7 @@ fi
 grep -q '^\[filter "lfs"\]$' ${HOME}/.gitconfig
 rc=$?
 if [ ${rc} -ne 0 ]; then
-    git lfs install
+    ( source ${LOADRSPSTACK} && git lfs install )
 fi
 # Copy butler credentials to ${HOME}/.lsst
 copy_butler_credentials
@@ -177,8 +185,7 @@ else
     # Fetch/update magic notebook.
     . /opt/lsst/software/jupyterlab/refreshnb.sh
     # Clear eups cache.  Use a subshell.
-    ( source /opt/lsst/software/stack/loadLSST.bash && \
-          eups admin clearCache )
+    ( source ${LOADRSPSTACK} && eups admin clearCache )
 fi
 # The Rubin Lap App plus our environment should get the right hub settings
 # This will need to change for JL 3

@@ -13,6 +13,7 @@ source ${LOADRSPSTACK}
 conda install -y mamba # not strictly necessary, but better error reporting
 mamba install --no-banner -y \
       'jupyterlab>=2.3.1,<3' \
+      'ipykernel<6' \
       jupyterhub \
       jupyter-server-proxy \
       jupyter-packaging \

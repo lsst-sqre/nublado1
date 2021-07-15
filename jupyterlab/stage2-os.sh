@@ -16,19 +16,13 @@ rm -rf ${F} ${FN}
 
 # This is for Fritz, and my nefarious plan to make the "te" in "Jupyter"
 #  TECO
-# We're not doing the "Make" alias--too likely to confuse
+# We switched from TECOC to Paul Koning's Python implementation because it
+#  simplifies installation a bit.  I doubt anyone is going to complain.
 cd ${srcdir}/thirdparty
-source ${LOADSTACK} # To get git and a compiler
-git clone https://github.com/blakemcbride/TECOC.git
-cd TECOC/src
-make -f makefile.linux
-install -m 0755 tecoc /usr/local/bin
-mkdir -p /usr/local/share/doc/tecoc
-cp ../doc/* /usr/local/share/doc/tecoc
-cd /usr/local/bin
-for i in teco inspect mung; do
-    ln -s tecoc ${i}
-done
+source ${LOADSTACK} # To get git
+git clone https://github.com/pkoning2/pyteco.git
+cd pyteco
+install -m 0755 teco.py /usr/local/bin/teco
 
 # Install LaTeX from TexLive; in order to make jupyterlab exports
 #  work, we lean heavily on this.  It may be possible to use a

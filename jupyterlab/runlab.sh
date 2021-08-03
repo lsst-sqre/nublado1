@@ -79,14 +79,13 @@ function start_dask_worker() {
 function start_noninteractive() {
     cmd='/opt/lsst/software/jupyterlab/noninteractive/noninteractive'
     echo "Starting noninteractive container: ${cmd}"
-    source ${LOADRSPSTACK}
     exec ${cmd}
     exit 0 # Not reached
 }
 
 # Start of mainline code
 
-# Set DEBUG to a non-empty value to turn on debugging
+# If DEBUG is set to a non-empty value, turn on debugging
 if [ -n "${DEBUG}" ]; then
     set -x
 fi
@@ -96,6 +95,10 @@ if [ -z "${USER}" ]; then
 fi
 export USER
 # LOADRSPSTACK should be set, but if not...
+# Clear $HOME/.local if requested
+if [ -n "${CLEAR_DOTLOCAL}" ]; then
+    clear_dotlocal
+fi
 if [ -z "${LOADRSPSTACK}" ]; then
     if [ -e "/opt/lsst/software/rspstack/loadrspstack.bash" ]; then
 	LOADRSPSTACK="/opt/lsst/software/rspstack/loadrspstack.bash"
@@ -104,10 +107,9 @@ if [ -z "${LOADRSPSTACK}" ]; then
     fi
 fi
 export LOADRSPSTACK
-# Clear $HOME/.local if requested
-if [ -n "${CLEAR_DOTLOCAL}" ]; then
-    clear_dotlocal
-fi
+# Do this early.  We want all the stuff from the stack environment for
+#  all the setup we run.
+source ${LOADRSPSTACK}
 # Unset SUDO env vars so that Conda doesn't misbehave
 unset SUDO_USER SUDO_UID SUDO_GID SUDO_COMMAND
 # Add paths
@@ -123,7 +125,7 @@ fi
 grep -q '^\[filter "lfs"\]$' ${HOME}/.gitconfig
 rc=$?
 if [ ${rc} -ne 0 ]; then
-    ( source ${LOADRSPSTACK} && git lfs install )
+    git lfs install
 fi
 # Copy butler credentials to ${HOME}/.lsst
 copy_butler_credentials
@@ -171,6 +173,11 @@ if [ -z "${JUPYTERHUB_SERVICE_PREFIX}" ]; then
     JUPYTERHUB_SERVICE_PREFIX="/nb/user/${JUPYTERHUB_USER}"
     export JUPYTERHUB_SERVICE_PREFIX
 fi
+# Fetch/update magic notebook.  We want this in interactive, noninteractive,
+#  and Dask pods.  We must have ${HOME} mounted but that is the case for
+#  all of those scenarios.
+. /opt/lsst/software/jupyterlab/refreshnb.sh
+eups admin clearCache 
 if [ -n "${DASK_WORKER}" ]; then
     start_dask_worker
     exit 0 # Not reached
@@ -182,10 +189,6 @@ else
     copy_lsst_dask
     # Manage access token (again, only if we are a Lab)
     manage_access_token
-    # Fetch/update magic notebook.
-    . /opt/lsst/software/jupyterlab/refreshnb.sh
-    # Clear eups cache.  Use a subshell.
-    ( source ${LOADRSPSTACK} && eups admin clearCache )
 fi
 # The Rubin Lap App plus our environment should get the right hub settings
 # This will need to change for JL 3
@@ -223,7 +226,6 @@ if [ -n "${DEBUG}" ]; then
     # restart the Lab without losing the container.  We should discuss
     # how useful that would be.
     while : ; do
-        source ${LOADRSPSTACK}
         ${cmd}
         d=$(date)
         echo "${d}: sleeping."
@@ -232,5 +234,4 @@ if [ -n "${DEBUG}" ]; then
     exit 0 # Not reached
 fi
 # Start Lab
-source ${LOADRSPSTACK}
 exec ${cmd}

@@ -4,6 +4,8 @@ urls=${AUTO_REPO_URLS:="https://github.com/lsst-sqre/notebook-demo"}
 urllist=$(echo ${urls} | tr ',' ' ')
 reponame="notebook-demo"
 branch=${AUTO_REPO_BRANCH:="prod"}
+# We need to have sourced ${LOADRSPSTACK} before we run this.  In the RSP
+#  container, we always will have done so already.
 for url in ${urllist}; do
     reponame=$(basename ${url} .git)
     dirname="${HOME}/notebooks/${reponame}"

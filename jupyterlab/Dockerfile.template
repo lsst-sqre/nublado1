@@ -6,8 +6,18 @@ SHELL ["/bin/bash", "-lc"]
 #  put in the environment by default.
 ENV  LANG=en_US.UTF-8
 ENV  LC_ALL=en_US.UTF-8
-# Runtime scripts use ${LOADSTACK}
+# Runtime scripts use ${LOADRSPSTACK} but we need the distinction
+#  in case you want to create a separate environment for the JupyterLab-
+#  specific pieces.
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
+ENV  LOADRSPSTACK=/opt/lsst/software/rspstack/loadrspstack.bash
+RUN  mkdir -p /opt/lsst/software/rspstack
+# If you want the JupyterLab pieces in their own environment, do the
+#  COPY and add the environment clone to the python build stage.  This
+#  increases container size by about 60%.  If you want it in the same
+#  environment (the default), link the RSP loadstack instead.
+#COPY loadrspstack.bash ${LOADRSPSTACK}
+RUN  ln -s ${LOADSTACK} ${LOADRSPSTACK}
 ARG  srcdir=/opt/lsst/src
 ARG  BLD=${srcdir}/build
 RUN  mkdir -p ${BLD}
@@ -17,19 +27,9 @@ RUN  mkdir -p /tmp/tex
 COPY texlive.profile /tmp/tex
 COPY stage2-os.sh ${BLD}
 RUN  ${BLD}/stage2-os.sh
-# Runtime scripts also use ${LOADRSPSTACK}
-ENV  LOADRSPSTACK=/opt/lsst/software/rspstack/loadrspstack.bash
-RUN  mkdir -p /opt/lsst/software/rspstack
-# If you want the JupyterLab pieces in their own environment, do the
-#  COPY and add the environment clone to the python stage.  This increases
-#  container size by about 60%.  If you want it in the same environment,
-#  link the RSP loadstack instead.
-#COPY loadrspstack.bash ${LOADRSPSTACK}
-RUN  ln -s ${LOADSTACK} ${LOADRSPSTACK}
 COPY stage3-py.sh ${BLD}
 RUN  ${BLD}/stage3-py.sh
 # This should be exposed at runtime for JupyterLab, hence ENV
-
 ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
 RUN  mkdir -p /usr/local/etc/jupyter
 COPY jupyter_notebook_config.json /usr/local/etc/jupyter

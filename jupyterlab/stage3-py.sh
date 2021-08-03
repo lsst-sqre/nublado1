@@ -2,7 +2,7 @@
 set -e
 #This commented-out bit, plus changing the definition of LOADRSPSTACK in
 # Dockerfile.template, will clone the environment rather than installing
-# into the stack environment itself.  This adds 50% or so to the container
+# into the stack environment itself.  This adds 60% or so to the container
 # size.
 #
 # source ${LOADSTACK}

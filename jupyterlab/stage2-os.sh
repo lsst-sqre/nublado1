@@ -19,7 +19,7 @@ rm -rf ${F} ${FN}
 # We switched from TECOC to Paul Koning's Python implementation because it
 #  simplifies installation a bit.  I doubt anyone is going to complain.
 cd ${srcdir}/thirdparty
-source ${LOADSTACK} # To get git
+source ${LOADRSPSTACK} # To get git
 git clone https://github.com/pkoning2/pyteco.git
 cd pyteco
 install -m 0755 teco.py /usr/local/bin/teco

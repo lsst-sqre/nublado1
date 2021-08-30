@@ -1,19 +1,34 @@
 #!/bin/sh
 origdir=$(pwd)
-urls=${AUTO_REPO_URLS:="https://github.com/lsst-sqre/notebook-demo"}
+# Using a different environment variable allows us to retain backwards
+#  compatibility
+if [ -n "${AUTO_REPO_SPECS}" ]; then
+    urls=${AUTO_REPO_SPECS}
+else
+    urls=${AUTO_REPO_URLS:="https://github.com/lsst-sqre/notebook-demo"}
+fi
 urllist=$(echo ${urls} | tr ',' ' ')
-reponame="notebook-demo"
-branch=${AUTO_REPO_BRANCH:="prod"}
+# Default branch is only used in the absence of a branch spec in a URL
+default_branch=${AUTO_REPO_BRANCH:="prod"}
 # We need to have sourced ${LOADRSPSTACK} before we run this.  In the RSP
-#  container, we always will have done so already.
+#  container startup environment, we always will have done so already.
+# If LSST_CONDA_ENV_NAME is not set, we have not sourced it...so do.
+if [ -z "${LSST_CONDA_ENV_NAME}" ]; then
+    source ${LOADRSPSTACK}
+fi
 for url in ${urllist}; do
-    reponame=$(basename ${url} .git)
+    branch=$(echo ${url} | cut -d '@' -f 2)
+    # Only use default_branch if branch is not specified in the URL
+    if [ "${branch}" == "${url}" ]; then
+        branch=${default_branch}
+    fi
+    repo=$(echo ${url} | cut -d '@' -f 1)
+    reponame=$(basename ${repo} .git)
     dirname="${HOME}/notebooks/${reponame}"
     if ! [ -d "${dirname}" ]; then
 	cd "${HOME}/notebooks" && \
-	    git clone ${url} && \
+	    git clone ${repo} -b ${branch} && \
 	    cd ${dirname}
-        git checkout prod
     else
 	cd "${dirname}"
     fi

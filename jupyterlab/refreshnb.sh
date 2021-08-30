@@ -20,7 +20,7 @@ for url in ${urllist}; do
     branch=$(echo ${url} | cut -d '@' -f 2)
     # Only use default_branch if branch is not specified in the URL
     if [ "${branch}" == "${url}" ]; then
-	branch=${default_branch}
+        branch=${default_branch}
     fi
     repo=$(echo ${url} | cut -d '@' -f 1)
     reponame=$(basename ${repo} .git)

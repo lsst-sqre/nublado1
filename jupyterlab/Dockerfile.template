@@ -34,14 +34,13 @@ ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
 RUN  mkdir -p /usr/local/etc/jupyter
 COPY jupyter_notebook_config.json /usr/local/etc/jupyter
 # Server, notebook, and lab extensions
-ARG SVXT="jupyterlab jupyter_firefly_extensions \
-          nbdime jupyterlab_iframe"
-ARG NBXT="widgetsnbextension ipyevents nbdime"
+ARG SVXT="jupyter_firefly_extensions \
+          jupyterlab_iframe"
+ARG NBXT="widgetsnbextension"
 ARG LBXT="ipyvolume \
-          nbdime-jupyterlab \
-          @jupyter-widgets/jupyterlab-manager \
           @wwtelescope/jupyterlab \
           jupyterlab_iframe \
+          ipyevents \
           jupyter_firefly_extensions"
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
@@ -67,10 +66,8 @@ COPY noninteractive /opt/lsst/software/jupyterlab/noninteractive/
 # Mount configmap at ^^ command/command.json
 COPY stage5-ro.sh ${BLD}
 RUN  ${BLD}/stage5-ro.sh
-# Need to change this in charts when we're ready, and then we can lose the
-#  link
-RUN  cd ${jl} && \
-      ln -s runlab.sh provisionator.bash
+# Add dask-scheduler shim
+COPY dask-scheduler-shim /usr/local/bin/dask-scheduler
 # Overwrite Stack Container definitions with more-accurate-for-us ones
 ENV  DESCRIPTION="Rubin Science Platform Notebook Aspect"
 ENV  SUMMARY="Rubin Science Platform Notebook Aspect"

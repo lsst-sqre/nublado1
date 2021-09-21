@@ -15,7 +15,7 @@ import os
 customlogger = False
 
 try:
-    from rsp_jupyter_extensions.utilities import (
+    from lsst.rsp import (
         IPythonHandler, forward_lsst_log
     )
     customlogger = True

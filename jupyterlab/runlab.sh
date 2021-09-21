@@ -126,8 +126,8 @@ source /etc/profile.d/local05-path.sh
 # Set up custom logger
 copy_logging_profile
 # Retrieve image digest
-IMAGE_DIGEST=$(python -c 'import rsp_jupyter_extensions.utilities;
-print(rsp_jupyter_extensions.utilities.get_digest())')
+IMAGE_DIGEST=$(python -c 'import lsst.rsp;
+print(lsst.rsp.get_digest())')
 export IMAGE_DIGEST
 # Set GitHub configuration
 if [ -n "${GITHUB_EMAIL}" ]; then

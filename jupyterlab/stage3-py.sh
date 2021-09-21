@@ -12,8 +12,8 @@ set -e
 source ${LOADRSPSTACK}
 conda install -y mamba # not strictly necessary, but better error reporting
 mamba install --no-banner -y \
-      'jupyterlab>=3' \
-      'ipykernel' \
+      'jupyterlab>=3,<4' \
+      ipykernel \
       jupyterhub \
       jupyter-server-proxy \
       jupyter-packaging \
@@ -42,7 +42,7 @@ mamba install --no-banner -y \
       datashader \
       python-snappy \
       graphviz \
-      'mysqlclient!=2.0.2' \
+      mysqlclient \
       hvplot \
       intake \
       intake-parquet \
@@ -54,7 +54,8 @@ mamba install --no-banner -y \
       awkward \
       awkward-numba \
       pyvo \
-      'jupyterlab_iframe' \
+      jupyterlab_iframe \
+      jupyterlab_widgets \
       astrowidgets \
       sidecar \
       python-socketio \
@@ -67,17 +68,18 @@ mamba install --no-banner -y \
       xarray \
       jupyter_bokeh \
       pyviz_comms \
-      bqplot \
       pythreejs \
+      bqplot \
       ipympl
 # These are the things that are not in conda.
 pip install --upgrade \
-       lsst-efd-client \
        nbconvert[webpdf] \
        socketIO-client \
        nclib \
        jupyterlab_hdf \
+       lsst-efd-client \
        jupyter_firefly_extensions \
+       lsst-rsp \
        rsp-jupyter-extensions
 # wfdispatcher needs rework for JL3/nublado2
 

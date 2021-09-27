@@ -3,7 +3,19 @@
 set -e
 for i in notebooks WORK DATA idleculler ; do \
    mkdir -p /etc/skel/${i} ; \
+   done
+
+# Check out notebooks-at-build-time
+branch="prod"
+notebooks="lsst-sqre/system-test rubin-dp0/tutorial-notebooks"
+nbdir="/opt/lsst/software/notebooks-at-build-time"
+owd=$(pwd)
+mkdir -p ${nbdir}
+cd ${nbdir}
+for n in ${notebooks}; do
+    git clone -b ${branch} "https://github.com/${n}"
 done
+cd ${owd}
 
 # "lsst" is a real GitHub organization, so rename the local user/group.
 sed -i -e \

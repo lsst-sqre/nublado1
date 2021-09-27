@@ -2,8 +2,8 @@
 # Set up default user directory layout
 set -e
 for i in notebooks WORK DATA idleculler ; do \
-   mkdir -p /etc/skel/${i} ; \
-   done
+    mkdir -p /etc/skel/${i} ; \
+done
 
 # Check out notebooks-at-build-time
 branch="prod"

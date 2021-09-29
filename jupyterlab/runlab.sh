@@ -34,6 +34,12 @@ function copy_logging_profile() {
     fi
 }
 
+function expand_panda_tilde() {
+    if [ "${PANDA_CONFIG_ROOT}" = "~" ]; then
+	PANDA_CONFIG_ROOT="${HOME}"
+    fi
+}
+
 function manage_access_token() {
     local tokfile="${HOME}/.access_token"
     # Clear it out each new interactive lab start.
@@ -142,6 +148,8 @@ rc=$?
 if [ ${rc} -ne 0 ]; then
     git lfs install
 fi
+# Expand the tilde in PANDA_CONFIG_ROOT if needed
+expand_panda_tilde
 # Copy butler credentials to ${HOME}/.lsst
 copy_butler_credentials
 # Bump up node max storage to allow rebuild

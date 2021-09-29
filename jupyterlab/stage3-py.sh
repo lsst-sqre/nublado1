@@ -70,7 +70,7 @@ mamba install --no-banner -y \
       xarray
 # These are the things that are not in conda.
 pip install --upgrade \
-       lsst-efd-client \
+       'lsst-efd-client==0.8.3' \
        wfdispatcher \
        socketIO-client \
        jupyterlab_hdf \

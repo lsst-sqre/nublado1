@@ -34,34 +34,14 @@ ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
 RUN  mkdir -p /usr/local/etc/jupyter
 COPY jupyter_notebook_config.json /usr/local/etc/jupyter
 # Server, notebook, and lab extensions
-ARG SVXT="jupyterlab jupyter_firefly_extensions \
-          nbdime jupyterlab_iframe \
-          rubin_jupyter_utils.lab.serverextensions.hub_comm \
-          rubin_jupyter_utils.lab.serverextensions.settings \
-          rubin_jupyter_utils.lab.serverextensions.query \
-          rubin_jupyter_utils.lab.serverextensions.display_version"
-ARG NBXT="widgetsnbextension ipyevents nbdime"
-ARG LBXT="@jupyterlab/toc \
-          bqplot@0.5.23 \
-          ipyevents \
-          ipyvolume \
-          jupyter-threejs \
-          nbdime-jupyterlab \
-          dask-labextension \
-          @jupyter-widgets/jupyterlab-manager \
-          jupyter-matplotlib@^0.9.0 \
-          @pyviz/jupyterlab_pyviz \
+ARG SVXT="jupyter_firefly_extensions \
+          jupyterlab_iframe"
+ARG NBXT="widgetsnbextension"
+ARG LBXT="ipyvolume \
+          @wwtelescope/jupyterlab \
           jupyterlab_iframe \
-          @jupyter-widgets/jupyterlab-sidecar \
-          @bokeh/jupyter_bokeh \
-          pywwt \
-          jupyter_firefly_extensions \
-          @jupyterlab/hdf5 \
-          @lsst-sqre/rubin-labextension-query \
-          @lsst-sqre/rubin-labextension-savequit \
-          @lsst-sqre/rubin-labextension-displayversion"
-# Broken:
-#          js9ext
+          ipyevents \
+          jupyter_firefly_extensions"
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
 COPY stage4-jup.sh ${BLD}
@@ -80,18 +60,17 @@ COPY user_setups /etc/skel/notebooks/.user_setups
 COPY lsst_kernel.json selfculler.py \
       lsstlaunch.bash runlab.sh refreshnb.sh \
       prepuller.sh lsstwrapdask.bash lsst_dask.yml \
+      20-logging.py \
       ${jl}/
 COPY noninteractive /opt/lsst/software/jupyterlab/noninteractive/     
+# Mount configmap at ^^ command/command.json
 COPY stage5-ro.sh ${BLD}
 RUN  ${BLD}/stage5-ro.sh
-# Need to change this in charts when we're ready, and then we can lose the
-#  link
-RUN  cd ${jl} && \
-      ln -s runlab.sh provisionator.bash
+# Add dask-scheduler shim
+COPY dask-scheduler-shim /usr/local/bin/dask-scheduler
 # Overwrite Stack Container definitions with more-accurate-for-us ones
 ENV  DESCRIPTION="Rubin Science Platform Notebook Aspect"
 ENV  SUMMARY="Rubin Science Platform Notebook Aspect"
-# Mount configmap at ^^ command/command.json
 WORKDIR /tmp
 # This needs to be numeric for k8s non-root contexts.  We will
 #  replace it with the actual UID in the JupyterHub spawner, but 1000:1000

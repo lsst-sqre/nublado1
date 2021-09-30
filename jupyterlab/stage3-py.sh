@@ -12,8 +12,8 @@ set -e
 source ${LOADRSPSTACK}
 conda install -y mamba # not strictly necessary, but better error reporting
 mamba install --no-banner -y \
-      'jupyterlab>=2.3.1,<3' \
-      'ipykernel<6' \
+      'jupyterlab>=3,<4' \
+      ipykernel \
       jupyterhub \
       jupyter-server-proxy \
       jupyter-packaging \
@@ -23,32 +23,29 @@ mamba install --no-banner -y \
       pyshp \
       pypandoc \
       astroquery \
-      ipyevents \
       ipywidgets \
       ipyevents \
       bokeh \
       cloudpickle \
-      ipympl \
       fastparquet \
       paramnb \
       ginga \
       bqplot \
       ipyvolume \
       papermill \
-      'dask=2020.12' \
+      dask \
       gcsfs \
       snappy \
-      'distributed=2020.12' \
-      'dask-kubernetes=0.11.0' \
+      distributed \
+      dask-kubernetes \
       "holoviews[recommended]" \
       datashader \
       python-snappy \
       graphviz \
-      'mysqlclient!=2.0.2' \
+      mysqlclient \
       hvplot \
       intake \
       intake-parquet \
-      jupyter-server-proxy \
       toolz \
       partd \
       nbdime \
@@ -57,7 +54,8 @@ mamba install --no-banner -y \
       awkward \
       awkward-numba \
       pyvo \
-      'jupyterlab_iframe<0.3' \
+      jupyterlab_iframe \
+      jupyterlab_widgets \
       astrowidgets \
       sidecar \
       python-socketio \
@@ -67,18 +65,24 @@ mamba install --no-banner -y \
       nodejs \
       yarn \
       jedi \
-      xarray
+      xarray \
+      jupyter_bokeh \
+      pyviz_comms \
+      pythreejs \
+      bqplot \
+      ipympl
 # These are the things that are not in conda.
 pip install --upgrade \
-       'lsst-efd-client==0.8.3' \
+       nbconvert[webpdf] \
        wfdispatcher \
        socketIO-client \
-       jupyterlab_hdf \
-       jupyter_firefly_extensions \
-       nbconvert[webpdf] \
        nclib \
-       rubin_jupyter_utils.lab \
-       git+https://github.com/ericmandel/pyjs9
+       jupyterlab_hdf \
+       'lsst-efd-client==0.8.3' \
+       jupyter_firefly_extensions \
+       lsst-rsp \
+       rsp-jupyter-extensions
+# wfdispatcher needs rework for JL3/nublado2
 
 # Add stack kernel
 python3 -m ipykernel install --name 'LSST'

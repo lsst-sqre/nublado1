@@ -25,6 +25,21 @@ function copy_butler_credentials() {
     fi
 }
 
+function copy_logging_profile() {
+    profdir="${HOME}/.ipython/profile_default/startup"
+    jldir="/opt/lsst/software/jupyterlab"
+    mkdir -p ${profdir}
+    if [ ! -e "${profdir}/20-logging.py" ]; then
+	cp ${jldir}/20-logging.py ${profdir}
+    fi
+}
+
+function expand_panda_tilde() {
+    if [ "${PANDA_CONFIG_ROOT}" = "~" ]; then
+	PANDA_CONFIG_ROOT="${HOME}"
+    fi
+}
+
 function manage_access_token() {
     local tokfile="${HOME}/.access_token"
     # Clear it out each new interactive lab start.
@@ -114,6 +129,12 @@ source ${LOADRSPSTACK}
 unset SUDO_USER SUDO_UID SUDO_GID SUDO_COMMAND
 # Add paths
 source /etc/profile.d/local05-path.sh
+# Set up custom logger
+copy_logging_profile
+# Retrieve image digest
+IMAGE_DIGEST=$(python -c 'import lsst.rsp;
+print(lsst.rsp.get_digest())')
+export IMAGE_DIGEST
 # Set GitHub configuration
 if [ -n "${GITHUB_EMAIL}" ]; then
     git config --global --replace-all user.email "${GITHUB_EMAIL}"
@@ -127,11 +148,15 @@ rc=$?
 if [ ${rc} -ne 0 ]; then
     git lfs install
 fi
+# Expand the tilde in PANDA_CONFIG_ROOT if needed
+expand_panda_tilde
 # Copy butler credentials to ${HOME}/.lsst
 copy_butler_credentials
 # Bump up node max storage to allow rebuild
 NODE_OPTIONS=${NODE_OPTIONS:-"--max-old-space-size=7168"}
 export NODE_OPTIONS
+# Set timeout
+IDLE_TIMEOUT=${IDLE_TIMEOUT:-"120000"}
 sync
 cd ${HOME}
 # Do /etc/skel copy (in case we didn't provision homedir but still need to
@@ -192,34 +217,26 @@ else
 fi
 # The Rubin Lap App plus our environment should get the right hub settings
 # This will need to change for JL 3
-cmd="jupyter-rubinlab \
+cmd="jupyter labhub \
      --ip='*' \
      --port=8888 \
      --no-browser \
      --notebook-dir=${HOME} \
-     --LabApp.shutdown_no_activity_timeout=43200 \
+     --hub-prefix='/nb/hub' \
+     --hub-host='${EXTERNAL_INSTANCE_URL}' \
+     --FileContentsManager.hide_globs=[] \
+     --KernelSpecManager.ensure_native_kernel=False \
+     --LabApp.shutdown_no_activity_timeout=${IDLE_TIMEOUT} \
      --MappingKernelManager.cull_idle_timeout=43200 \
      --MappingKernelManager.cull_connected=True \
-     --MappingKernelManager.default_kernel_name=lsst \
-     --FileContentsManager.hide_globs=[] \
-     --KernelSpecManager.ensure_native_kernel=False"
-#     --SingleUserNotebookApp.hub_api_url=${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVER_PREFIX}
-#     --SingleUserNotebookApp.hub_prefix=${JUPYTERHUB_SERVICE_PREFIX}
-#     --SingleUserNotebookApp.hub_host=${EXTERNAL_INSTANCE_URL}
+     --MappingKernelManager.default_kernel_name=lsst"
 if [ -n "${DEBUG}" ]; then
-    cmd="${cmd} --debug"
+    cmd="${cmd} --debug --log-level=DEBUG"
+    echo "----JupyterLab env----"
+    env | sort
+    echo "----------------------"
 fi
-# echo "----JupyterLab env----"
-# env | sort
-# echo "----------------------"
-# echo "JupyterLab command: '${cmd}'"
-# Run idle culler.
-if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
-   [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
-     touch ${HOME}/idleculler/culler.output && \
-       nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
-             ${HOME}/idleculler/culler.output 2>&1 &
-fi
+echo "JupyterLab command: '${cmd}'"
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
     # It is possible we want to do this all the time, to let us kill and

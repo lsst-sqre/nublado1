@@ -74,6 +74,7 @@ mamba install --no-banner -y \
 # These are the things that are not in conda.
 pip install --upgrade \
        nbconvert[webpdf] \
+       wfdispatcher \
        socketIO-client \
        nclib \
        jupyterlab_hdf \

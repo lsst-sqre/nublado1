@@ -230,10 +230,6 @@ cmd="jupyter labhub \
      --MappingKernelManager.cull_idle_timeout=43200 \
      --MappingKernelManager.cull_connected=True \
      --MappingKernelManager.default_kernel_name=lsst"
-#     --SingleUserNotebookApp.hub_api_url=${EXTERNAL_INSTANCE_URL}${JUPYTERHUB_SERVER_PREFIX} \
-#     --SingleUserNotebookApp.hub_prefix=${JUPYTERHUB_SERVICE_PREFIX} \
-#     --SingleUserNotebookApp.hub_host=${EXTERNAL_INSTANCE_URL}"
-
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug --log-level=DEBUG"
     echo "----JupyterLab env----"
@@ -241,13 +237,6 @@ if [ -n "${DEBUG}" ]; then
     echo "----------------------"
 fi
 echo "JupyterLab command: '${cmd}'"
-# Run idle culler.
-#if [ -n "${JUPYTERLAB_IDLE_TIMEOUT}" ] && \
-#   [ "${JUPYTERLAB_IDLE_TIMEOUT}" -gt 0 ]; then
-#     touch ${HOME}/idleculler/culler.output && \
-#       nohup python3 /opt/lsst/software/jupyterlab/selfculler.py >> \
-#             ${HOME}/idleculler/culler.output 2>&1 &
-#fi
 if [ -n "${DEBUG}" ]; then
     # Spin while waiting for interactive container use.
     # It is possible we want to do this all the time, to let us kill and

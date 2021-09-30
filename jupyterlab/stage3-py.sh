@@ -77,7 +77,7 @@ pip install --upgrade \
        socketIO-client \
        nclib \
        jupyterlab_hdf \
-       lsst-efd-client \
+       'lsst-efd-client==0.8.3' \
        jupyter_firefly_extensions \
        lsst-rsp \
        rsp-jupyter-extensions

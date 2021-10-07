@@ -109,11 +109,11 @@ if [ -z "${USER}" ]; then
     USER="$(id -u -n)"
 fi
 export USER
-# LOADRSPSTACK should be set, but if not...
 # Clear $HOME/.local if requested
 if [ -n "${CLEAR_DOTLOCAL}" ]; then
     clear_dotlocal
 fi
+# LOADRSPSTACK should be set, but if not...
 if [ -z "${LOADRSPSTACK}" ]; then
     if [ -e "/opt/lsst/software/rspstack/loadrspstack.bash" ]; then
 	LOADRSPSTACK="/opt/lsst/software/rspstack/loadrspstack.bash"

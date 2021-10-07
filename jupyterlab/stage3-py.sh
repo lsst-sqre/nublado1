@@ -70,6 +70,7 @@ mamba install --no-banner -y \
       pyviz_comms \
       pythreejs \
       bqplot \
+      jupyterlab_execute_time \
       ipympl
 # These are the things that are not in conda.
 pip install --upgrade \

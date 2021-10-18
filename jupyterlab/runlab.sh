@@ -85,14 +85,15 @@ function copy_etc_skel() {
 }
 
 function start_dask_worker() {
-    cmd='/opt/lsst/software/jupyterlab/lsstwrapdask.bash'
+    cmd="/opt/lsst/software/jupyterlab/lsstwrapdask.bash"
     echo "Starting dask worker: ${cmd}"
     exec ${cmd}
     exit 0 # Not reached
 }
 
 function start_noninteractive() {
-    cmd='/opt/lsst/software/jupyterlab/noninteractive/noninteractive'
+    cmd="python3 -s \
+          /opt/lsst/software/jupyterlab/noninteractive/noninteractive"
     echo "Starting noninteractive container: ${cmd}"
     exec ${cmd}
     exit 0 # Not reached
@@ -217,7 +218,7 @@ else
 fi
 # The Rubin Lap App plus our environment should get the right hub settings
 # This will need to change for JL 3
-cmd="jupyter labhub \
+cmd="python3 -s -m jupyter labhub \
      --ip='*' \
      --port=8888 \
      --no-browser \

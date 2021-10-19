@@ -2,6 +2,9 @@
 set -e
 mkdir -p ${jl}
 source ${LOADRSPSTACK}
+# Don't understand why
+#  jupyter serverextension enable panel.io.jupyter_server_extension
+# fails here, but we'll just put it into the jupyter_notebook_config.json
 for s in $SVXT; do
     jupyter serverextension enable ${s} --py --sys-prefix
 done

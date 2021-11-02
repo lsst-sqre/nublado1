@@ -59,7 +59,6 @@ mamba install --no-banner -y \
       astrowidgets \
       sidecar \
       python-socketio \
-      pywwt \
       freetype-py \
       terminado \
       nodejs \

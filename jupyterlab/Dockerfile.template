@@ -38,7 +38,6 @@ ARG SVXT="jupyter_firefly_extensions \
           jupyterlab_iframe"
 ARG NBXT="widgetsnbextension"
 ARG LBXT="ipyvolume \
-          @wwtelescope/jupyterlab \
           jupyterlab_iframe \
           ipyevents \
           jupyter_firefly_extensions"

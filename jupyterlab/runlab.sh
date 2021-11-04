@@ -34,6 +34,12 @@ function copy_logging_profile() {
     fi
 }
 
+function copy_dircolors() {
+    if [ !  -e "${HOME}/.dir_colors" ]; then
+	cp /etc/dircolors.ansi-universal ${HOME}/.dir_colors
+    fi
+}
+
 function expand_panda_tilde() {
     if [ "${PANDA_CONFIG_ROOT}" = "~" ]; then
 	PANDA_CONFIG_ROOT="${HOME}"
@@ -132,6 +138,8 @@ unset SUDO_USER SUDO_UID SUDO_GID SUDO_COMMAND
 source /etc/profile.d/local05-path.sh
 # Set up custom logger
 copy_logging_profile
+# Make ls colorization better
+copy_dircolors
 # Retrieve image digest
 IMAGE_DIGEST=$(python -c 'import lsst.rsp;
 print(lsst.rsp.get_digest())')

@@ -24,6 +24,12 @@ git clone https://github.com/pkoning2/pyteco.git
 cd pyteco
 install -m 0755 teco.py /usr/local/bin/teco
 
+# The default terminal colors look bad in light mode.
+cd ${srcdir}/thirdparty
+git clone https://github.com/seebi/dircolors-solarized.git
+cd dircolors-solarized
+cp dircolors* /etc
+
 # Install LaTeX from TexLive; in order to make jupyterlab exports
 #  work, we lean heavily on this.  It may be possible to use a
 #  Conda-packaged TeX but it kinda looks like there be dragons.

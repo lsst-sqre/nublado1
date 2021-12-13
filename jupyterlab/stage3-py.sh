@@ -12,7 +12,7 @@ set -e
 source ${LOADRSPSTACK}
 conda install -y mamba # not strictly necessary, but better error reporting
 mamba install --no-banner -y \
-      'jupyterlab>=3,<4' \
+      "jupyterlab>=3,<4" \
       ipykernel \
       jupyterhub \
       jupyter-server-proxy \
@@ -61,7 +61,7 @@ mamba install --no-banner -y \
       python-socketio \
       freetype-py \
       terminado \
-      nodejs \
+      "nodejs>=16" \
       yarn \
       jedi \
       xarray \

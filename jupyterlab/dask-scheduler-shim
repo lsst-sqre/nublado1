@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-source ${LOADRSPSTACK}
-sched=$(find /opt/lsst/software/stack/conda -name dask-scheduler 2>&1 \
-	    | grep -v /pkgs/ )
-exec ${sched}
-

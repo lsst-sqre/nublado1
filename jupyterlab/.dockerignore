@@ -1,3 +1,0 @@
-# Dockerfile is generated from the template, so it always changes.
-#  Without this, there is never a valid cache.
-Dockerfile
